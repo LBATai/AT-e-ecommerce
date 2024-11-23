@@ -15,10 +15,10 @@ import * as UserService from '../../Service/UserService';
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import { useMutationHooks } from '../../hooks/useMutationHook';
 import { message } from 'antd';
-import Loading from '../../components/Pending/Pending';
+import Pending from '../../components/Pending/Pending';
 import {jwtDecode}  from "jwt-decode";
 import { useDispatch } from 'react-redux'
-
+import {updateUser} from '../../components/redux/Slide/userSlide'
 const SignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -79,12 +79,12 @@ const SignIn = () => {
               message.success('Đăng nhập thành công!');
               
               // Lưu access_token vào localStorage và giải mã token
-              localStorage.setItem('access_token', response?.access_token);
+              localStorage.setItem('access_token', JSON.stringify(response?.access_token));
               if (response?.access_token) {
                 const decoded = jwtDecode(response?.access_token);
-                console.log('decoded', decoded);
+                // console.log('decoded', decoded);
                 if(decoded?.id){
-                  console.log('Calling handleGetDetailsUser with:', decoded.id, response.access_token);
+                  // console.log('Calling handleGetDetailsUser with:', decoded.id, response.access_token);
                   handleGetDetailsUser(decoded.id, response.access_token)
                 }
               }
@@ -116,7 +116,6 @@ const SignIn = () => {
   const handleGetDetailsUser = async (id, token) => {
     const res = await UserService.getDetailsUser(id, token);
     dispatch(updateUser({...res?.data, access_token: token}));
-    console.log('res', res);
   }
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
@@ -125,7 +124,7 @@ const SignIn = () => {
   };
   return (
     <MainContainer>
-      <Loading isPending={isPending}>
+      <Pending isPending={isPending}>
         <TitleContainer>Đăng nhập</TitleContainer>
 
         <InputContainer>
@@ -172,7 +171,7 @@ const SignIn = () => {
           <LinkText onClick={handleForgotPassword}>Quên mật khẩu?</LinkText>
           <LinkText onClick={handleSignUp}>Đăng ký</LinkText>
         </LinkContainer>
-      </Loading>
+      </Pending>
     </MainContainer>
   );
 };

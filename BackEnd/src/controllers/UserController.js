@@ -43,21 +43,32 @@ const loginUser = async (req, res) => {
                 status: 'Error',
                 message: 'The input is email'
             });
-        // } else if (password !== confirmPassword){
-        //     return res.status(200).json({
-        //         status: 'Error',
-        //         message: 'Password and confirm password do not match'
-        //     });
         }
         // console.log('isCheckEmail', isCheckEmail)
         const response = await UserService.loginUser(req.body)
         const {refresh_token, ...newResponse} = response
         res.cookie('refresh_token', refresh_token, {
-            HttpOnly: true,
-            Secure: true,
-        })
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production', // Chỉ bật secure nếu là production (HTTPS)
+            sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+            path: '/',
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
+        });
         // console.log('respone', respone)
         return res.status(200).json(newResponse)
+    } catch (e) {    
+        return res.status(404).json({
+            message: e 
+        });
+    }
+}
+const signOutUser = async (req, res) => {
+    try {
+        res.clearCookie('refresh_token')
+        return res.status(200).json({
+            status: 'Ok',
+            message: 'Sign out successfully'
+        })
     } catch (e) {    
         return res.status(404).json({
             message: e 
@@ -118,7 +129,7 @@ const getDetailsUser = async (req, res) => {
         const userId = req.params.id
         if(!userId) {
             return res.status(200).json({
-                status: 'Ok',
+                status: 'ERR',
                 message: 'Req is id'
             });
         } 
@@ -134,6 +145,8 @@ const getDetailsUser = async (req, res) => {
 }
 
 const refreshToken = async (req, res) => {
+    // console.log('req.cookies.refresh_token:', req.cookies.refresh_token)
+
     try {
         const token = req.cookies.refresh_token
         if(!token) {
@@ -160,5 +173,6 @@ module.exports = {
     deleteUser,
     getAllUser,
     getDetailsUser,
-    refreshToken
+    refreshToken,
+    signOutUser
 }

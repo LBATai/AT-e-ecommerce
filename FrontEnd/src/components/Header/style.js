@@ -8,7 +8,11 @@ export const WrapperHeader = styled(Row)`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  position: relative;
+  position: fixed; /* Đảm bảo luôn cố định */
+  top: 0; /* Căn chỉnh ở đầu trang */
+  left: 0;
+  width: 100%; /* Chiếm toàn bộ chiều rộng */
+  z-index: 999; /* Đặt z-index cao hơn để nằm trên các thành phần khác */
 
   @media (max-width: 768px) {
     padding: 10px 20px; /* Giảm padding cho màn hình nhỏ */
@@ -28,6 +32,37 @@ export const WrapperTextHeader = styled.span`
   @media (max-width: 768px) {
     font-size: 20px;
     margin-bottom: 10px;
+  }
+`;
+export const Popopover = styled.div`
+ display: flex;
+  flex-direction: column;
+  width: 200px; /* Đặt chiều rộng */
+  height: 200px; /* Đặt chiều cao */
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+`;
+
+// Định nghĩa style cho các mục menu
+export const MenuItem = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #333;
+  transition: background-color 0.3s ease; /* Thêm hiệu ứng chuyển màu khi hover */
+
+  &:hover {
+    background-color: #cfcfcf;
+  }
+
+  .anticon {
+    font-size: 18px;
+    margin-right: 10px;
+    color: #0080ff; /* Thêm màu cho icon */
   }
 `;
 
@@ -97,17 +132,73 @@ export const ProductListBox = styled.div`
   border: 1px solid #ccc;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   z-index: 1000;
-  padding: 10px;
-  min-width: 200px;
-  border-radius: 4px;
+  padding: 20px;
+  min-width: 250px;
+  border-radius: 8px;
+  font-size: 16px;
+  color: #333;
+  max-height: 300px;
+  overflow-y: auto;
+  width: max-content;
+
+  h4 {
+    font-size: 18px;
+    color: #007bff;
+    margin-bottom: 10px;
+  }
+
+  div {
+    padding: 8px 0;
+    font-size: 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+
+    &:hover {
+      background-color: #f0f0f0;
+    }
+  }
 
   @media (max-width: 768px) {
-    min-width: 150px;
-    padding: 8px;
+    min-width: 200px;
+    padding: 15px;
+    font-size: 14px;
   }
 `;
 
-// Hamburger menu icon and dropdown
+// Popover Styling
+export const PopoverContent = styled.div`
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 15px;
+  width: 300px;
+  font-size: 16px;
+  color: #333;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  
+  .ant-popover-inner {
+    padding: 0 !important;
+  }
+
+  .ant-popover-arrow {
+    display: none;
+  }
+
+  .popover-item {
+    padding: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+      background-color: #f0f0f0;
+    }
+  }
+
+  @media (max-width: 768px) {
+    width: 250px;
+  }
+`;
+
 export const HamburgerMenu = styled.div`
   display: none;
   flex-direction: column;
@@ -128,6 +219,4 @@ export const HamburgerLine = styled.div`
   width: 100%;
 `;
 
-export const MenuDropdown = styled.div`
-
-`;
+export const MenuDropdown = styled.div``;

@@ -17,7 +17,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useMutationHooks } from '../../hooks/useMutationHook';
 import * as UserService from '../../Service/UserService';
 import { message } from 'antd';
-import Loading from '../../components/Pending/Pending';
+import Pending from '../../components/Pending/Pending';
 
 const SignUpPage = () => {
   const [email, setEmail] = useState('');
@@ -137,7 +137,7 @@ const SignUpPage = () => {
     <MainContainer>
       <TitleContainer>Đăng Ký</TitleContainer>
 
-      {isPending && <Loading />} {/* Hiển thị loading khi đang đăng ký */}
+      {isPending && <Pending />} {/* Hiển thị Pending khi đang đăng ký */}
 
       <InputContainer>
         <InputBox

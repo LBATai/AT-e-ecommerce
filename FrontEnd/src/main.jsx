@@ -9,11 +9,11 @@ import { store } from '../src/components/redux/store.js';
 
 createRoot(document.getElementById('root')).render(
   <QueryClientProvider client={queryClient}>
-    <StrictMode>
+    {/* <StrictMode> */}
       <Provider store={store}>
         <App />
       </Provider>
-    </StrictMode>
+    {/* </StrictMode> */}
     <ReactQueryDevtools initialIsOpen={false} />
   </QueryClientProvider>
 

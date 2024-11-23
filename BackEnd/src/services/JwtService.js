@@ -12,22 +12,21 @@ const genneralAccessToken = async (payload) => {
 const genneralRefreshToken = async (payload) => {
     const refresh_token = jwt.sign({
         ...payload
-    },process.env.REFRESH_TOKEN , { expiresIn: '365d' });
+    },process.env.REFRESH_TOKEN , { expiresIn: '7d' });
     return refresh_token;
 }
 
 const refreshTokenJwtService = (token) => {
     return new Promise(async (resolve, reject) => {
         try {
-            console.log('token', token);
+            // console.log('token', token);
             jwt.verify(token,process.env.REFRESH_TOKEN, async (err, user) => {
                 if (err) {
                     return reject(new Error('Invalid token'));
                 }
-                const { payload } = user;
                 const access_token = await genneralAccessToken({
-                    id: token?.id,
-                    isAdmin: payload?.isAdmin 
+                    id: user?.id,
+                    isAdmin: user?.isAdmin 
                 });
                 resolve({
                     status: 'OK',
@@ -36,10 +35,13 @@ const refreshTokenJwtService = (token) => {
                 })
             })
 
-        } catch (e) {
-                reject(e);
-                console.log(e);
-            }
+        }catch (e) {
+            console.error('Error Details:', { name: e.name, message: e.message, stack: e.stack });
+            return res.status(500).json({
+                status: 'ERROR',
+                message: 'Internal server error'
+            });
+        }
         })
 }
 

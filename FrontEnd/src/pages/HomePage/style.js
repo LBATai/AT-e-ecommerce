@@ -1,20 +1,24 @@
 import styled from 'styled-components';
 
 export const WrapperHome = styled.div`
-  display: flex;
+  display: flex; /* Sử dụng flex để căn chỉnh Navbar và sản phẩm */
+  background-color: #ff0000;
 `;
 
 export const CardContainer = styled.div`
-  display: flex; /* Sử dụng flex để hiển thị theo hàng ngang */
-  justify-content: space-between; /* Căn chỉnh đều các sản phẩm */
-`;
-
-export const Card = styled.div`
-  flex: 0 0 calc(25% - 10px); /* Mỗi sản phẩm chiếm 25% chiều rộng (tổng cộng 4 sản phẩm trên hàng) */
-  margin-bottom: 20px; /* Khoảng cách dưới mỗi sản phẩm */
+  display: grid; /* Sử dụng grid để bố trí sản phẩm */
+  grid-template-columns: repeat(4, 1fr); /* Tối đa 4 sản phẩm trên 1 hàng */
+  gap: 20px 20px;  
+  width: calc(100% - 250px); /* Chiếm phần còn lại sau khi trừ độ rộng Navbar */
+  margin-top: 60px;
+  margin-left: 50px;
+  margin-right: 150px;
+  padding: 20px;
+  background-color: #0000ff;
 `;
 
 export const PaginationContainer = styled.div`
-  display: flex; /* Sử dụng flex để hiển thị các phân trang */
-  justify-content: center; /* Căn chỉnh đ��u các phân trang */
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
 `;

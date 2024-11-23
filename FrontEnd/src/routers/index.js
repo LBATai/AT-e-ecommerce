@@ -4,7 +4,8 @@ import PageNotFound from "../pages/PageNotFound/PageNotFound";
 import ProductDetail from "../pages/ProductDetailPage/ProductDetail";
 import SignInPage from "../pages/SignInPage/SignInPage";
 import SignUpPage from "../pages/SignUpPage/SignUpPage";
-
+import ProfilePage from "../pages/ProfilePage/ProfilePage";
+import AdminPage from "../pages/AdminPage/AdminPage";
 export const routes = [ 
     {
         path: "/",
@@ -29,6 +30,15 @@ export const routes = [
     {
         path: "/sign-up",
         component: SignUpPage
+    },
+    {
+        path: "/profile-user",
+        component: ProfilePage
+    },
+    {
+        path: "/system/admin",
+        component: AdminPage,
+        isPrivate: true
     },
     {
         path: "*",

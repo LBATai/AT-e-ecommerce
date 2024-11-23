@@ -17,23 +17,15 @@ import {
   DiscountTag,
   Name
 } from './style';
-import image from '../../assets/images/Shoes/Ridge Grey Leather Ankle Boots.jpg';
 
-const CardProduct = () => {
+const CardProduct = (props) => {
+  const navigate = useNavigate();
+
+  const { countInStock, description, image, name, price, rating, type, selled, discount } = props;
   const [isHovered, setIsHovered] = useState(false);
   const addToCartRef = useRef(null);
   const viewDetailsRef = useRef(null);
-
-  const product = {
-    name: 'Shoe new',
-    price: '799.000',
-    discountedPrice: '639.200', // Giá sau giảm giá
-    rating: 4,
-    image: image,
-    description: 'Smart TV with a 4K resolution that provides stunning visuals, vibrant colors, and enhanced contrast. Perfect for watching movies, playing games, and much more in high quality.',
-    discount: '20%', // Thông tin giảm giá
-  };
-
+  const discountedPrice = price - (price * discount / 100);
   useEffect(() => {
     if (isHovered) {
       moveButton(addToCartRef.current);
@@ -51,7 +43,7 @@ const CardProduct = () => {
     };
     animate();
   };
-  const navigate = useNavigate();
+
   const handleViewDetails = () => {
     navigate('/product-detail'); // Chuyển hướng đến trang product
   };
@@ -59,35 +51,37 @@ const CardProduct = () => {
   return (
     <CardContainer
       style={{
-        outline: isHovered ? '4px solid #989696' : 'none',
+        outline: isHovered ? '4px solid #989696' : 'none', padding: 0, margin: 0
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <Card hoverable cover={<Image alt={product.name} src={product.image} />}>
+      <Card hoverable cover={<Image alt={name} src={image} />}>
         <Content>
           <Name>
             <Title
-                    style={{
-                      color: isHovered ? '#f70000' : '#000',
-                    }}
-                    onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}
+              style={{
+                color: isHovered ? '#f70000' : '#000',
+              }}
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
             >
-              {product.name}
-              <DiscountTag>{product.discount}</DiscountTag>
+              {name}
+              {discount && <DiscountTag>{discount}%</DiscountTag>}
             </Title>
-            <Description>{product.description}</Description>
+            <Description>{description}</Description>
           </Name>
           <PriceaAndRate>
             <div>
-              <Price className="original-price">{product.price} đ</Price> {/* Giá hiện tại */}
-              <DiscountedPrice>{product.discountedPrice} đ</DiscountedPrice> {/* Giá sau giảm giá */}
+              <Price className="original-price">{price} đ</Price> {/* Giá hiện tại */}
+              {discount && price && (
+                <DiscountedPrice>{discountedPrice} đ</DiscountedPrice> // Hiển thị giá sau giảm giá
+              )}
             </div>
             <Rating>
               <Rate 
                 disabled 
-                defaultValue={product.rating} 
+                defaultValue={rating} 
                 character={<StarOutlined />} 
               />
             </Rating>

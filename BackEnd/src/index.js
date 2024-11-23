@@ -10,13 +10,14 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3001
 
-app.get('/', (req, res) => {
-    res.send('Hello World yeah!')
-});
-
-app.use(cors())
-app.use(bodyParser.json());
+app.use(express.json()); 
 app.use(cookieParser());
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true, // Cho phép gửi cookie từ FE
+}));
+app.use(express.json({ limit: '50mb' })); // Tăng giới hạn
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 routes(app);
 
 // connect to database
