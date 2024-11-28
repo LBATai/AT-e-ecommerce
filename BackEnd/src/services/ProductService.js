@@ -55,7 +55,7 @@ const updateProduct = (id, data) => {
             const newProduct = await Product.findByIdAndUpdate(id, data, {new: true})
             resolve({
                 status: 'OK',
-                message: 'Success',
+                message: 'Update product successfully',
                 data: newProduct
             })
 

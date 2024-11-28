@@ -14,7 +14,6 @@
       queryKey: ['products'],
       queryFn: fetchProductAll,
     });        
-    console.log('data', products)
 
     return (
       <div style={{ backgroundColor: '#F5F5F5', marginTop: '70px' }}>

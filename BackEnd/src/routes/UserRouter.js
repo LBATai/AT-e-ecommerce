@@ -6,10 +6,10 @@ const { authMiddleware, authUserMiddleware } = require("../middleware/authMiddle
 router.post('/sign-up', userController.createUser)
 router.post('/sign-in', userController.loginUser)
 router.post('/sign-out', userController.signOutUser)
-router.put('/update-user/:id', authUserMiddleware, userController.updateUser)
-router.delete('/delete-user/:id', authMiddleware, userController.deleteUser)
-router.get('/getAllUser', authMiddleware, userController.getAllUser)
-router.get('/get-detailsUser/:id', authUserMiddleware, userController.getDetailsUser)
+router.put('/update-user/:id', userController.updateUser)
+router.delete('/delete-user/:id', userController.deleteUser)
+router.get('/getAllUser', userController.getAllUser)
+router.get('/get-detailsUser/:id', userController.getDetailsUser)
 router.post('/refresh-token', userController.refreshToken)
 
 module.exports = router

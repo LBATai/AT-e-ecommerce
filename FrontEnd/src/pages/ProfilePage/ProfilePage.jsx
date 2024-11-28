@@ -29,7 +29,6 @@ const ProfilePage = () => {
   const user = useSelector((state) => state.user)
   const [selectedKey, setSelectedKey] = useState('1');
   const [isEditing, setIsEditing] = useState(false);
-  const [isPending, setIsPending] = useState(false);
   const [errors, setErrors] = useState({});
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
@@ -39,16 +38,16 @@ const ProfilePage = () => {
   const [avatar, setAvatar] = useState('')
   const [address, setAddress] = useState('')
   const [age, setAge] = useState('')
-  
+
   const mutation = useMutationHooks(
     (data) => {
       const { id,access_token, ...rests} = data;
-      UserService.updateUser(id, rests, access_token,)
+      UserService.updateUser(id, access_token,rests)
     }
   )
+
   const dispatch = useDispatch();
-  const {data, isSuccess, isError} = mutation
-  console.log('data', data)
+  const {data, isSuccess, isError, isLoading} = mutation
   useEffect(() => {
     setEmail(user?.email)
     setPhone(user?.phone)
@@ -95,7 +94,6 @@ const handleOnChange = (e) => {
 };
   useEffect(() => {
     if (isSuccess) {
-        console.log('Mutation successful, data:', data);
         message.success('Cập nhật thành công!');
         handleGetDetailsUser(user?.id, user?.access_token);
     } else if (isError) {
@@ -122,23 +120,13 @@ const handleOnchangeAvatar = async ({fileList}) => {
 }
 
   const handleSubmit = () => {
-    mutation.mutate({id: user?.id, name, email, avatar, phone, address, age, access_token: user?.access_token},
-      {
-        onSuccess: (response) => {
-          // Kiểm tra dữ liệu trả về từ server
-          if (response?.status === 'Success') {
-            setIsPending(true); // Bật pending khi bắt đầu đăng ký
-          }else if(response?.message === 'The user not found'){
-            setIsPending(false); // Tắt pending nếu có lỗi
-          }
-        }
-      },
-    )
+    mutation.mutate({id: user?.id, name, email, avatar, phone, address, age, access_token: user?.access_token})
   setTimeout(() => {
     handleGetDetailsUser(user?.id, user?.access_token);
   }, 10); // Cho mutation thời gian hoàn tất
   setIsEditing(false); // Kết thúc chế độ chỉnh sửa
   }
+  
   const handlePreview = (image) => {
     setPreviewImage(image);
     setIsPreviewVisible(true);
@@ -211,9 +199,8 @@ const handleOnchangeAvatar = async ({fileList}) => {
         </Col>
       </Row>
 
-      <StyledCard title="Thông tin cá nhân" extra={<ActionButton icon={<EditOutlined />} onClick={() => setIsEditing(true)}>Chỉnh sửa</ActionButton>}>
-      {isPending && <Pending />} {/* Hiển thị Pending khi đang đăng ký */}
-      {mutation.isLoading ? (
+      <StyledCard  title="Thông tin cá nhân" extra={<ActionButton icon={<EditOutlined />} onClick={() => setIsEditing(true)}>Chỉnh sửa</ActionButton>}>
+      {mutation.isLoading  ? (
         <Pending />
       ) : isEditing ? (
               <Row gutter={[24, 16]}>
@@ -338,7 +325,7 @@ const handleOnchangeAvatar = async ({fileList}) => {
                   <div>{user.address}</div>
                 </Col>
               </Row>
-            )}
+            ) }
           </StyledCard>    
           </>
   );

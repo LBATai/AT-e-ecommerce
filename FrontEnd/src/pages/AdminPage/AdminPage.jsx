@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   BellOutlined,
   UserOutlined,
@@ -29,7 +30,11 @@ import {
 
 const AdminPage = () => {
   const [selectedMenu, setSelectedMenu] = useState('dashboard');
+  const navigate = useNavigate();
 
+  const handleHome = () => {
+    navigate('/home');
+  };
   const renderContent = () => {
     switch (selectedMenu) {
       case 'products':
@@ -109,9 +114,9 @@ const AdminPage = () => {
             <SettingOutlined style={{ fontSize: 20 }} />
             <span>Cài đặt</span>
           </MenuItem>
-          <MenuItem>
+          <MenuItem onClick={() => navigate('/home')}>
             <LogoutOutlined style={{ fontSize: 20 }} />
-            <span>Đăng xuất</span>
+            <span>Trang chủ</span>
           </MenuItem>
         </Sidebar>
         <div style={{ flex: 1 }}>{renderContent()}</div>

@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { Table, Button, Input, Modal, Form, message, Upload } from 'antd';
 
 export const ProductContainer = styled.div`
   padding: 1.5rem;
@@ -90,12 +91,12 @@ export const ActionButton = styled.button`
   height: 32px;
   border: none;
   border-radius: 4px;
-  background-color: ${props => props.danger ? '#fff3f3' : '#f5f3fe'};
-  color: ${props => props.danger ? '#ff4757' : '#6c5ce7'};
+  background-color: ${props = props.danger ? '#fff3f3' : '#f5f3fe'};
+  color: ${props = props.danger ? '#ff4757' : '#6c5ce7'};
   cursor: pointer;
   transition: all 0.3s ease;
 
   &:hover {
-    background-color: ${props => props.danger ? '#ffe0e0' : '#ece8fd'};
+    background-color: ${props = props.danger ? '#ffe0e0' : '#ece8fd'};
   }
 `;

@@ -27,6 +27,7 @@ const onSearch = (value, _e, info) => {
 };
 
 const Header = () => {
+  const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -46,9 +47,14 @@ const Header = () => {
   const [isHovering, setIsHovering] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [userAvatar, setUserAvatar] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  const user = useSelector((state) => state.user);
 
+  useEffect(() => {
+    setUserAvatar(user?.avatar);
+    setIsAdmin(user?.isAdmin)
+  }, [user?.avatar], [user?.isAdmin]);
+  
   const handleSignOut = async () => {
     try {
       await UserService.signOut();
@@ -64,16 +70,14 @@ const Header = () => {
   const handleMouseEnter = useCallback(() => setIsHovering(true), []);
   const handleMouseLeave = useCallback(() => setIsHovering(false), []);
 
-  useEffect(() => {
-    setUserAvatar(user?.avatar);
-  }, [user?.avatar]);
-
   // Content for user popover
   const userPopoverContent = (
       <Popopover>
+        {isAdmin === true ? (
         <MenuItem onClick={() => navigate('/system/admin')}>
           <AppstoreAddOutlined /> Quản lý hệ thống
         </MenuItem>
+              ) : (<div></div>)}
         <MenuItem onClick={() => navigate('/profile-user')}>
           <InfoCircleOutlined /> Thông tin tài khoản
         </MenuItem>
