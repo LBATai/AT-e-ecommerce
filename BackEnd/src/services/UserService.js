@@ -187,12 +187,56 @@ const getDetailsUser = (id) => {
         })
 }
 
+const deleteMultipleUser = (ids) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!Array.isArray(ids) || ids.length === 0) {
+                return resolve({
+                    status: 'ERR',
+                    message: 'Danh sách userIds là bắt buộc và phải là một mảng hợp lệ.',
+                });
+            }
 
+            const results = [];
+            for (const id of ids) {
+                const checkUser = await User.findOne({ _id: id });
+                if (checkUser === null) {
+                    results.push({
+                        id,
+                        status: 'ERR',
+                        message: 'Sản phẩm không tồn tại.',
+                    });
+                } else {
+                    await User.findByIdAndDelete(id);
+                    results.push({
+                        id,
+                        status: 'OK',
+                        message: 'Đã xóa thành công.',
+                    });
+                }
+            }
+
+            resolve({
+                status: 'OK',
+                message: 'Xóa người dùng hoàn tất.',
+                details: results,
+            });
+        } catch (e) {
+            reject({
+                status: 'ERR',
+                message: 'Đã xảy ra lỗi khi xóa người dùng .',
+                error: e,
+            });
+            console.error('Lỗi trong deleteMultipleUser:', e);
+        }
+    });
+};
 module.exports = {
     createUser,
     loginUser,
     updateUser,
     deleteUser,
     getAllUser,
-    getDetailsUser
+    getDetailsUser,
+    deleteMultipleUser
 }

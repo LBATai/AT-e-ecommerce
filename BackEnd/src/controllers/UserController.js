@@ -166,6 +166,26 @@ const refreshToken = async (req, res) => {
     }
 }
 
+const deleteMultipleUser = async (req, res) => {
+    try {
+        const userIds = req.body.ids; // Lấy danh sách ID từ body
+        if (!Array.isArray(userIds) || userIds.length === 0) {
+            return res.status(200).json({
+                status: 'Error',
+                message: 'Danh sách userIds là bắt buộc và phải là một mảng hợp lệ.',
+            });
+        }
+
+        const response = await UserService.deleteMultipleUser(userIds); // Đổi tên gọi service
+        return res.status(200).json(response);
+    } catch (e) {
+        return res.status(404).json({
+            message: e,
+        });
+    }
+};
+
+
 module.exports = {
     createUser,
     loginUser,
@@ -174,5 +194,6 @@ module.exports = {
     getAllUser,
     getDetailsUser,
     refreshToken,
-    signOutUser
+    signOutUser,
+    deleteMultipleUser
 }

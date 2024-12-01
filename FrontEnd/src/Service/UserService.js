@@ -11,12 +11,10 @@ export const signIn  = async (data) => {
     return res.data;
 }
 export const signUp  = async (data) => {
-    console.log('data',data)
     const res = await axios.post(`${import.meta.env.VITE_API_URL_BACKEND}/user/sign-up`, data)
     return res.data;
 }
 export const getDetailsUser  = async (id, access_token) => {
-    console.log('userservice acctoken:', id, access_token)
     const res = await axiosJWT.get(`${import.meta.env.VITE_API_URL_BACKEND}/user/get-detailsUser/${id}`, {
         headers: {
             token: `Bearer ${access_token}`,
@@ -28,6 +26,19 @@ export const deleteUser = async (id) => {
     const res = await axios.delete(`${import.meta.env.VITE_API_URL_BACKEND}/user/delete-user/${id}`)
     return res.data;
 }
+
+export const deleteMultipleUsers = async (ids) => {
+    try {
+        const res = await axios.post(`${import.meta.env.VITE_API_URL_BACKEND}/user/delete-multiple`, {
+            ids, // Gửi danh sách ID qua body
+        });
+        return res.data;
+    } catch (error) {
+        console.error('Error deleting users:', error);
+        throw error;
+    }
+};
+
 export const getAllUser  = async () => {
     // console.log('userservice acctoken:', id, access_token)
     const res = await axios.get(`${import.meta.env.VITE_API_URL_BACKEND}/user/getAllUser`)

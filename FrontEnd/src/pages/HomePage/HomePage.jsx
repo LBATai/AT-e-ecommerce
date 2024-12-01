@@ -23,9 +23,9 @@
           <Navbar />
           <CardContainer > {/* Sử dụng CardContainer */}
             {/* Lặp qua danh sách sản phẩm */}
-              {products?.data?.map((product) =>{
+              {products?.data?.map((product, index) =>{
                 return <CardProduct 
-                  key={product.id} 
+                key={product.id || index} 
                   countInStock={product.countInStock} 
                   description={product.description} 
                   image={product.image} 

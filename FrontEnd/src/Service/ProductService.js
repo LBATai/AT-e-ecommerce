@@ -6,10 +6,10 @@ export const axiosJWT = axios.create({
     withCredentials: true, // Bắt buộc để gửi và nhận cookies
 });
 
-export const getAllProduct  = async () => {
-    const res = await axios.get(`${import.meta.env.VITE_API_URL_BACKEND}/product/getAll-product`)
+export const getAllProduct = async () => {
+    const res = await axios.get(`${import.meta.env.VITE_API_URL_BACKEND}/product/getAll-product`);
     return res.data;
-}
+};
 export const createProduct  = async (data) => {
     const res = await axios.post(`${import.meta.env.VITE_API_URL_BACKEND}/product/create-product`,data)
     return res.data;
@@ -19,10 +19,7 @@ export const getDetailsProduct  = async (id) => {
     // console.log('res.data', res.data)
     return res.data;
 }
-export const deleteProduct  = async (id) => {
-    const res = await axios.delete(`${import.meta.env.VITE_API_URL_BACKEND}/product/delete-product/${id}`,)
-    return res.data;
-}
+
 export const updateProduct  = async (id, access_token, data) => {
         console.log('userservicadsdasdae acctoken:', access_token)
         const res = await axiosJWT.put(`${import.meta.env.VITE_API_URL_BACKEND}/product/update-product/${id}`,data,{
@@ -32,3 +29,20 @@ export const updateProduct  = async (id, access_token, data) => {
     })
     return res.data;
 }
+
+export const deleteProduct  = async (id) => {
+    const res = await axios.delete(`${import.meta.env.VITE_API_URL_BACKEND}/product/delete-product/${id}`,)
+    return res.data;
+}
+
+export const deleteMultipleProducts = async (ids) => {
+    try {
+        const res = await axios.post(`${import.meta.env.VITE_API_URL_BACKEND}/product/delete-multiple`, {
+            ids, // Gửi danh sách ID qua body
+        });
+        return res.data;
+    } catch (error) {
+        console.error('Error deleting products:', error);
+        throw error;
+    }
+};

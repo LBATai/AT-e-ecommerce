@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Input, Modal, Form, message, Upload, Space  } from 'antd';
-import { PlusOutlined, UploadOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Table, Button, Input, Modal, Form, message, Upload, Space,  } from 'antd';
+import { PlusOutlined, UploadOutlined, EditOutlined, DeleteOutlined,  } from '@ant-design/icons';
 import { useMutationHooks } from '../../hooks/useMutationHook';
 import * as ProductService from '../../Service/ProductService';
 import { getBase64 } from '../../utils';
@@ -22,7 +22,16 @@ const AdminProduct = () => {
   const [stateProductDetails, setStateProductDetails] = useState('')
   const [selectedProductName, setSelectedProductName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [searchText, setSearchText] = useState('');
+  
+  const onSelectChange = (newSelectedRowKeys) => {
+    setSelectedRowKeys(newSelectedRowKeys);
+  };
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: onSelectChange,
+  };
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
@@ -213,6 +222,40 @@ const AdminProduct = () => {
     }
     setImage(file.preview); // Cập nhật hình ảnh
   };
+  const handleDeleteSelectedProducts = async () => {
+    console.log('Selected Row Keys:', selectedRowKeys); 
+    Modal.confirm({
+      title: 'Xác nhận xóa',
+      content: `Bạn có chắc chắn muốn xóa ${selectedRowKeys.length} sản phẩm đã chọn không?`,
+      okText: 'Xóa',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          const res = await ProductService.deleteMultipleProducts(selectedRowKeys); // Gọi API xóa nhiều sản phẩm
+          if (res?.status === 'OK') {
+            message.success('Xóa sản phẩm thành công!');
+            fetchProducts(); // Làm mới danh sách sản phẩm
+            setSelectedRowKeys([]); // Reset danh sách sản phẩm được chọn
+          } else {
+            message.error('Xóa sản phẩm thất bại!');
+          }
+        } catch (error) {
+          console.error('Lỗi khi xóa sản phẩm:', error);
+          message.error('Đã xảy ra lỗi, vui lòng thử lại sau!');
+        }
+      },
+    });
+  };
+// Hàm handleSearch thực hiện tìm kiếm khi có từ khóa
+const handleSearch = async () => {
+  try {
+      const response = await ProductService.getAllProduct(searchText); // Gửi từ khóa tìm kiếm
+      setProducts(response.data); // Cập nhật danh sách sản phẩm
+  } catch (error) {
+      console.error('Lỗi khi tìm kiếm sản phẩm:', error);
+  }
+};
+
 
   const onFinish = (values) => {
     const newProduct = {
@@ -268,6 +311,16 @@ const AdminProduct = () => {
         <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
           Thêm Sản Phẩm Mới
         </Button>
+        {selectedRowKeys.length > 0 && (
+          <Button
+            type="primary"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={handleDeleteSelectedProducts}
+          >
+            Xóa các sản phẩm đã chọn
+          </Button>
+        )}
       </div>
 
       <Input.Search
@@ -276,6 +329,8 @@ const AdminProduct = () => {
         enterButton="Tìm kiếm"
         size="large"
         style={{ marginBottom: '20px' }}
+        onChange={(e) => setSearchText(e.target.value)} // Cập nhật từ khóa
+        onSearch={handleSearch}
       />
 
       <Table
@@ -287,7 +342,7 @@ const AdminProduct = () => {
           pageSize: 5,
           style: { display: 'flex', justifyContent: 'center' }, // Căn giữa pagination
         }} 
-        dataSource={products} // Truyền danh sách sản phẩm vào bảng
+        dataSource={products}
         onRow={(record, rowIdex) => {
           return {
             onClick: event => {
@@ -345,10 +400,10 @@ const AdminProduct = () => {
           </Form.Item>
           <Form.Item name="discount" label="Phần trăm giảm giá"           
           rules={[
-            { required: true, message: 'Vui lòng nhập phần trăm giảm giá' },
+            { required: true, message: 'Vui lòng nhập phần trăm giảm giá trong khoảng 0 - 100' },
             {
               validator: (_, value) =>
-                value && (value < 1 || value > 100)
+                value && (value < 0 || value > 100)
                   ? Promise.reject(new Error('Phần trăm giảm giá phải nằm trong khoảng 1 đến 100'))
                   : Promise.resolve(),
             },
@@ -433,10 +488,10 @@ const AdminProduct = () => {
           </Form.Item>
           <Form.Item name="discount" label="Phần trăm giảm giá"           
           rules={[
-            { required: true, message: 'Vui lòng nhập phần trăm giảm giá' },
+            { required: true, message: 'Vui lòng nhập phần trăm giảm giá trong khoảng 0 - 100' },
             {
               validator: (_, value) =>
-                value && (value < 1 || value > 100)
+                value && (value < 0 || value > 100)
                   ? Promise.reject(new Error('Phần trăm giảm giá phải nằm trong khoảng 1 đến 100'))
                   : Promise.resolve(),
             },

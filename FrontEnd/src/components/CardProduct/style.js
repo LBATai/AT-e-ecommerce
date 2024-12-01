@@ -1,120 +1,150 @@
-// src/components/CardProduct/style.js
 import styled from 'styled-components';
 import { Button } from 'antd';
 
 export const CardContainer = styled.div`
   width: 220px;
   height: 400px;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 0.5px 2px rgba(0, 0, 0, 0.3);
-  margin-left: 10px;
-  margin-top: 150px;
-  margin-bottom: 20px;
   position: relative;
+  overflow: hidden;
+  border: 5px solid transparent;
+  transition: border-color 0.1s ease-in-out;
+  display: flex;
+  flex-direction: column;
+
+  .ant-card {
+    height: 100%; /* Đảm bảo chiều cao đầy đủ */
+    display: flex;
+    flex-direction: column;
+    border-radius: 0px; /* Xóa bo tròn */
+  }
+
+  .ant-card-body {
+    padding: 10px;
+    flex-grow: 1; /* Cho phép nội dung chiếm không gian còn lại */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Đảm bảo nội dung cách đều */
+  }
+
+  &:hover {
+    border-color: #898989;
+    box-shadow: inset 0 6px 12px rgba(0, 0, 0, 0.5);
+  }
 `;
+
 
 export const Image = styled.img`
   width: 100%;
   height: 170px;
   object-fit: cover;
-  border-radius: 10px 10px 0 0;
 `;
 
 export const Content = styled.div`
-  padding: 2px;
+  padding: 10px;
   text-align: center;
-  position: relative;
+  flex-grow: 1; /* Đảm bảo phần content chiếm không gian còn lại */
 `;
 
 export const Title = styled.div`
-  font-size: 18px;
-  margin: 2px 0;
+  font-size: 16px;
+  font-weight: 400;
+  color: ${(props) => (props.isHovered ? '#f70000' : '#000')};
 `;
 
 export const Description = styled.p`
   font-size: 12px;
   color: #555;
-  height: 60px;
+  margin-top: 20px;
+  height: 65px;
   overflow: hidden;
-  text-align: justify; /* Căn đều trái và phải */
+  text-align: justify;
+  position: relative;
+
+  /* Gradient làm mờ từ trên xuống và mờ dần thành màu đen */
+  background: linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.9) 90%);
+  background-clip: text;
+  -webkit-background-clip: text; /* Dành cho trình duyệt Safari */
+  color: transparent;
 `;
 
 export const Name = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start; /* Căn trái nếu muốn */
+  color: #555;
+  height: 45px;
+  overflow: hidden;
+  text-align: start;
 `;
 
 export const Price = styled.p`
-  font-size: 16px;
-  color: gray; /* Màu xám cho giá hiện tại */
-  margin-bottom: 0; /* Đặt margin bottom về 0 */
-  text-decoration: line-through; /* Gạch ngang giá hiện tại */
+  font-size: 14px;
+  color: gray;
+  text-decoration: ${(props) => (props.discount && props.discount > 0 ? 'line-through' : 'none')};
+  font-size: ${(props) => (props.discount && props.discount < 1 ? '25px' : '14px')};
+  margin-bottom: -15px;
 `;
 
 export const DiscountedPrice = styled.p`
-  font-size: 16px; /* Kích thước chữ cho giá đã giảm */
-  color: #1890ff; /* Màu chữ cho giá đã giảm */
-  margin-top: 1px; /* Khoảng cách phía trên */
+  font-size: 18px;
+  font-size: ${(props) => (props.discount && props.discount < 1 ? '18px' : '16px')};
+  color: #ff0000
 `;
 
 export const Rating = styled.div`
-  margin-top: 42px;
-  margin-left: 10px;
-  margin-right: -25px;
+  margin-top: 10px;
+  margin-right: -20px;
+
   .ant-rate-star .anticon {
     font-size: 12px;
-    color: lightgray; /* Màu xám cho các ngôi sao chưa được đánh giá */
+    color: lightgray;
   }
 
   .ant-rate-star-full .anticon {
-    color: #FFD700; /* Màu vàng toàn bộ cho các ngôi sao đã được đánh giá */
+    color: #ffd700;
   }
 `;
 
 export const HoverActions = styled.div`
   position: absolute;
-  bottom: 1px;
-  right: -140px; /* Đặt ở ngoài box */
-  text-align: right;
-  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-  opacity: 0;
+  bottom: 14px;
+  right: -2px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  transform: translateX(0);
-
-  ${CardContainer}:hover & {
-    opacity: 1;
-    transform: translateX(-100px); /* Dịch chuyển vào box */
-  }
+  gap: 8px;
 `;
 
 export const ActionButton = styled(Button)`
-  font-size: 12px;
-  color: white;
   background-color: red;
+  color: white;
   border: none;
-  padding-left: 3px;
-  font-weight: bold;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  transform: translateX(100%);
+  transition: transform 0.15s ease-in-out, box-shadow 0.1s ease-in-out;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+
   &:hover {
-    color: white;
-    background-color: #ff4d4f;
+    background-color: #951c1c !important;  /* Màu nền đỏ đậm */
+    color: white !important;  /* Giữ nguyên màu chữ trắng */
+    /* Thêm hiệu ứng shadow khi hover */
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
   }
 `;
 
-export const PriceaAndRate =styled.div`
+export const PriceaAndRate = styled.div`
   display: flex;
-  margin-bottom: -20px;
-  margin-top: -20px;
+  gap: 20px;
+  align-items: flex-start;
 `;
 
 export const DiscountTag = styled.span`
-  background-color: red; /* Màu nền cho tag giảm giá */
-  color: white; /* Màu chữ cho tag */
-  padding: 2px 5px; /* Khoảng cách bên trong tag */
-  border-radius: 5px; /* Bo tròn góc cho tag */
-  margin-left: 10px; /* Khoảng cách với tên sản phẩm */
-  font-size: 12px; /* Kích thước chữ cho tag */
+  background-color: red;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  position: absolute;
+  top: 10px;  // Điều chỉnh khoảng cách từ trên
+  left: 10px;  // Điều chỉnh khoảng cách từ bên trái
+  z-index: 10;
 `;

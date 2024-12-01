@@ -9,91 +9,97 @@ import {
   Title,
   Description,
   Price,
-  DiscountedPrice, // Thêm để hiển thị giá sau giảm giá
+  DiscountedPrice,
   Rating,
   HoverActions,
   ActionButton,
   PriceaAndRate,
   DiscountTag,
-  Name
+  Name,
 } from './style';
 
 const CardProduct = (props) => {
   const navigate = useNavigate();
+  const { description, image, name, price, rating, discount } = props;
 
-  const { countInStock, description, image, name, price, rating, type, selled, discount } = props;
   const [isHovered, setIsHovered] = useState(false);
   const addToCartRef = useRef(null);
   const viewDetailsRef = useRef(null);
-  const discountedPrice = price - (price * discount / 100);
-  useEffect(() => {
-    if (isHovered) {
-      moveButton(addToCartRef.current);
-      moveButton(viewDetailsRef.current);
-    }
-  }, [isHovered]);
+  const discountedPrice = price - (price * discount) / 100;
 
-  const moveButton = (button) => {
-    let position = 100; // Bắt đầu từ 100% bên phải
+  const resetButtonPosition = () => {
+    if (addToCartRef.current) addToCartRef.current.style.transform = 'translateX(100%)';
+    if (viewDetailsRef.current) viewDetailsRef.current.style.transform = 'translateX(100%)';
+  };
+
+  const animateButton = (button, direction) => {
+    let position = direction === 'in' ? 100 : 0;
+    const step = direction === 'in' ? -5 : 5;
+
     const animate = () => {
-      if (position <= 0) return; // Kết thúc khi tới vị trí gốc
-      position -= 8; // Điều chỉnh tốc độ di chuyển
+      position += step;
       button.style.transform = `translateX(${position}%)`;
-      requestAnimationFrame(animate);
+
+      if ((direction === 'in' && position > 0) || (direction === 'out' && position < 100)) {
+        requestAnimationFrame(animate);
+      }
     };
     animate();
   };
 
-  const handleViewDetails = () => {
-    navigate('/product-detail'); // Chuyển hướng đến trang product
+  useEffect(() => {
+    if (isHovered) {
+      animateButton(addToCartRef.current, 'in');
+      animateButton(viewDetailsRef.current, 'in');
+    } else {
+      animateButton(addToCartRef.current, 'out');
+      animateButton(viewDetailsRef.current, 'out');
+    }
+  }, [isHovered]);
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+    }).format(value);
   };
-
   return (
     <CardContainer
-      style={{
-        outline: isHovered ? '4px solid #989696' : 'none', padding: 0, margin: 0
-      }}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        resetButtonPosition();
+      }}
     >
-      <Card hoverable cover={<Image alt={name} src={image} />}>
+      <Card  $active={isHovered} cover={<Image alt={name} src={image} />}>         
+      {discount > 0 && <DiscountTag>{discount}%</DiscountTag>}
         <Content>
           <Name>
-            <Title
-              style={{
-                color: isHovered ? '#f70000' : '#000',
-              }}
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
-            >
-              {name}
-              {discount && <DiscountTag>{discount}%</DiscountTag>}
-            </Title>
-            <Description>{description}</Description>
+          <Title style={{ color: isHovered ? '#f70000' : '#000' }}>
+            {name}
+          </Title>
           </Name>
+          <Description>{description}</Description>
           <PriceaAndRate>
             <div>
-              <Price className="original-price">{price} đ</Price> {/* Giá hiện tại */}
-              {discount && price && (
-                <DiscountedPrice>{discountedPrice} đ</DiscountedPrice> // Hiển thị giá sau giảm giá
+              <Price discount={discount}>{formatCurrency(price)}</Price>
+              {discount > 0 ? (
+                <DiscountedPrice>{formatCurrency(discountedPrice)}</DiscountedPrice>
+              ) : (
+                <DiscountedPrice style={{ visibility: 'hidden' }} /> // Ẩn discountedPrice nếu discount = 0
               )}
             </div>
             <Rating>
-              <Rate 
-                disabled 
-                defaultValue={rating} 
-                character={<StarOutlined />} 
-              />
+              <Rate disabled defaultValue={rating} character={<StarOutlined />} />
             </Rating>
           </PriceaAndRate>
-          {isHovered && (
-            <HoverActions>
-              <ActionButton ref={addToCartRef}>Thêm vào giỏ hàng</ActionButton>
-              <ActionButton ref={viewDetailsRef} onClick={handleViewDetails}>Chi tiết sản phẩm</ActionButton>
-            </HoverActions>
-          )}
         </Content>
       </Card>
+      <HoverActions>
+        <ActionButton ref={addToCartRef}>Thêm vào giỏ hàng</ActionButton>
+        <ActionButton ref={viewDetailsRef} onClick={() => navigate('/product-detail')}>
+          Chi tiết sản phẩm
+        </ActionButton>
+      </HoverActions>
     </CardContainer>
   );
 };

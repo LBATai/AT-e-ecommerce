@@ -18,7 +18,15 @@ const AdminUser = () => {
   const [stateUserDetails, setStateUserDetails] = useState('')
   const [selectedUserName, setSelectedUserName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  
+  const onSelectChange = (newSelectedRowKeys) => {
+    setSelectedRowKeys(newSelectedRowKeys);
+  };
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: onSelectChange,
+  };
   useEffect(() => {
     fetchUser(); 
   }, []);
@@ -132,7 +140,35 @@ const AdminUser = () => {
       },
     });
   };
-  
+  const handleDeleteSelectedUsers = () => {
+    if (selectedRowKeys.length === 0) {
+      message.warning('Vui lòng chọn ít nhất một tài khoản để xóa.');
+      return;
+    }
+
+    Modal.confirm({
+      title: 'Xác nhận xóa tài khoản',
+      content: `Bạn có chắc chắn muốn xóa ${selectedRowKeys.length} tài khoản này không?`,
+      okText: 'Xóa',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          // Thực hiện xóa các tài khoản đã chọn
+          const res = await UserService.deleteMultipleUsers(selectedRowKeys);
+          if (res?.status === 'OK') {
+            message.success('Xóa tài khoản thành công!');
+            fetchUser(); // Cập nhật lại danh sách sau khi xóa
+            setSelectedRowKeys([]); // Reset danh sách tài khoản đã chọn
+          } else {
+            message.error('Xóa tài khoản thất bại!');
+          }
+        } catch (error) {
+          console.error('Lỗi khi xóa tài khoản:', error);
+          message.error('Đã xảy ra lỗi khi xóa tài khoản!');
+        }
+      },
+    });
+  };
   const columns = [
     {
       title: 'Tên người dùng',
@@ -258,6 +294,16 @@ const AdminUser = () => {
         <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
           Thêm Tài Khoản Mới
         </Button>
+        {selectedRowKeys.length > 0 && (
+          <Button
+            type="primary"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={handleDeleteSelectedUsers}
+          >
+            Xóa các tài khoản đã chọn
+          </Button>
+        )}
       </div>
 
       <Input.Search
@@ -269,6 +315,7 @@ const AdminUser = () => {
       />
 
       <Table
+        rowSelection={rowSelection} 
         columns={columns}
         rowKey="_id"
         loading={isLoading}

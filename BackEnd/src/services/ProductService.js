@@ -94,6 +94,7 @@ const getDetailProduct = (id) => {
 const getAllProduct = (limit, page, sort, filter) => {
     return new Promise(async (resolve, reject) => {
         // console.log('sort', sort)
+        console.log(filter); 
         try {
             const totalProduct = await Product.countDocuments()
             if(filter){
@@ -165,10 +166,58 @@ const deleteProduct = (id) => {
         })
 }
 
+const deleteMultipleProduct = (ids) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!Array.isArray(ids) || ids.length === 0) {
+                return resolve({
+                    status: 'ERR',
+                    message: 'Danh sách productIds là bắt buộc và phải là một mảng hợp lệ.',
+                });
+            }
+
+            const results = [];
+            for (const id of ids) {
+                const checkProduct = await Product.findOne({ _id: id });
+                if (checkProduct === null) {
+                    results.push({
+                        id,
+                        status: 'ERR',
+                        message: 'Sản phẩm không tồn tại.',
+                    });
+                } else {
+                    await Product.findByIdAndDelete(id);
+                    results.push({
+                        id,
+                        status: 'OK',
+                        message: 'Đã xóa thành công.',
+                    });
+                }
+            }
+
+            resolve({
+                status: 'OK',
+                message: 'Xóa sản phẩm hoàn tất.',
+                details: results,
+            });
+        } catch (e) {
+            reject({
+                status: 'ERR',
+                message: 'Đã xảy ra lỗi khi xóa sản phẩm.',
+                error: e,
+            });
+            console.error('Lỗi trong deleteMultipleProduct:', e);
+        }
+    });
+};
+
+
+
 module.exports = {
     createProduct,
     updateProduct,
     getDetailProduct,
     getAllProduct,
-    deleteProduct
+    deleteProduct,
+    deleteMultipleProduct
 }

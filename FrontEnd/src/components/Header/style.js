@@ -218,5 +218,58 @@ export const HamburgerLine = styled.div`
   border-radius: 2px;
   width: 100%;
 `;
+export const WrapperNav = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 16px;
+  color: #ffffff;
+
+  span {
+    position: relative; /* Để pseudo-element hoạt động */
+    cursor: pointer;
+    text-align: center;
+    z-index: 1; /* Đảm bảo nội dung luôn nằm trên pseudo-element */
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 80px; /* Chiều rộng cố định */
+    height: 30px; /* Chiều cao cố định */
+
+    &:hover {
+      color: #ffffff;
+    }
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%; /* Bắt đầu ở giữa */
+      left: 0;
+      width: 100%;
+      height: 0; /* Chiều cao bắt đầu từ 0 */
+      background-color: #ff0000;
+      z-index: -1; /* Đưa nền ra sau chữ */
+      transition: all 0.15s ease-out; /* Hiệu ứng mượt mà */
+      transform: translateY(-50%);
+    }
+
+    &:hover::before {
+      height: 100%; /* Khi hover, nền mở rộng toàn bộ */
+      top: 0; /* Đưa lên đầu */
+      transform: translateY(0); /* Reset lại vị trí */
+    }
+  }
+`;
+export const SearchBox = styled.div`
+  position: absolute;
+  top: 100%;
+  right: 150px;
+  width: 400px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  border-radius: 10px;
+`;
 
 export const MenuDropdown = styled.div``;

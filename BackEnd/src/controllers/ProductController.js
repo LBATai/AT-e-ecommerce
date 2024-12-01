@@ -89,10 +89,32 @@ const deleteProduct = async (req, res) => {
     }
 }
 
+const deleteMultipleProduct = async (req, res) => {
+    try {
+        const productIds = req.body.ids; // Lấy danh sách ID từ body
+        if (!Array.isArray(productIds) || productIds.length === 0) {
+            return res.status(200).json({
+                status: 'Error',
+                message: 'Danh sách productIds là bắt buộc và phải là một mảng hợp lệ.',
+            });
+        }
+
+        const response = await ProductService.deleteMultipleProduct(productIds); // Đổi tên gọi service
+        return res.status(200).json(response);
+    } catch (e) {
+        return res.status(404).json({
+            message: e,
+        });
+    }
+};
+
+
+
 module.exports = {
     createProduct,
     updateProduct,
     getDetailProduct,
     getAllProduct,
-    deleteProduct
+    deleteProduct,
+    deleteMultipleProduct
 }

@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { WrapperHeader, WrapperTextHeader, WrapperHeaderAccout, WrapperHeaderCart, CartItemCount, ProductListBox, Popopover, MenuItem } from './style';
+import { 
+  WrapperHeader, WrapperTextHeader, 
+  WrapperHeaderAccout, WrapperHeaderCart, CartItemCount, ProductListBox, Popopover, MenuItem ,WrapperNav,SearchBox 
+} from './style';
 import { Col, Popover } from 'antd'; // Use Popover instead of Dropdown
 import { useNavigate } from 'react-router-dom';
-import { AudioOutlined, UserOutlined, CaretDownOutlined, ShoppingCartOutlined, AppstoreAddOutlined, InfoCircleOutlined, ShoppingOutlined, LogoutOutlined } from '@ant-design/icons';
+import { AudioOutlined,CloseOutlined ,SearchOutlined , UserOutlined, CaretDownOutlined, ShoppingCartOutlined, AppstoreAddOutlined, InfoCircleOutlined, ShoppingOutlined, LogoutOutlined } from '@ant-design/icons';
 import { Input, message } from 'antd';
 import { useSelector } from 'react-redux';
 import Pending from '../Pending/Pending';
@@ -21,10 +24,7 @@ const suffix = (
   />
 );
 
-const onSearch = (value, _e, info) => {
-  console.log(info?.source, value); // Log source if needed
-  // Add search logic here
-};
+
 
 const Header = () => {
   const user = useSelector((state) => state.user);
@@ -48,6 +48,7 @@ const Header = () => {
   const [isPending, setIsPending] = useState(false);
   const [userAvatar, setUserAvatar] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSearchVisible, setIsSearchVisible] = useState(false); // Quản lý trạng thái hộp tìm kiếm
 
 
   useEffect(() => {
@@ -69,7 +70,13 @@ const Header = () => {
 
   const handleMouseEnter = useCallback(() => setIsHovering(true), []);
   const handleMouseLeave = useCallback(() => setIsHovering(false), []);
+  const toggleSearch = () => {
+    setIsSearchVisible((prev) => !prev); // Bật/tắt hiển thị hộp tìm kiếm
+  };
 
+  const handleSearch = (value) => {
+    console.log('Tìm kiếm:', value); // Xử lý logic tìm kiếm
+  };
   // Content for user popover
   const userPopoverContent = (
       <Popopover>
@@ -114,17 +121,37 @@ const Header = () => {
           <WrapperTextHeader onClick={handleHome}>AT-Ecommerce</WrapperTextHeader>
         </Col>
         <Col span={12}>
-          <Search
-            placeholder="input search text"
-            enterButton="Search"
-            size="large"
-            suffix={suffix}
-            onSearch={onSearch}
-          />
+        <WrapperNav>
+          <span onClick={() => navigate('/home')}>Trang chủ</span>
+          <span onClick={() => navigate('/shop')}>Shop</span>
+          <span onClick={() => navigate('/about')}>Giới thiệu</span>
+          <span onClick={() => navigate('/contact')}>Liên hệ</span>
+        </WrapperNav>
         </Col>
         <Col span={6} style={{ display: 'flex' }}>
           <Pending isPending={isPending}>
             <WrapperHeaderAccout>
+              <div onClick={toggleSearch} style={{ cursor: 'pointer' }}>
+                {isSearchVisible ? (
+                  <CloseOutlined style={{ fontSize: '24px', color: '#000000', marginRight: '10px', backgroundColor:'#fff'}} />
+                ) : (
+                  <SearchOutlined style={{ fontSize: '24px', color: '#fff', marginRight: '10px'  }} />
+                )}
+              </div>
+              {isSearchVisible && (
+                <SearchBox>
+                  <Search
+                    placeholder="Tìm kiếm sản phẩm"
+                    enterButton="Tìm"
+                    size="large"
+                    onSearch={handleSearch}
+                    style={{
+                      height: '50px',
+                      fontSize: '16px',
+                    }}
+                  />
+                </SearchBox>
+              )}
               {userAvatar ? (
                 <img alt="user avatar" src={userAvatar} style={{ width: '30px', height: '30px', borderRadius: '50%' }} />
               ) : (
@@ -150,16 +177,13 @@ const Header = () => {
               trigger="hover"
               open={isHovering}
               onOpenChange={setIsHovering}
+              onClick={handleCart}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+              style={{ position: 'relative', marginRight: '100px' }}
             >
-              <div
-                onClick={handleCart}
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
-                style={{ position: 'relative' }}
-              >
                 <ShoppingCartOutlined style={{ fontSize: '30px' }} />
                 <CartItemCount>{cartItems.length}</CartItemCount>
-              </div>
             </Popover>
           </WrapperHeaderCart>
         </Col>
