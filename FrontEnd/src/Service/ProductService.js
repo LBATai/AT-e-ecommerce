@@ -6,11 +6,17 @@ export const axiosJWT = axios.create({
     withCredentials: true, // Bắt buộc để gửi và nhận cookies
 });
 
-export const getAllProduct = async () => {
-    const res = await axios.get(`${import.meta.env.VITE_API_URL_BACKEND}/product/getAll-product`);
+export const getAllProduct = async (search) => {
+    let res = {}
+    if (search) {
+        res = await axios.get(`${import.meta.env.VITE_API_URL_BACKEND}/product/getAll-product?filter=name&filter=${search}`);
+    } else {
+        res = await axios.get(`${import.meta.env.VITE_API_URL_BACKEND}/product/getAll-product`);
+    }
     return res.data;
 };
 export const createProduct  = async (data) => {
+    console.log('data', data)
     const res = await axios.post(`${import.meta.env.VITE_API_URL_BACKEND}/product/create-product`,data)
     return res.data;
 }
@@ -40,6 +46,15 @@ export const deleteMultipleProducts = async (ids) => {
         const res = await axios.post(`${import.meta.env.VITE_API_URL_BACKEND}/product/delete-multiple`, {
             ids, // Gửi danh sách ID qua body
         });
+        return res.data;
+    } catch (error) {
+        console.error('Error deleting products:', error);
+        throw error;
+    }
+};
+export const getAllType = async () => {
+    try {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL_BACKEND}/product/getAll-type`);
         return res.data;
     } catch (error) {
         console.error('Error deleting products:', error);

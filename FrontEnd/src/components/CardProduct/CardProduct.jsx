@@ -20,7 +20,7 @@ import {
 
 const CardProduct = (props) => {
   const navigate = useNavigate();
-  const { description, image, name, price, rating, discount } = props;
+  const { description, image, name, price, rating, discount, id } = props;
 
   const [isHovered, setIsHovered] = useState(false);
   const addToCartRef = useRef(null);
@@ -62,6 +62,7 @@ const CardProduct = (props) => {
       currency: 'VND',
     }).format(value);
   };
+
   return (
     <CardContainer
       onMouseEnter={() => setIsHovered(true)}
@@ -70,7 +71,7 @@ const CardProduct = (props) => {
         resetButtonPosition();
       }}
     >
-      <Card  $active={isHovered} cover={<Image alt={name} src={image} />}>         
+      <Card cover={<Image alt={name} src={image} />}>         
       {discount > 0 && <DiscountTag>{discount}%</DiscountTag>}
         <Content>
           <Name>
@@ -96,8 +97,11 @@ const CardProduct = (props) => {
       </Card>
       <HoverActions>
         <ActionButton ref={addToCartRef}>Thêm vào giỏ hàng</ActionButton>
-        <ActionButton ref={viewDetailsRef} onClick={() => navigate('/product-detail')}>
-          Chi tiết sản phẩm
+        <ActionButton ref={viewDetailsRef} 
+          onClick={() => {
+            navigate(`/product-detail/${id}`);
+          }}>
+          Chi tiết sản phẩm 
         </ActionButton>
       </HoverActions>
     </CardContainer>

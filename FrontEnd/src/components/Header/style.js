@@ -4,7 +4,7 @@ import { Row } from "antd";
 // Wrapper for Header
 export const WrapperHeader = styled(Row)`
   padding: 10px 120px;
-  background-color: #0080ff;
+  background-color: #007BFF;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -23,7 +23,7 @@ export const WrapperHeader = styled(Row)`
 
 // Title Text
 export const WrapperTextHeader = styled.span`
-  color: #fff;
+  color: #000000;
   font-size: 24px;
   font-weight: bold;
   line-height: 1.5;
@@ -53,6 +53,7 @@ export const MenuItem = styled.div`
   font-size: 14px;
   cursor: pointer;
   color: #333;
+  font-weight: 600;
   transition: background-color 0.3s ease; /* Thêm hiệu ứng chuyển màu khi hover */
 
   &:hover {
@@ -73,6 +74,7 @@ export const WrapperHeaderAccout = styled.div`
   gap: 10px;
   margin-left: 10px;
   color: #fff;
+  font-weight: 600;
   cursor: pointer;
 
   @media (max-width: 768px) {
@@ -223,7 +225,15 @@ export const WrapperNav = styled.div`
   align-items: center;
   gap: 20px;
   font-size: 16px;
-  color: #ffffff;
+  color: #000000;
+  font-weight: 600;
+
+  span.active {
+    background-color: #f0f0f0; /* Màu nền */
+    color: #000000; /* Màu chữ */
+    font-weight: bold; /* In đậm chữ */
+    border-radius: 4px; /* Bo góc */
+  }
 
   span {
     position: relative; /* Để pseudo-element hoạt động */
@@ -236,9 +246,12 @@ export const WrapperNav = styled.div`
     align-items: center;
     width: 80px; /* Chiều rộng cố định */
     height: 30px; /* Chiều cao cố định */
+    padding: 5px 10px; /* Khoảng cách bên trong */
+    border-radius: 4px; /* Bo góc */
+    transition: none; /* Loại bỏ transition khi nhấn vào phần tử */
 
     &:hover {
-      color: #ffffff;
+      color: #000000;
     }
 
     &::before {
@@ -248,9 +261,9 @@ export const WrapperNav = styled.div`
       left: 0;
       width: 100%;
       height: 0; /* Chiều cao bắt đầu từ 0 */
-      background-color: #ff0000;
+      background-color: #f0f0f0;
       z-index: -1; /* Đưa nền ra sau chữ */
-      transition: all 0.15s ease-out; /* Hiệu ứng mượt mà */
+      transition: height 0.15s ease-out; /* Hiệu ứng cho phần tử này */
       transform: translateY(-50%);
     }
 
@@ -264,12 +277,13 @@ export const WrapperNav = styled.div`
 export const SearchBox = styled.div`
   position: absolute;
   top: 100%;
-  right: 150px;
+  right: 10px;
   width: 400px;
   background: #fff;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
   z-index: 100;
-  border-radius: 10px;
+  margin-top: 12px;
+  border-radius: 5px;
 `;
 
 export const MenuDropdown = styled.div``;

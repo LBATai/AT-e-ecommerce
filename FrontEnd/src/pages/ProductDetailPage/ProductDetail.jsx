@@ -1,17 +1,53 @@
-import { useState } from 'react';
-import { Layout, Row, Col, Card, Button, Image, InputNumber, List } from 'antd';
+import { useEffect, useState } from 'react';
+import { Layout, Row, Col, Card, Button, Image, InputNumber, List, Breadcrumb  } from 'antd';
 import { ShoppingCartOutlined, HeartOutlined } from '@ant-design/icons';
 import { WrapperProductDetail } from './style';
 import image1 from '../../assets/images/Hoodies/Áo hoodie nỉ lót lông cừu.jpg';
+import * as ProductService from '../../Service/ProductService';
+import { useNavigate, useParams } from 'react-router';
 
-const { Content } = Layout;
 
 const ProductDetail = () => {
+  const navigate = useNavigate();
+  const { Content } = Layout;
+  const { id } = useParams();
   const [quantity, setQuantity] = useState(1);
   const [size, setSize] = useState("M");
   const [color, setColor] = useState("Đỏ");
   const [mainImage, setMainImage] = useState(image1); // Image chính sẽ hiển thị
+  const [stateProductDetails, setStateProductDetails] = useState('')
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+    }).format(value);
+  };
 
+  useEffect(() => {
+    if (id){
+      fetchGetDetailsProduct()
+    }
+  }, [id]);
+  const fetchGetDetailsProduct = async () => {
+    const res = await ProductService.getDetailsProduct(id)
+    if (res?.data) {
+      setStateProductDetails({
+        id: res?.data._id,
+        name: res?.data?.name,
+        price: res?.data?.price,
+        rating: res?.data?.rating,
+        type: res?.data?.type,
+        countInStock: res?.data?.countInStock,
+        description: res?.data?.description,
+        image: res?.data?.image,
+        discount: res?.data?.discount,
+        selled: res?.data?.selled
+      })
+   }
+    return res
+  }
+
+ // Lấy id từ URL
   const product = {
     id: 1,
     name: "Áo hoodie nỉ lót lông cừu",
@@ -53,6 +89,23 @@ const ProductDetail = () => {
   return (
     <Layout style={{ backgroundColor: '#F5F5F5', padding: '20px' }}>
       <Content>
+        <Breadcrumb style={{ marginBottom: '5px', marginTop: '50px', padding: '20px', fontSize: '16px'}}>
+          <Breadcrumb.Item>
+            <a onClick={() => navigate('/home')} style={{ cursor: 'pointer',color: '#000000', fontWeight:'600' }}>
+              Shop
+            </a>
+          </Breadcrumb.Item>
+          <Breadcrumb.Item>
+            <a style={{ cursor: 'pointer',color: '#000000', fontWeight:'600'  }}>
+              {stateProductDetails.type}
+            </a>
+          </Breadcrumb.Item>
+          <Breadcrumb.Item>
+            <a style={{ cursor: 'pointer',color: '#000000', fontWeight:'600'  }}>
+              {stateProductDetails.name}
+            </a>
+          </Breadcrumb.Item>
+        </Breadcrumb>
         <WrapperProductDetail>
           <Row gutter={[16, 16]}>
             <Col xs={20} md={10}>
@@ -60,7 +113,7 @@ const ProductDetail = () => {
               <Image
                 width="90%"
                 src={mainImage}
-                alt={product.name}
+                alt={name}
                 style={{ borderRadius: '8px', marginBottom: '10px',marginLeft: '20px'}}
               />
               {/* Các ảnh phụ */}
@@ -81,18 +134,18 @@ const ProductDetail = () => {
                 ))}
               </Row>
             </Col>
-            
             <Col xs={24} md={12}>
               <Card bordered={false}>
-                <h1>{product.name}</h1>
-                <h2 style={{ color: '#FF4D4F' }}>{product.price}</h2>
+                <h1>{stateProductDetails.name}</h1>
+                <h2 style={{ color: '#FF4D4F' }}>{formatCurrency(stateProductDetails.price)}</h2>
 
                 <div style={{ margin: '10px 0' }}>
-                  <strong>Đánh Giá:</strong> {renderStars(product.rating)}
+                  <strong>Đánh Giá:</strong> {renderStars(stateProductDetails.rating)}
                 </div>
 
-                <p style={{ marginTop: '10px' }}>{product.description}</p>
-
+                <div style={{ marginTop: '20px' }}>
+                  <span style={{ marginRight: '10px' }}>Số lượng hàng trong kho: {stateProductDetails.countInStock}</span>
+                </div>
                 <div style={{ marginTop: '20px' }}>
                   <span style={{ marginRight: '10px' }}>Số lượng:</span>
                   <InputNumber min={1} max={10} value={quantity} onChange={(value) => setQuantity(value)} />
@@ -148,7 +201,7 @@ const ProductDetail = () => {
 
           <div style={{ padding: '20px', marginTop: '20px' }}>
             <h2>Mô Tả Sản Phẩm</h2>
-            <p>{product.fullDescription}</p>
+            <p>{stateProductDetails.description}</p>
           </div>
 
           <div style={{ padding: '20px', marginTop: '20px' }}>

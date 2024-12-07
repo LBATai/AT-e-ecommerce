@@ -15,8 +15,6 @@ const AdminProduct = () => {
   const [updateForm] = Form.useForm(); // Form riêng cho cập nhật sản phẩm  
   const [image, setImage] = useState('');
   const [products, setProducts] = useState([]); // State lưu danh sách sản phẩm
-  const [totalPage, setTotalPage] = useState(0); // Lưu tổng số trang
-  const [total, setTotal] = useState(0); // Lưu tổng số sản phẩm
   const [isOpenDrawer, setIsOpenDrawer] = useState(false); // Lưu tổng số sản phẩm
   const [rowSelected, setRowSelected] = useState('')
   const [stateProductDetails, setStateProductDetails] = useState('')
@@ -38,8 +36,6 @@ const AdminProduct = () => {
       const response = await ProductService.getAllProduct();
       if (response && response.status === "OK") {
         setProducts(response.data); // Cập nhật sản phẩm
-        setTotal(response.total); // Cập nhật tổng số sản phẩm
-        setTotalPage(response.totalPage); // Cập nhật tổng số trang
       } else {
         console.error("Dữ liệu không hợp lệ:", response);
       }
@@ -415,8 +411,8 @@ const handleSearch = async () => {
             { required: true, message: 'Vui lòng nhập số lượng đã bán' },
             {
               validator: (_, value) =>
-                value && (value < 1)
-                  ? Promise.reject(new Error('Số lượng sản phẩm đã bán phải lớn hơn 0'))
+                value && (value < 0)
+                  ? Promise.reject(new Error('Số lượng sản phẩm đã bán phải lớn hơn hoặc bằng 0'))
                   : Promise.resolve(),
             },
           ]}>
@@ -503,8 +499,8 @@ const handleSearch = async () => {
             { required: true, message: 'Vui lòng nhập số lượng đã bán' },
             {
               validator: (_, value) =>
-                value && (value < 1)
-                  ? Promise.reject(new Error('Số lượng sản phẩm đã bán phải lớn hơn 0'))
+                value && (value < 0)
+                  ? Promise.reject(new Error('Số lượng sản phẩm đã bán phải lớn hơn hoặc bằng 0'))
                   : Promise.resolve(),
             },
           ]}>

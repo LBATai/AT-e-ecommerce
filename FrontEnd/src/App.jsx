@@ -8,6 +8,8 @@ import {jwtDecode}  from "jwt-decode";
 import { useDispatch, useSelector } from 'react-redux'
 import { updateUser } from "./components/redux/Slide/userSlide";
 import * as UserService from './Service/UserService';
+import ScrollToTopButton from "./components/ScrollToTopButton/ScrollToTopButton";
+
 function App() {
   const dispatch = useDispatch();
   useEffect(() => {
@@ -93,6 +95,7 @@ function Main() {
           );
         })}
       </Routes>
+      <ScrollToTopButton />
       {/* Chỉ hiển thị Footer nếu không phải trang login hoặc sign-up */}
       {!shouldHideHeaderFooter && <Footer />}
     </>

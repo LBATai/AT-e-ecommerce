@@ -1,24 +1,31 @@
 import styled from 'styled-components';
 
 export const WrapperHome = styled.div`
-  display: flex; /* Sử dụng flex để căn chỉnh Navbar và sản phẩm */
-  background-color: #ff0000;
+  display: flex;
+  flex-direction: row; /* Căn chỉnh các phần tử con theo chiều ngang */
+  background-color: #F5F5F5;
+  padding-top: 70px;
 `;
 
 export const CardContainer = styled.div`
-  display: grid; /* Sử dụng grid để bố trí sản phẩm */
-  grid-template-columns: repeat(4, 1fr); /* Tối đa 4 sản phẩm trên 1 hàng */
-  gap: 20px 20px;  
-  width: calc(100% - 250px); /* Chiếm phần còn lại sau khi trừ độ rộng Navbar */
-  margin-top: 60px;
-  margin-left: 50px;
-  margin-right: 150px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Sử dụng auto-fill và minmax để điều chỉnh số lượng cột tự động */
+  gap: 20px;
+  width: 100%; /* Chiếm toàn bộ chiều rộng của container */
+  margin-top: 20px;
   padding: 20px;
-  background-color: #0000ff;
+  background-color: #F5F5F5;
 `;
 
 export const PaginationContainer = styled.div`
   display: flex;
   justify-content: center;
   margin-top: 20px;
+  padding-bottom: 50px; /* Thêm padding dưới cùng để phân trang không bị dính sát dưới */
+`;
+export const NavbarContainer = styled.div`
+  width: 20%; /* Chiếm 20% chiều rộng */
+  min-width: 200px; /* Đảm bảo không bị quá nhỏ */
+  background-color: #fff; /* Màu nền hoặc thay đổi theo ý thích */
+  border-right: 1px solid #ddd; /* Thêm đường viền phân cách nếu cần */
 `;

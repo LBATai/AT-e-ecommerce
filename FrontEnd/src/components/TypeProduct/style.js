@@ -2,6 +2,8 @@
 import styled from 'styled-components';
 
 export const TypeProductWrapper = styled.div`
+  margin-top: 70px;
+  margin-bottom: 10px;
   background-color: #fff;
 `;
 
@@ -12,7 +14,7 @@ export const CategoryItem = styled.div`
   margin: 0 10px;
   text-align: center;
   font-weight: 500;
-  color: #074398;
+  color: #6f6f6f;
   cursor: pointer;
   transition: all 0.3s;
 

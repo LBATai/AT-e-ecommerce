@@ -6,7 +6,8 @@ export const CardContainer = styled.div`
   height: 400px;
   position: relative;
   overflow: hidden;
-  border: 5px solid transparent;
+  border: #c0c0c0 solid ;
+
   transition: border-color 0.1s ease-in-out;
   display: flex;
   flex-direction: column;
@@ -27,7 +28,7 @@ export const CardContainer = styled.div`
   }
 
   &:hover {
-    border-color: #898989;
+    border-color: #5f5f5f;
     box-shadow: inset 0 6px 12px rgba(0, 0, 0, 0.5);
   }
 `;

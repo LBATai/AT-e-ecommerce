@@ -4,7 +4,7 @@ import {
   WrapperHeaderAccout, WrapperHeaderCart, CartItemCount, ProductListBox, Popopover, MenuItem ,WrapperNav,SearchBox 
 } from './style';
 import { Col, Popover } from 'antd'; // Use Popover instead of Dropdown
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AudioOutlined,CloseOutlined ,SearchOutlined , UserOutlined, CaretDownOutlined, ShoppingCartOutlined, AppstoreAddOutlined, InfoCircleOutlined, ShoppingOutlined, LogoutOutlined } from '@ant-design/icons';
 import { Input, message } from 'antd';
 import { useSelector } from 'react-redux';
@@ -12,25 +12,22 @@ import Pending from '../Pending/Pending';
 import { useDispatch } from 'react-redux';
 import * as UserService from '../../Service/UserService';
 import { resetUser } from '../redux/Slide/userSlide.js';
-
-const { Search } = Input;
-
-const suffix = (
-  <AudioOutlined
-    style={{
-      fontSize: 16,
-      color: '#074398',
-    }}
-  />
-);
-
-
+import DisableCopy from '../DisableCopy/DisableCopy.jsx';
+import { searchProduct } from '../redux/Slide/productSlide.js';
 
 const Header = () => {
   const user = useSelector((state) => state.user);
+  const location = useLocation(); // Lấy đường dẫn hiện tại
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { Search } = Input;
 
+  const navItems = [
+    { path: '/home', label: 'Trang chủ' },
+    { path: '/cart', label: 'Cửa hàng' },
+    { path: '/about', label: 'Giới thiệu' },
+    { path: '/contact', label: 'Liên hệ' },
+  ];
   const handleCart = () => {
     navigate('/cart');
   };
@@ -49,6 +46,7 @@ const Header = () => {
   const [userAvatar, setUserAvatar] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSearchVisible, setIsSearchVisible] = useState(false); // Quản lý trạng thái hộp tìm kiếm
+  const [search, setSearch] = useState(''); 
 
 
   useEffect(() => {
@@ -73,9 +71,12 @@ const Header = () => {
   const toggleSearch = () => {
     setIsSearchVisible((prev) => !prev); // Bật/tắt hiển thị hộp tìm kiếm
   };
-
-  const handleSearch = (value) => {
-    console.log('Tìm kiếm:', value); // Xử lý logic tìm kiếm
+  const handleSearchClick = (event) => {
+    event.stopPropagation(); // Ngăn chặn sự kiện lan truyền ra ngoài
+  };
+  const handleSearch = (e) => {
+    setSearch(e.target.value);
+    dispatch(searchProduct(e.target.value));
   };
   // Content for user popover
   const userPopoverContent = (
@@ -100,58 +101,59 @@ const Header = () => {
       </Popopover>
   );
 
-  // Content for cart popover
-  const cartPopoverContent = (
-    <ProductListBox>
-      <h4>Sản phẩm trong giỏ hàng:</h4>
-      {cartItems.length === 0 ? (
-        <div>Giỏ hàng trống</div>
-      ) : (
-        cartItems.map((item, index) => (
-          <div key={index}>{item.name}</div>
-        ))
-      )}
-    </ProductListBox>
-  );
-
   return (
-    <div>
+    <DisableCopy>
       <WrapperHeader>
         <Col span={6}>
           <WrapperTextHeader onClick={handleHome}>AT-Ecommerce</WrapperTextHeader>
         </Col>
-        <Col span={12}>
-        <WrapperNav>
-          <span onClick={() => navigate('/home')}>Trang chủ</span>
-          <span onClick={() => navigate('/shop')}>Shop</span>
-          <span onClick={() => navigate('/about')}>Giới thiệu</span>
-          <span onClick={() => navigate('/contact')}>Liên hệ</span>
-        </WrapperNav>
+        <Col span={10}>
+          <WrapperNav>
+            {navItems.map((item) => (
+              <span
+                key={item.path}
+                onClick={() => navigate(item.path)}
+                className={location.pathname === item.path ? 'active' : ''}
+              >
+                {item.label}
+              </span>
+            ))}
+          </WrapperNav>
         </Col>
-        <Col span={6} style={{ display: 'flex' }}>
-          <Pending isPending={isPending}>
-            <WrapperHeaderAccout>
-              <div onClick={toggleSearch} style={{ cursor: 'pointer' }}>
+        <Col span={2} onClick={toggleSearch} style={{ cursor: 'pointer' }}>
+          <div >
                 {isSearchVisible ? (
-                  <CloseOutlined style={{ fontSize: '24px', color: '#000000', marginRight: '10px', backgroundColor:'#fff'}} />
+                  <CloseOutlined 
+                  style={{ 
+                    fontSize: '24px', color: '#000000', marginLeft: '60px' , backgroundColor:'#fff',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    padding: '5px',
+                    cursor: 'pointer',
+                  }} />
                 ) : (
-                  <SearchOutlined style={{ fontSize: '24px', color: '#fff', marginRight: '10px'  }} />
+                  <SearchOutlined style={{ fontSize: '24px', color: '#fff', marginLeft: '60px'  }} />
                 )}
-              </div>
+          </div>
               {isSearchVisible && (
-                <SearchBox>
+                <SearchBox onClick={handleSearchClick}>
                   <Search
                     placeholder="Tìm kiếm sản phẩm"
                     enterButton="Tìm"
                     size="large"
-                    onSearch={handleSearch}
+                    onChange={handleSearch}
                     style={{
-                      height: '50px',
+                      height: '100px',
                       fontSize: '16px',
+                      padding: '10px',
                     }}
                   />
                 </SearchBox>
               )}
+        </Col>
+        <Col span={6} style={{ display: 'flex' }}>
+          <Pending isPending={isPending}>
+            <WrapperHeaderAccout>
               {userAvatar ? (
                 <img alt="user avatar" src={userAvatar} style={{ width: '30px', height: '30px', borderRadius: '50%' }} />
               ) : (
@@ -171,24 +173,13 @@ const Header = () => {
             </WrapperHeaderAccout>
           </Pending>
 
-          <WrapperHeaderCart>
-            <Popover
-              content={cartPopoverContent}
-              trigger="hover"
-              open={isHovering}
-              onOpenChange={setIsHovering}
-              onClick={handleCart}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-              style={{ position: 'relative', marginRight: '100px' }}
-            >
+          <WrapperHeaderCart onClick={() => navigate('/cart')}>
                 <ShoppingCartOutlined style={{ fontSize: '30px' }} />
                 <CartItemCount>{cartItems.length}</CartItemCount>
-            </Popover>
           </WrapperHeaderCart>
         </Col>
       </WrapperHeader>
-    </div>
+    </DisableCopy>
   );
 };
 

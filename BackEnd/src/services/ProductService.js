@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt")
 // User Service
 const createProduct = (newProduct) => {
     return new Promise(async (resolve, reject) => {
-        const { name, image, type, price, countInStock,rating,description } = newProduct
+        const { name, image, type, price, countInStock,rating,description, discount, selled } = newProduct
         try {
             const checkProduct = await Product.findOne(
                 {
@@ -24,7 +24,9 @@ const createProduct = (newProduct) => {
                 price, 
                 countInStock,
                 rating,
-                description 
+                description,
+                discount,
+                selled
             })    
             if (newProduct){
                 resolve({
@@ -93,8 +95,6 @@ const getDetailProduct = (id) => {
 
 const getAllProduct = (limit, page, sort, filter) => {
     return new Promise(async (resolve, reject) => {
-        // console.log('sort', sort)
-        console.log(filter); 
         try {
             const totalProduct = await Product.countDocuments()
             if(filter){
@@ -133,6 +133,21 @@ const getAllProduct = (limit, page, sort, filter) => {
                 totalPage: Math.ceil(totalProduct / limit)
             })
 
+            } catch (e) {
+                reject(e);
+                console.log(e);
+            }
+        })
+}
+const getAllType = () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const allType = await Product.distinct('type')
+            resolve({
+                status: 'OK',
+                message: 'Get all type is successful',
+                data: allType,
+            })
             } catch (e) {
                 reject(e);
                 console.log(e);
@@ -219,5 +234,6 @@ module.exports = {
     getDetailProduct,
     getAllProduct,
     deleteProduct,
-    deleteMultipleProduct
+    deleteMultipleProduct,
+    getAllType
 }
