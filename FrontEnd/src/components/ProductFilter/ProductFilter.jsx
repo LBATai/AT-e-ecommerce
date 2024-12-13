@@ -1,23 +1,15 @@
-// File: ProductFilter.jsx
-import React, { useState } from 'react';
+import React from 'react';
 import { Select, Button, Row, Col, Space } from 'antd';
-import { UpOutlined, DownOutlined, TagOutlined, RocketOutlined, FireOutlined, LinkOutlined } from '@ant-design/icons';
-import { FilterWrapper, IconDisplayWrapper } from './style';
+import { TagOutlined, RocketOutlined, FireOutlined, LinkOutlined } from '@ant-design/icons';
+import { FilterWrapper } from './style';
 
 const { Option } = Select;
 
-const ProductFilter = () => {
-  const [sortOrder, setSortOrder] = useState('asc'); // Để sắp xếp
-  const [activeFilter, setActiveFilter] = useState(''); // Bộ lọc đang hoạt động
-
+const ProductFilter = ({ onSortChange, onSortByDate }) => {
   // Hàm thay đổi thứ tự sắp xếp
   const handleSortChange = (value) => {
-    setSortOrder(value);
-  };
-
-  // Hàm thay đổi bộ lọc
-  const handleFilterChange = (filterType) => {
-    setActiveFilter(filterType);
+    onSortChange(value); // Gửi giá trị sắp xếp về Homepage
+    window.scrollTo({ top: 430, behavior: 'smooth' });
   };
 
   return (
@@ -37,19 +29,12 @@ const ProductFilter = () => {
 
             {/* Các nút bộ lọc sản phẩm */}
             <Space size="middle">
-              <Button icon={<TagOutlined />} onClick={() => handleFilterChange('sale')}>Giảm giá</Button>
-              <Button icon={<RocketOutlined />} onClick={() => handleFilterChange('freeship')}>Freeship</Button>
-              <Button icon={<FireOutlined />} onClick={() => handleFilterChange('bestseller')}>Bán chạy</Button>
-              <Button icon={<LinkOutlined />} onClick={() => handleFilterChange('newest')}>Mới nhất</Button>
+              <Button icon={<TagOutlined />}>Giảm giá</Button>
+              <Button icon={<RocketOutlined />}>Freeship</Button>
+              <Button icon={<FireOutlined />}>Bán chạy</Button>
+              <Button icon={<LinkOutlined />} onClick={onSortByDate}>Mới nhất</Button>
             </Space>
           </Space>
-        </Col>
-
-        {/* Hiển thị bộ lọc đang chọn */}
-        <Col span={24}>
-          <IconDisplayWrapper>
-            {activeFilter && <span>{activeFilter} được chọn</span>}
-          </IconDisplayWrapper>
         </Col>
       </Row>
     </FilterWrapper>

@@ -31,10 +31,6 @@ import {
 const AdminPage = () => {
   const [selectedMenu, setSelectedMenu] = useState('dashboard');
   const navigate = useNavigate();
-
-  const handleHome = () => {
-    navigate('/home');
-  };
   const renderContent = () => {
     switch (selectedMenu) {
       case 'products':
@@ -89,22 +85,22 @@ const AdminPage = () => {
       {/* Nội dung chính */}
       <MainContent>
         <Sidebar>
-          <MenuItem
-            active={selectedMenu === 'dashboard'}
+        <MenuItem
+            active={selectedMenu === 'dashboard' ? 'true' : 'false'}
             onClick={() => setSelectedMenu('dashboard')}
           >
             <HomeOutlined style={{ fontSize: 20 }} />
             <span>Bảng điều khiển</span>
           </MenuItem>
           <MenuItem
-            active={selectedMenu === 'products'}
+            active={selectedMenu === 'products' ? 'true' : 'false'}
             onClick={() => setSelectedMenu('products')}
           >
             <AppstoreOutlined style={{ fontSize: 20 }} />
             <span>Sản phẩm</span>
           </MenuItem>
           <MenuItem
-            active={selectedMenu === 'users'}
+            active={selectedMenu === 'users' ? 'true' : 'false'}
             onClick={() => setSelectedMenu('users')}
           >
             <UserOutlined style={{ fontSize: 20 }} />

@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { updateUser } from "./components/redux/Slide/userSlide";
 import * as UserService from './Service/UserService';
 import ScrollToTopButton from "./components/ScrollToTopButton/ScrollToTopButton";
+import "./index.css"
 
 function App() {
   const dispatch = useDispatch();
@@ -67,11 +68,19 @@ function App() {
 }
 
 function Main() {
-  const location = useLocation(); // Hook chỉ sử dụng trong Main, không phải App
+  const location = useLocation();
   const user = useSelector((state) => state.user)
 
+  // Cuộn lên đầu mỗi khi `location.pathname` thay đổi
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [location.pathname]);
+
   // Kiểm tra xem route hiện tại có phải là trang đăng nhập hoặc đăng ký không
-  const shouldHideHeaderFooter = location.pathname === '/sign-in' || location.pathname === '/sign-up' || location.pathname === '/system/admin';
+  const shouldHideHeaderFooter =
+    location.pathname === '/sign-in' ||
+    location.pathname === '/sign-up' ||
+    location.pathname === '/system/admin';
 
   return (
     <>

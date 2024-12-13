@@ -93,52 +93,30 @@ const getDetailProduct = (id) => {
         })
 }
 
-const getAllProduct = (limit, page, sort, filter) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const totalProduct = await Product.countDocuments()
-            if(filter){
-                const label = filter[0]
-                const allProductFilter = await Product.find({[label]: {'$regex': filter[1]}})
-                resolve({
-                    status: 'OK',
-                    message: 'Get filter is successful',
-                    data: allProductFilter,
-                    total: totalProduct,
-                    pageCurrent: Number(page + 1),
-                    totalPage: Math.ceil(totalProduct / limit)
-                })
-            }
-            if(sort){
-                const objectSort = {}
-                objectSort[sort[1]] = sort[0] 
-                // console.log('objectSort', objectSort);
-                const allProductSort = await Product.find().limit(limit).skip(page  * limit).sort(objectSort)
-                resolve({
-                    status: 'OK',
-                    message: 'Get sort is successful',
-                    data: allProductSort,
-                    total: totalProduct,
-                    pageCurrent: Number(page + 1),
-                    totalPage: Math.ceil(totalProduct / limit)
-                })
-            }
-            const allProduct = await Product.find().limit(limit).skip(page  * limit)
-            resolve({
-                status: 'OK',
-                message: 'Get all is successful',
-                data: allProduct,
-                total: totalProduct,
-                pageCurrent: Number(page + 1),
-                totalPage: Math.ceil(totalProduct / limit)
-            })
-
-            } catch (e) {
-                reject(e);
-                console.log(e);
-            }
-        })
-}
+const getAllProduct = async (filter) => {
+    try {
+      let products;
+  
+      if (filter) {
+        // Lọc sản phẩm dựa trên trường và giá trị của filter
+        const [label, value] = filter; // Ví dụ: ['name', 'iPhone']
+        products = await Product.find({ [label]: { '$regex': value, '$options': 'i' } });
+      } else {
+        // Nếu không có filter, lấy tất cả sản phẩm
+        products = await Product.find();
+      }
+  
+      return {
+        status: 'OK',
+        message: 'Get products successful',
+        data: products,
+      };
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      throw new Error('Error occurred while fetching products');
+    }
+  };
+  
 const getAllType = () => {
     return new Promise(async (resolve, reject) => {
         try {

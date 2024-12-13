@@ -17,16 +17,15 @@ import {
   DiscountTag,
   Name,
 } from './style';
+import {formatCurrencyVND} from '../../utils'
 
 const CardProduct = (props) => {
   const navigate = useNavigate();
   const { description, image, name, price, rating, discount, id } = props;
-
   const [isHovered, setIsHovered] = useState(false);
   const addToCartRef = useRef(null);
   const viewDetailsRef = useRef(null);
   const discountedPrice = price - (price * discount) / 100;
-
   const resetButtonPosition = () => {
     if (addToCartRef.current) addToCartRef.current.style.transform = 'translateX(100%)';
     if (viewDetailsRef.current) viewDetailsRef.current.style.transform = 'translateX(100%)';
@@ -56,12 +55,6 @@ const CardProduct = (props) => {
       animateButton(viewDetailsRef.current, 'out');
     }
   }, [isHovered]);
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-    }).format(value);
-  };
 
   return (
     <CardContainer
@@ -82,9 +75,9 @@ const CardProduct = (props) => {
           <Description>{description}</Description>
           <PriceaAndRate>
             <div>
-              <Price discount={discount}>{formatCurrency(price)}</Price>
+              <Price discount={discount}>{formatCurrencyVND(price)}</Price>
               {discount > 0 ? (
-                <DiscountedPrice>{formatCurrency(discountedPrice)}</DiscountedPrice>
+                <DiscountedPrice>{formatCurrencyVND(discountedPrice)}</DiscountedPrice>
               ) : (
                 <DiscountedPrice style={{ visibility: 'hidden' }} /> // Ẩn discountedPrice nếu discount = 0
               )}

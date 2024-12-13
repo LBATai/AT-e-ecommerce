@@ -106,7 +106,7 @@ export const Rating = styled.div`
 export const HoverActions = styled.div`
   position: absolute;
   bottom: 14px;
-  right: -2px;
+  right: -4px;
   display: flex;
   flex-direction: column;
   gap: 8px;

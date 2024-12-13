@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   WrapperHeader, WrapperTextHeader, 
-  WrapperHeaderAccout, WrapperHeaderCart, CartItemCount, ProductListBox, Popopover, MenuItem ,WrapperNav,SearchBox 
+  WrapperHeaderAccout, WrapperHeaderCart, CartItemCount, ProductListBox, Popopover, MenuItem ,WrapperNav,SearchBox, DropdownMenu
 } from './style';
-import { Col, Popover } from 'antd'; // Use Popover instead of Dropdown
+import { Col, Popover, Dropdown, Space, Input, message } from 'antd'; // Use Popover instead of Dropdown
 import { useNavigate, useLocation } from 'react-router-dom';
-import { AudioOutlined,CloseOutlined ,SearchOutlined , UserOutlined, CaretDownOutlined, ShoppingCartOutlined, AppstoreAddOutlined, InfoCircleOutlined, ShoppingOutlined, LogoutOutlined } from '@ant-design/icons';
-import { Input, message } from 'antd';
+import { CloseOutlined ,SearchOutlined , UserOutlined, DownOutlined, CaretDownOutlined, ShoppingCartOutlined, AppstoreAddOutlined, InfoCircleOutlined, ShoppingOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useSelector } from 'react-redux';
 import Pending from '../Pending/Pending';
 import { useDispatch } from 'react-redux';
@@ -14,20 +13,63 @@ import * as UserService from '../../Service/UserService';
 import { resetUser } from '../redux/Slide/userSlide.js';
 import DisableCopy from '../DisableCopy/DisableCopy.jsx';
 import { searchProduct } from '../redux/Slide/productSlide.js';
+import * as ProductService from '../../Service/ProductService.js'
 
 const Header = () => {
   const user = useSelector((state) => state.user);
   const location = useLocation(); // Lấy đường dẫn hiện tại
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [categories, setCategories] = useState([]);
+  const order = useSelector((state) => state.order)
   const { Search } = Input;
 
   const navItems = [
-    { path: '/home', label: 'Trang chủ' },
-    { path: '/cart', label: 'Cửa hàng' },
-    { path: '/about', label: 'Giới thiệu' },
-    { path: '/contact', label: 'Liên hệ' },
+    { path: '/', label: 'Trang chủ' },
+    { path: '/home', label: 'Cửa hàng' },
+    { label: 'Danh mục' },
+    { path: '/blog', label: 'Blog' },
   ];
+  const categoryMap = {
+    "Thời trang": ["quần short", "áo polo", "áo thun", "giày", "túi"],
+    "Điện tử": ["điện thoại", "máy tính", "tai nghe"],
+    "Gia dụng": ["tủ lạnh", "máy giặt", "lò vi sóng"],
+    // Thêm các danh mục khác
+  };
+  const categorizeItems = (items) => {
+    const categorized = {};
+  
+    // Duyệt qua từng mục trong categoryMap
+    Object.keys(categoryMap).forEach((parentCategory) => {
+      categorized[parentCategory] = []; // Tạo mảng trống cho danh mục cha
+  
+      items.forEach((item) => {
+        if (categoryMap[parentCategory].includes(item.toLowerCase())) {
+          categorized[parentCategory].push(item); // Thêm danh mục con vào danh mục cha tương ứng
+        }
+      });
+    });
+  
+    return categorized;
+  };
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await ProductService.getAllType(); // API trả về danh sách các danh mục
+        const items = res.data; // ['quần', 'áo', 'máy tính', ...]
+        const categorizedData = categorizeItems(items);
+        setCategories(categorizedData); // Lưu dữ liệu đã phân loại vào state
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+  
+    fetchCategories();
+  }, []);
+    
+  const handleNavigateToCategory = (type) => {
+    navigate(`/type/${type}`);
+  };
   const handleCart = () => {
     navigate('/cart');
   };
@@ -66,8 +108,6 @@ const Header = () => {
     }
   };
 
-  const handleMouseEnter = useCallback(() => setIsHovering(true), []);
-  const handleMouseLeave = useCallback(() => setIsHovering(false), []);
   const toggleSearch = () => {
     setIsSearchVisible((prev) => !prev); // Bật/tắt hiển thị hộp tìm kiếm
   };
@@ -108,8 +148,38 @@ const Header = () => {
           <WrapperTextHeader onClick={handleHome}>AT-Ecommerce</WrapperTextHeader>
         </Col>
         <Col span={10}>
-          <WrapperNav>
-            {navItems.map((item) => (
+        <WrapperNav>
+          {navItems.map((item, index) =>
+            item.label === 'Danh mục' ? (
+              <Dropdown
+                placement="bottom"
+                arrow
+                menu={{
+                  items: Object.keys(categories).map((parentCategory) => ({
+                    key: parentCategory,
+                    label: (
+                      <DropdownMenu>
+                        <strong>{parentCategory}</strong>
+                        <ul>
+                          {categories[parentCategory].map((type, idx) => (
+                            <li
+                              key={idx}
+                              onClick={() => handleNavigateToCategory(type)}
+                            >
+                              {type}
+                            </li>
+                          ))}
+                        </ul>
+                      </DropdownMenu>
+                    ),
+                  })),
+                }}
+              >
+                <span onClick={(e) => e.preventDefault()}>
+                  <Space>Danh mục</Space>
+                </span>
+              </Dropdown>
+            ) : (
               <span
                 key={item.path}
                 onClick={() => navigate(item.path)}
@@ -117,8 +187,9 @@ const Header = () => {
               >
                 {item.label}
               </span>
-            ))}
-          </WrapperNav>
+            )
+          )}
+        </WrapperNav>
         </Col>
         <Col span={2} onClick={toggleSearch} style={{ cursor: 'pointer' }}>
           <div >
@@ -175,7 +246,7 @@ const Header = () => {
 
           <WrapperHeaderCart onClick={() => navigate('/cart')}>
                 <ShoppingCartOutlined style={{ fontSize: '30px' }} />
-                <CartItemCount>{cartItems.length}</CartItemCount>
+                <CartItemCount>{order?.orderItems?.length}</CartItemCount>
           </WrapperHeaderCart>
         </Col>
       </WrapperHeader>

@@ -81,8 +81,10 @@ export const Sidebar = styled.aside`
   top: 20px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 `;
-
-export const MenuItem = styled.div`
+export const MenuItem = styled.div.attrs(props => ({
+  // Đảm bảo không truyền 'active' xuống DOM
+  active: undefined,
+}))`
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -92,7 +94,7 @@ export const MenuItem = styled.div`
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
-  
+
   &:hover {
     background-color: #f5f3fe;
     color: #6c5ce7;
@@ -102,6 +104,7 @@ export const MenuItem = styled.div`
     font-weight: ${props => props.active ? '600' : '400'};
   }
 `;
+
 
 export const DashboardGrid = styled.div`
   display: grid;

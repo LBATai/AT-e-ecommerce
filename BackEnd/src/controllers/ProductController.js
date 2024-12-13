@@ -1,3 +1,4 @@
+const Product = require('../models/ProductModel');
 const JwtService = require('../services/JwtService');
 const ProductService = require('../services/ProductService');
 
@@ -61,16 +62,21 @@ const getDetailProduct = async (req, res) => {
 
 const getAllProduct = async (req, res) => {
     try {
-        const {limit, page, sort, filter} = req.query
-        const response = await ProductService.getAllProduct(Number(limit) || 8, Number(page) || 0, sort, filter)
+        const { filter } = req.query; // Nhận giá trị filter từ query string
+        let parsedFilter = null;
+        if (filter) {
+        parsedFilter = filter.split(':'); // Chuyển chuỗi 'name:iPhone' thành mảng ['name', 'iPhone']
+        }
+        const response = await ProductService.getAllProduct(parsedFilter);
         return res.status(200).json(response)
-    } catch (e) {    
-        return res.status(404).json({
-            message: e 
-        });
+    } catch (e) {
+      console.error('Error in getAllProduct:', e);
+      return res.status(500).json({
+        message: 'Error occurred while fetching products',
+      });
     }
-}
-
+  };
+  
 const deleteProduct = async (req, res) => {
     try {
         const productId = req.params.id

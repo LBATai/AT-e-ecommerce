@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   MainContainer,
   TitleContainer,
@@ -27,9 +27,8 @@ const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const dispatch = useDispatch();
-
   const navigate = useNavigate();
-
+  const location = useLocation();
   // Mutation hook để gọi API
   const mutation = useMutationHooks((data) => UserService.signIn(data));
   const handleSignUp = () => {
@@ -77,7 +76,6 @@ const SignIn = () => {
             if (response?.status === 'OK') {
               setIsPending(true);
               message.success('Đăng nhập thành công!');
-              
               // Lưu access_token vào localStorage và giải mã token
               localStorage.setItem('access_token', JSON.stringify(response?.access_token));
               if (response?.access_token) {
@@ -88,12 +86,14 @@ const SignIn = () => {
                   handleGetDetailsUser(decoded.id, response.access_token)
                 }
               }
-
-          
-              // Bật loading trước khi chuyển hướng tới trang home
               setTimeout(() => {
-                navigate('/home');
-                setIsPending(false); // Tắt loading sau khi chuyển trang
+                if(location?.state) {
+                  navigate(location?.state)
+                  setIsPending(false); // Tắt loading sau khi chuyển trang
+                } else {
+                  navigate('/');
+                  setIsPending(false); // Tắt loading sau khi chuyển trang
+                }
               }, 1000); // Chờ 1 giây trước khi chuyển trang
           
             } else if (response?.message === 'User not found') {

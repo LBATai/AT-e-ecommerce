@@ -1,69 +1,57 @@
-import React, { useState } from "react";
-import {
-  Row,
-  Col,
-  Table,
-  InputNumber,
-  Button,
-  Card,
-  Radio,
-  Space,
-  Input,
-  Modal,
-} from "antd";
-import {
-  MinusOutlined,
-  PlusOutlined,
-  CreditCardOutlined,
-  PayCircleOutlined,
-  DeleteOutlined,
-} from "@ant-design/icons";
-import { FaPaypal } from "react-icons/fa";
+import React, { useState, useEffect, useMemo } from "react";
+import { Row, Col, Table, InputNumber, Button, Modal } from "antd";
+import { MinusOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { increaseAmount, decreaseAmount, removeOrderProduct, removeOrderAllProduct  } from "../../components/redux/Slide/orderSlide";
+import { formatCurrencyVND } from "../../utils";
 
 const CartPage = () => {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      title: "Thinking, Fast and Slow",
-      author: "Daniel Kahneman",
-      format: "Digital",
-      quantity: 2,
-      price: 240000,
-      img: "https://i.imgur.com/2DsA49b.webp",
-    },
-    {
-      id: 2,
-      title: "Homo Deus: A Brief History of Tomorrow",
-      author: "Yuval Noah Harari",
-      format: "Paperback",
-      quantity: 1,
-      price: 324000,
-      img: "https://i.imgur.com/Oj1iQUX.webp",
-    },
-  ]);
-
-  const [paymentMethod, setPaymentMethod] = useState("credit");
-  const [updatedItems, setUpdatedItems] = useState(cartItems);
+  const order = useSelector((state) => state.order);
+  const user = useSelector((state) => state.user);
+  const dispatch = useDispatch();
+  const [updatedItems, setUpdatedItems] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]); // Các ID sản phẩm được chọn
+  const navigate = useNavigate();
+
+  // Chuyển đổi dữ liệu từ order.orderItems sang cấu trúc bảng
+  useEffect(() => {
+    if (order?.orderItems) {
+      const transformedItems = order.orderItems.map((item) => ({
+        id: item.product || item.productId,
+        name: item.name,
+        type: item.type,
+        amount: item.amount,
+        price: item.price,
+        img: item.image,
+      }));
+      setUpdatedItems(transformedItems);
+    }
+  }, [order]);
 
   const columns = [
     {
-      title: "Sản phẩm",
-      dataIndex: "product",
-      key: "product",
+      title: () => (
+        <>
+          Sản phẩm
+          {updatedItems.length > 0 && (
+            <span style={{ marginLeft: 8 }}>({updatedItems.length})</span>
+          )}
+        </>
+      ),
+      dataIndex: "name",
+      key: "name",
       render: (_, record) => (
         <div style={{ display: "flex", alignItems: "center" }}>
           <img
             src={record.img}
-            alt={record.title}
+            alt={record.name}
             style={{ width: 80, marginRight: 16, borderRadius: 8 }}
           />
           <div>
-            <p style={{ margin: 0, fontWeight: 500 }}>{record.title}</p>
-            <p style={{ margin: 0, fontSize: 12, color: "gray" }}>
-              {record.author}
-            </p>
+            <p style={{ margin: 0, fontWeight: 500 }}>{record.name}</p>
           </div>
           <Button
             icon={<DeleteOutlined />}
@@ -75,23 +63,23 @@ const CartPage = () => {
     },
     {
       title: "Loại sản phẩm",
-      dataIndex: "format",
-      key: "format",
+      dataIndex: "type",
+      key: "type",
     },
     {
       title: "Số lượng",
-      dataIndex: "quantity",
-      key: "quantity",
+      dataIndex: "amount",
+      key: "amount",
       render: (_, record) => (
         <div style={{ display: "flex", alignItems: "center" }}>
-          <Button icon={<MinusOutlined />} onClick={() => changeQuantity(record.id, -1)} />
+          <Button icon={<MinusOutlined />} onClick={() => handleAmountChange(record.id, -1)} />
           <InputNumber
             min={1}
-            value={record.quantity}
+            value={record.amount}
             style={{ width: 60, margin: "0 8px" }}
-            onChange={(value) => changeQuantity(record.id, value - record.quantity)}
+            onChange={(value) => handleAmountChange(record.id, value - record.amount)}
           />
-          <Button icon={<PlusOutlined />} onClick={() => changeQuantity(record.id, 1)} />
+          <Button icon={<PlusOutlined />} onClick={() => handleAmountChange(record.id, 1)} />
         </div>
       ),
     },
@@ -99,117 +87,154 @@ const CartPage = () => {
       title: "Giá",
       dataIndex: "price",
       key: "price",
-      render: (price, record) => `${(price * record.quantity).toLocaleString()} VND`,
+      render: (price, record) => `${(price * record.amount).toLocaleString()} VND`,
     },
   ];
+
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: (keys, selectedRows) => {
+      let selectedIds = [];
+      if (keys.length === updatedItems.length) {
+        // Check All được nhấn, lấy tất cả ID từ updatedItems
+        selectedIds = updatedItems.map((item) => item.id);
+      } else {
+        // Lấy danh sách ID từ các hàng được chọn
+        selectedIds = selectedRows.map((row) => row.id);
+      }
+      setSelectedRowKeys(selectedIds); // Cập nhật danh sách ID đã chọn
+      // console.log("Selected IDs:", selectedIds);
+    },
+  };
+  
+  // useEffect(() => {
+  //   console.log("Selected IDs (from state):", selectedRowKeys);
+  // }, [selectedRowKeys]);
+  
+  const handleRemoveAll = () => {
+    Modal.confirm({
+      title: "Xóa sản phẩm đã chọn",
+      content: "Bạn có chắc muốn xóa các sản phẩm đã chọn không?",
+      okText: "Xóa",
+      cancelText: "Hủy",
+      onOk: () => {
+        dispatch(removeOrderAllProduct({ idProducts: selectedRowKeys })); // Truyền danh sách ID sản phẩm được chọn
+        setSelectedRowKeys([]); // Xóa hết các sản phẩm được chọn
+      },
+    });
+  };
 
   const handleDelete = (record) => {
     setIsModalVisible(true);
     setItemToDelete(record);
   };
 
-  const changeQuantity = (id, delta) => {
-    setUpdatedItems((prevItems) =>
-      prevItems.map((item) => {
-        if (item.id === id) {
-          const newQuantity = Math.max(0, item.quantity + delta);
-          
-          // Nếu số lượng là 0, gọi handleDelete để hiển thị modal
-          if (newQuantity === 0) {
-            handleDelete(item); // Hiển thị modal xác nhận xóa
-          }
-          
-          return {
-            ...item,
-            quantity: newQuantity,
-          };
-        }
-        return item;
-      })
-    );
+  const handleAmountChange = (id, delta) => {
+    const item = updatedItems.find((item) => item.id === id);
+    if (item) {
+      if (delta > 0) {
+        dispatch(increaseAmount({ idProduct: item.id }));
+      } else if (delta < 0) {
+        dispatch(decreaseAmount({ idProduct: item.id }));
+      }
+    }
   };
 
-  const total = updatedItems.reduce(
-    (sum, item) => sum + item.quantity * item.price,
-    0
-  );
-
-  const handleOk = () => {
-    if (itemToDelete.quantity === 0) {
-      setCartItems(cartItems.filter((item) => item.id !== itemToDelete.id));
+  const deliveryPriceMemo = useMemo(() => {
+    const selectedItems = updatedItems.filter(item => selectedRowKeys.includes(item.id));
+    const totalPrice = selectedItems.reduce((sum, item) => sum + item.amount * item.price, 0);
+  
+    if (totalPrice > 200000) {
+      // Cộng thêm phí giao hàng 10.000 VND mỗi sản phẩm phù hợp
+      return selectedItems.length * 10000;
+    } else {
+      return 0;
     }
+  }, [updatedItems, selectedRowKeys]);
+    
+
+  const total = useMemo(() => {
+    const selectedItems = updatedItems.filter((item) => selectedRowKeys.includes(item.id));
+    const productTotal = selectedItems.reduce((sum, item) => sum + item.amount * item.price, 0);
+  
+    // Tính tổng giá bao gồm phí giao hàng
+    const deliveryPrice = productTotal > 200000 ? selectedItems.length * 10000 : 0;
+    return productTotal + deliveryPrice;
+  }, [updatedItems, selectedRowKeys]);
+  
+  const handleAddCart = () => {
+
+  }
+  const handleOk = () => {
+    dispatch(removeOrderProduct({ idProduct: itemToDelete.id }));
     setIsModalVisible(false);
   };
 
   const handleCancel = () => {
     setIsModalVisible(false);
   };
+  if (updatedItems.length === 0) {
+    return (
+      <Row style={{ padding: 24, marginTop: "100px", textAlign: "center" }}>
+        <Col span={24}>
+          <h2>Giỏ hàng của bạn đang trống</h2>
+          <Button type="primary" onClick={() => navigate("/")} style={{ marginTop: 16 }}>
+            Quay lại trang mua sắm
+          </Button>
+        </Col>
+      </Row>
+    );
+  }
 
   return (
     <Row gutter={[16, 16]} style={{ padding: 24, marginTop: "100px" }}>
       <Col xs={24} lg={16}>
+      <div style={{ marginBottom: 16, height: 40, display: "flex", alignItems: "center"}}>
+        {selectedRowKeys.length > 1 && (
+            <Button
+              type="primary"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={handleRemoveAll}
+              style={{ marginBottom: 16 }}
+            >
+              Xóa sản phẩm đã chọn
+            </Button>
+          )}
+      </div>
         <Table
           dataSource={updatedItems}
           columns={columns}
           pagination={false}
           rowKey="id"
+          rowSelection={rowSelection}
           bordered
         />
       </Col>
       <Col xs={24} lg={8}>
-        <Card title="Thanh toán" bordered>
-          <Radio.Group
-            value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value)}
-            style={{ width: "100%" }}
-          >
-            <Space direction="vertical" style={{ width: "100%" }}>
-              <Radio value="credit" style={{ width: "100%" }}>
-                <CreditCardOutlined style={{ marginRight: 8 }} /> Thẻ tín dụng
-              </Radio>
-              <Radio value="debit" style={{ width: "100%" }}>
-                <PayCircleOutlined style={{ marginRight: 8 }} /> Thẻ ghi nợ
-              </Radio>
-              <Radio value="paypal" style={{ width: "100%" }}>
-                <FaPaypal style={{ marginRight: 8, color: "#003087" }} /> PayPal
-              </Radio>
-              <Radio value="cod" style={{ width: "100%" }}>
-                Thanh toán khi nhận hàng
-              </Radio>
-            </Space>
-          </Radio.Group>
-          {paymentMethod !== "cod" && (
-            <Space direction="vertical" size="large" style={{ width: "100%", marginTop: 16 }}>
-              <Input placeholder="Tên trên thẻ" />
-              <Input placeholder="Số thẻ" />
-              <Space style={{ width: "100%" }}>
-                <Input placeholder="MM/YY" style={{ flex: 1 }} />
-                <Input placeholder="CVV" style={{ flex: 1 }} />
-              </Space>
-            </Space>
-          )}
-          <div
-            style={{
-              marginTop: 24,
-              display: "flex",
-              justifyContent: "space-between",
-              fontWeight: 500,
-            }}
-          >
-            <span>Tổng cộng:</span>
-            <span>{total.toLocaleString()} VND</span>
-          </div>
-          <Button
-            type="primary"
-            size="large"
-            style={{ marginTop: 16, width: "100%" }}
-          >
-            Thanh toán
-          </Button>
-        </Card>
+        <div style={{ display: 'flex',justifyContent: 'space-between',alignItems: 'center',padding: '8px 0',}}>
+          <span>Địa chỉ giao hàng</span>
+          <span>Hiển thị địa chỉ</span>
+        </div>
+        <div style={{ display: 'flex',justifyContent: 'space-between',alignItems: 'center',padding: '8px 0',}}>
+          <span>Phí giao hàng</span>
+          <span>{formatCurrencyVND(deliveryPriceMemo)}</span>
+        </div>
+        <div style={{marginTop: 24,display: "flex",justifyContent: "space-between",fontWeight: 500, fontSize: '20px'}}>
+          <span>Tổng cộng: {selectedRowKeys.length}</span>
+          <span style={{color: 'red'}}>{total.toLocaleString()} VND</span>
+        </div>
+        <Button
+          type="primary"
+          size="large"
+          style={{ marginTop: 16, width: "100%" }}
+          disabled={selectedRowKeys.length === 0}
+          onClick={handleAddCart}
+        >
+          Mua hàng
+        </Button>
       </Col>
 
-      {/* Modal xác nhận xóa sản phẩm */}
       <Modal
         title="Xóa sản phẩm"
         open={isModalVisible}

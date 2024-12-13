@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Input, Modal, Form, message, Upload, Space,  } from 'antd';
+import { Table, Button, Input, Modal, Form, message, Upload, Space, Select  } from 'antd';
 import { PlusOutlined, UploadOutlined, EditOutlined, DeleteOutlined,  } from '@ant-design/icons';
 import { useMutationHooks } from '../../hooks/useMutationHook';
 import * as ProductService from '../../Service/ProductService';
 import { getBase64 } from '../../utils';
 import DrawerComponent from '../DrawerComponent/DrawerComponent';
 import { useSelector } from 'react-redux'
-
+import {renderOptions, fetchAllTypeProduct, formatCurrencyVND} from '../../utils'
 const AdminProduct = () => {
   const user = useSelector((state) => state.user)
 
@@ -22,7 +22,30 @@ const AdminProduct = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [searchText, setSearchText] = useState('');
-  
+  const [types, setTypes] = useState([]); 
+  const [newType, setNewType] = useState('');
+  const [isAddingType, setIsAddingType] = useState(false);
+  const [selectedType, setSelectedType] = useState(types[0]);// Trạng thái lưu loại sản phẩm đã chọn
+
+      // Lấy danh sách loại sản phẩm từ API
+    useEffect(() => {
+      const fetchTypes = async () => {
+        const data = await fetchAllTypeProduct();
+        setTypes(data); // Lưu mảng loại sản phẩm
+      };
+      fetchTypes();
+    }, []);
+
+  const handleAddType = () => {
+    if (newType.trim()) {
+      // Thêm loại mới vào danh sách types
+      setTypes((prevTypes) => [...prevTypes, newType]);
+      setSelectedType(newType); // Đặt giá trị đã chọn là loại mới
+      setNewType('');
+      setIsAddingType(false); // Ẩn ô input sau khi thêm loại mới
+    }
+  };
+
   const onSelectChange = (newSelectedRowKeys) => {
     setSelectedRowKeys(newSelectedRowKeys);
   };
@@ -36,6 +59,7 @@ const AdminProduct = () => {
       const response = await ProductService.getAllProduct();
       if (response && response.status === "OK") {
         setProducts(response.data); // Cập nhật sản phẩm
+        // console.log('response.data', response.data)
       } else {
         console.error("Dữ liệu không hợp lệ:", response);
       }
@@ -46,7 +70,6 @@ const AdminProduct = () => {
       setIsLoading(false); // Kết thúc tải
     }
   };
-
   useEffect(() => {
     fetchProducts(); 
   }, []);
@@ -104,10 +127,15 @@ const AdminProduct = () => {
 
 
   useEffect(() => {
-    addForm.setFieldsValue(stateProductDetails)
+    if (stateProductDetails) {
+      addForm.setFieldsValue(stateProductDetails);
+    }
   }, [addForm, stateProductDetails]);
+
   useEffect(() => {
+    if (stateProductDetails) {
     updateForm.setFieldsValue(stateProductDetails)
+  }
   }, [updateForm, stateProductDetails]);
 
   useEffect(() => {
@@ -117,11 +145,11 @@ const AdminProduct = () => {
   }, [rowSelected]);
   const handleDetailProduct = (record) => {
     setRowSelected(record._id);
-    setSelectedProductName(record.name); // Lưu tên sản phẩm
+    setSelectedProductName(record.name);      
     setIsOpenDrawer(true); // Mở drawer
   };
   const handleDeleteProduct = (record) => {
-    setSelectedProductName(record.name); // Lưu tên sản phẩm
+    setSelectedProductName(record.name); 
     Modal.confirm({
       title: `Xác nhận xóa sản phẩm: ${record.name}`,
       content: 'Bạn có chắc chắn muốn xóa sản phẩm này không?',
@@ -155,7 +183,7 @@ const AdminProduct = () => {
       title: 'Giá',
       dataIndex: 'price',
       key: 'price',
-      render: (text) => `${text} VND`, // Hiển thị giá có thêm đơn vị VND
+      render: (text) => formatCurrencyVND(text), // Hiển thị giá có thêm đơn vị VND
       sorter: (a, b) => a.price - b.price
     },
     {
@@ -219,7 +247,7 @@ const AdminProduct = () => {
     setImage(file.preview); // Cập nhật hình ảnh
   };
   const handleDeleteSelectedProducts = async () => {
-    console.log('Selected Row Keys:', selectedRowKeys); 
+    // console.log('Selected Row Keys:', selectedRowKeys); 
     Modal.confirm({
       title: 'Xác nhận xóa',
       content: `Bạn có chắc chắn muốn xóa ${selectedRowKeys.length} sản phẩm đã chọn không?`,
@@ -252,7 +280,6 @@ const handleSearch = async () => {
   }
 };
 
-
   const onFinish = (values) => {
     const newProduct = {
       ...values,
@@ -260,6 +287,7 @@ const handleSearch = async () => {
     };
     mutation.mutate(newProduct); // Gửi yêu cầu tạo sản phẩm
   };
+
   const mutationUpdateProduct = useMutationHooks(
     (data) => {
       const { id, access_token, ...restData } = data;  // Tách access_token và giữ lại dữ liệu cần cập nhật
@@ -267,6 +295,7 @@ const handleSearch = async () => {
       return res;
     },
   );
+
   const onFinishUpdateProduct = (values) => {
     const data = {
       ...values,
@@ -299,7 +328,7 @@ const handleSearch = async () => {
       message.error('Đã xảy ra lỗi, vui lòng thử lại!');
     }
   }, [mutationUpdateProduct.isSuccess, mutationUpdateProduct.isError, mutationUpdateProduct.data]);
-  
+
   return (
     <div style={{ padding: '20px', background: '#fff' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
@@ -335,7 +364,7 @@ const handleSearch = async () => {
         rowKey="_id"
         loading={isLoading}
         pagination={{
-          pageSize: 5,
+          pageSize: 8,
           style: { display: 'flex', justifyContent: 'center' }, // Căn giữa pagination
         }} 
         dataSource={products}
@@ -348,22 +377,41 @@ const handleSearch = async () => {
         }}
       />
       <Modal title="Thêm Sản Phẩm Mới" open={isModalOpen} onCancel={handleCancel} footer={null}>
-        <Form form={addForm} layout="vertical" onFinish={onFinish}>
+        <Form form={addForm} layout="vertical" onFinish={onFinish} initialValues={{type: selectedType,  }}>
           <Form.Item name="name" label="Tên Sản Phẩm" rules={[{ required: true, message: 'Vui lòng nhập tên sản phẩm' }]}>
             <Input placeholder="Nhập tên sản phẩm" />
           </Form.Item>
-          <Form.Item name="price" label="Giá sản phẩm (vnđ)"           
-          rules={[
-            { required: true, message: 'Vui lòng nhập giá sản phẩm' },
-            {
-              validator: (_, value) =>
-                value && (value < 1)
-                  ? Promise.reject(new Error('Giá sản phẩm phải lớn hơn 0'))
-                  : Promise.resolve(),
-            },
-          ]}>
-            <Input type="number" placeholder="Nhập giá sản phẩm" />
-          </Form.Item>
+          <Form.Item
+  name="price"
+  label="Giá sản phẩm (VNĐ)"
+  rules={[
+    { required: true, message: "Vui lòng nhập giá sản phẩm" },
+    {
+      validator: (_, value) =>
+        value && value < 1
+          ? Promise.reject(new Error("Giá sản phẩm phải lớn hơn 0"))
+          : Promise.resolve(),
+    },
+  ]}
+>
+  <Input
+    type="number"
+    placeholder="Nhập giá sản phẩm"
+    onChange={(e) => {
+      const value = e.target.value; // Lấy giá trị từ input
+      addForm.setFieldsValue({ price: value }); // Cập nhật vào form
+    }}
+    onBlur={(e) => {
+      const value = parseFloat(e.target.value);
+      if (!isNaN(value) && value >= 0) {
+        addForm.setFieldsValue({ price: formatCurrencyVND(value) }); // Hiển thị định dạng VND
+      } else {
+        addForm.setFieldsValue({ price: '' }); // Xóa giá trị nếu không hợp lệ
+      }
+    }}
+  />
+</Form.Item>
+
           <Form.Item name="rating" label="Đánh giá sản phẩm (★)"           
           rules={[
             { required: true, message: 'Vui lòng nhập đánh giá sản phẩm' },
@@ -376,9 +424,39 @@ const handleSearch = async () => {
           ]}>
             <Input type="number" placeholder="Nhập đánh giá sản phẩm" />
           </Form.Item>
-          <Form.Item name="type" label="Loại sản phẩm" rules={[{ required: true, message: 'Vui lòng nhập loại sản phẩm' }]}>
-            <Input placeholder="Nhập loại sản phẩm" />
+          <Form.Item
+            name="type"
+            label="Loại sản phẩm"
+            rules={[{ required: true, message: "Vui lòng chọn loại sản phẩm" }]}
+          >
+            <Select
+              placeholder="Chọn loại sản phẩm"
+              allowClear
+              value={selectedType} // Sử dụng selectedType để quản lý giá trị đã chọn
+              onChange={(value) => {
+                if (value === 'add_type') {
+                  setIsAddingType(true); // Hiển thị ô nhập liệu khi chọn "Thêm type"
+                } else {
+                  setSelectedType(value); // Cập nhật giá trị đã chọn
+                  setIsAddingType(false); // Nếu chọn loại có sẵn, ẩn ô nhập liệu
+                }
+              }}
+              options={renderOptions(types)} // Sử dụng kết quả từ hàm renderOptions
+            />
           </Form.Item>
+
+          {isAddingType && (
+            <Form.Item label="Nhập loại sản phẩm mới">
+              <Input
+                value={newType}
+                onChange={(e) => setNewType(e.target.value)}
+                placeholder="Nhập loại sản phẩm mới"
+              />
+              <Button type="primary" onClick={handleAddType} style={{ marginTop: 10 }}>
+                Thêm loại
+              </Button>
+            </Form.Item>
+          )}
           <Form.Item name="description" label="Mô Tả" rules={[{ required: true, message: 'Vui lòng nhập mô tả sản phẩm' }]}>
             <Input.TextArea placeholder="Nhập mô tả sản phẩm" />
           </Form.Item>

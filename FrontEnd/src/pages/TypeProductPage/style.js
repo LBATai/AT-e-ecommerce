@@ -9,9 +9,9 @@ export const WrapperHome = styled.div`
 
 export const CardContainer = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); /* Sử dụng auto-fill và minmax để điều chỉnh số lượng cột tự động */
-  gap: 17px;
-  width: 90%; /* Chiếm toàn bộ chiều rộng của container */
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Sử dụng auto-fill và minmax để điều chỉnh số lượng cột tự động */
+  gap: 20px;
+  width: 100%; /* Chiếm toàn bộ chiều rộng của container */
   margin-top: 20px;
   padding: 20px;
   background-color: #F5F5F5;
@@ -27,5 +27,15 @@ export const NavbarContainer = styled.div`
   width: 20%; /* Chiếm 20% chiều rộng */
   min-width: 200px; /* Đảm bảo không bị quá nhỏ */
   background-color: #fff; /* Màu nền hoặc thay đổi theo ý thích */
-  border-right: 1px solid #ddd; /* Thêm đường viền phân cách nếu cần */
 `;
+
+export const TypeStyle = styled.h3`
+  font-size: 16px;
+  font-weight: 600;
+  color: #333; /* Màu đen */
+  text-transform: capitalize; /* Chuyển chữ cái đầu thành chữ hoa */
+  margin-top: 20px; /* Khoảng cách giữa các item */
+  margin-bottom: -10px;
+  margin-left: 20px;
+`;
+

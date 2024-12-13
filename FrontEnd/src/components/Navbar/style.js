@@ -1,7 +1,6 @@
 import styled from "styled-components";
 
 export const WrapperNavbar = styled.div `
-    margin-top: 60px;
     margin-bottom: 20px;
     margin-left: 20px;
     background-color: #fff;

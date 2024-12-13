@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Layout, Row, Col, Card, Button, Image, InputNumber, List, Breadcrumb  } from 'antd';
 import { ShoppingCartOutlined, HeartOutlined } from '@ant-design/icons';
-import { WrapperProductDetail } from './style';
+import { WrapperProductDetail, PriceStyle, DiscountStyle,OriginalPriceStyle,DiscountedPriceStyle } from './style';
 import image1 from '../../assets/images/Hoodies/Áo hoodie nỉ lót lông cừu.jpg';
 import * as ProductService from '../../Service/ProductService';
-import { useNavigate, useParams } from 'react-router';
-
-
+import { useLocation, useNavigate, useParams } from 'react-router';
+import {formatCurrencyVND} from '../../utils'
+import { useDispatch, useSelector } from 'react-redux';
+import { addOrderProduct } from '../../components/redux/Slide/orderSlide';
 const ProductDetail = () => {
   const navigate = useNavigate();
   const { Content } = Layout;
@@ -16,12 +17,9 @@ const ProductDetail = () => {
   const [color, setColor] = useState("Đỏ");
   const [mainImage, setMainImage] = useState(image1); // Image chính sẽ hiển thị
   const [stateProductDetails, setStateProductDetails] = useState('')
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-    }).format(value);
-  };
+  const user = useSelector((state) => state.user);
+  const location = useLocation()
+  const dispatch = useDispatch()
 
   useEffect(() => {
     if (id){
@@ -85,7 +83,23 @@ const ProductDetail = () => {
       </span>
     ));
   };
-
+  //button add order product
+  const handleAddOrderProduct = () => {
+    if (!user.id){
+      navigate('/sign-in', {state: location?.pathname})
+    } else {
+      dispatch(addOrderProduct({
+        orderItem: {
+          product: stateProductDetails.id,
+          amount: quantity,
+          name: stateProductDetails.name,
+          price: stateProductDetails.price,
+          image: stateProductDetails.image,
+          type: stateProductDetails.type
+        }
+      }))
+    }
+  }
   return (
     <Layout style={{ backgroundColor: '#F5F5F5', padding: '20px' }}>
       <Content>
@@ -137,8 +151,30 @@ const ProductDetail = () => {
             <Col xs={24} md={12}>
               <Card bordered={false}>
                 <h1>{stateProductDetails.name}</h1>
-                <h2 style={{ color: '#FF4D4F' }}>{formatCurrency(stateProductDetails.price)}</h2>
 
+                <PriceStyle>
+                  {stateProductDetails.discount > 0 ? (
+                    <>
+                      <div style={{display: 'flex', gap: '15px'}}>
+                        <OriginalPriceStyle>
+                          {formatCurrencyVND(stateProductDetails.price)}
+                        </OriginalPriceStyle>
+                        <DiscountStyle>
+                          -{stateProductDetails.discount}%
+                        </DiscountStyle>
+                      </div>
+                      <DiscountedPriceStyle>
+                        {formatCurrencyVND(
+                          stateProductDetails.price * (1 - stateProductDetails.discount / 100)
+                        )}
+                      </DiscountedPriceStyle>
+                    </>
+                  ) : (
+                    <div>
+                      {formatCurrencyVND(stateProductDetails.price)}
+                    </div>
+                  )}
+                </PriceStyle>
                 <div style={{ margin: '10px 0' }}>
                   <strong>Đánh Giá:</strong> {renderStars(stateProductDetails.rating)}
                 </div>
@@ -185,7 +221,7 @@ const ProductDetail = () => {
 
                 <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
                   <Col>
-                    <Button type="primary" icon={<ShoppingCartOutlined />} size="large">
+                    <Button onClick={handleAddOrderProduct} type="primary" icon={<ShoppingCartOutlined />} size="large">
                       Thêm vào Giỏ Hàng
                     </Button>
                   </Col>
@@ -199,7 +235,11 @@ const ProductDetail = () => {
             </Col>
           </Row>
 
-          <div style={{ padding: '20px', marginTop: '20px' }}>
+          <div style={{ 
+            whiteSpace: 'pre-line', 
+            padding: '20px', 
+            marginTop: '20px' 
+          }}>
             <h2>Mô Tả Sản Phẩm</h2>
             <p>{stateProductDetails.description}</p>
           </div>

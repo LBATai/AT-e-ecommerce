@@ -73,10 +73,14 @@ const AdminUser = () => {
     },
   );
   useEffect(() => {
-    addForm.setFieldsValue(stateUserDetails)
+    if (stateUserDetails) {
+      addForm.setFieldsValue(stateUserDetails)
+    }
   }, [addForm, stateUserDetails]);
   useEffect(() => {
+    if (stateUserDetails) {
     updateForm.setFieldsValue(stateUserDetails)
+  }
   }, [updateForm, stateUserDetails]);
 
   useEffect(() => {

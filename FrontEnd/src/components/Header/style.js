@@ -287,3 +287,44 @@ export const SearchBox = styled.div`
 `;
 
 export const MenuDropdown = styled.div``;
+
+export const DropdownMenu = styled.div`
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-size: 16px;
+  color: #333;
+  min-width: 300px; /* Đảm bảo chiều rộng */
+  transition: all 0.3s ease;
+
+  strong {
+    display: block;
+    font-size: 18px;
+    margin-bottom: 8px;
+    color: #007bff;
+  }
+
+  ul {
+    display: flex; /* Hiển thị danh sách nằm ngang */
+    gap: 15px; /* Khoảng cách giữa các mục */
+    list-style: none; /* Bỏ dấu chấm */
+    margin: 0;
+    padding: 0;
+  }
+
+  li {
+    padding: 5px 10px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    cursor: pointer;
+    text-align: center;
+
+    &:hover {
+      background-color: #e6f7ff;
+      transform: translateY(-3px); /* Hiệu ứng nổi khi hover */
+    }
+  }
+`;
+

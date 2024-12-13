@@ -6,15 +6,19 @@ export const axiosJWT = axios.create({
     withCredentials: true, // Bắt buộc để gửi và nhận cookies
 });
 
-export const getAllProduct = async (search) => {
-    let res = {}
+export const getAllProduct = async (search, type, typeHeader) => {
+    let res = {};
     if (search) {
-        res = await axios.get(`${import.meta.env.VITE_API_URL_BACKEND}/product/getAll-product?filter=name&filter=${search}`);
+      // Gửi filter theo đúng định dạng
+      res = await axios.get(`${import.meta.env.VITE_API_URL_BACKEND}/product/getAll-product?filter=name:${search}`);
+    } else if (type){
+        res = await axios.get(`${import.meta.env.VITE_API_URL_BACKEND}/product/getAll-product?filter=type:${type}`);
     } else {
-        res = await axios.get(`${import.meta.env.VITE_API_URL_BACKEND}/product/getAll-product`);
+      res = await axios.get(`${import.meta.env.VITE_API_URL_BACKEND}/product/getAll-product`);
     }
     return res.data;
-};
+  };
+
 export const createProduct  = async (data) => {
     console.log('data', data)
     const res = await axios.post(`${import.meta.env.VITE_API_URL_BACKEND}/product/create-product`,data)
