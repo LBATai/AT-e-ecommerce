@@ -1,7 +1,6 @@
 import {createSlice} from '@reduxjs/toolkit'
 const initialState = {
-     orderItems: [
-    ],
+    orderItems: [],
     shippingAddress: {
     },
     paymentMethod: '',
@@ -51,9 +50,31 @@ export const orderSlide = createSlice({
                 (item) => !idProducts.includes(item.product) // Giữ lại những sản phẩm không có trong danh sách idProducts
             );
         },
+        markProductsAsPaid: (state, action) => {
+            const { selectedItemIds } = action.payload || [];
+            // console.log("Marking as Paid - Selected IDs:", selectedItemIds);
+            state.orderItems = state.orderItems.map(item =>
+                selectedItemIds.includes(item.product) ? { ...item, isPaid: true } : item
+            );
+        },
+        removePaidProducts: (state, action) => {
+            const { selectedItemIds } = action.payload || [];
+            // console.log("Removing Paid Products - Selected IDs:", selectedItemIds);
+            state.orderItems = state.orderItems.filter(item => !selectedItemIds.includes(item.product));
+        },
+        
+        
     },
 })
 
-export const { addOrderProduct, removeOrderProduct, increaseAmount, decreaseAmount, removeOrderAllProduct } = orderSlide.actions
+export const { 
+    addOrderProduct, 
+    removeOrderProduct, 
+    increaseAmount, 
+    decreaseAmount, 
+    removeOrderAllProduct ,
+    removePaidProducts,
+    markProductsAsPaid,
+} = orderSlide.actions
 
 export default orderSlide.reducer

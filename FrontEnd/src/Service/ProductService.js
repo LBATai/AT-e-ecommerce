@@ -8,6 +8,7 @@ export const axiosJWT = axios.create({
 
 export const getAllProduct = async (search, type, typeHeader) => {
     let res = {};
+    // console.log('type',type)
     if (search) {
       // Gửi filter theo đúng định dạng
       res = await axios.get(`${import.meta.env.VITE_API_URL_BACKEND}/product/getAll-product?filter=name:${search}`);
@@ -16,11 +17,12 @@ export const getAllProduct = async (search, type, typeHeader) => {
     } else {
       res = await axios.get(`${import.meta.env.VITE_API_URL_BACKEND}/product/getAll-product`);
     }
+    // console.log('res data', res.data)
     return res.data;
   };
 
 export const createProduct  = async (data) => {
-    console.log('data', data)
+    // console.log('data', data)
     const res = await axios.post(`${import.meta.env.VITE_API_URL_BACKEND}/product/create-product`,data)
     return res.data;
 }
@@ -31,7 +33,7 @@ export const getDetailsProduct  = async (id) => {
 }
 
 export const updateProduct  = async (id, access_token, data) => {
-        console.log('userservicadsdasdae acctoken:', access_token)
+        // console.log('userservicadsdasdae acctoken:', access_token)
         const res = await axiosJWT.put(`${import.meta.env.VITE_API_URL_BACKEND}/product/update-product/${id}`,data,{
         headers: {
             token: `Bearer ${access_token}`,

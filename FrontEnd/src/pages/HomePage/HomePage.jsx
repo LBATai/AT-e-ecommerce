@@ -15,9 +15,7 @@ import ProductFilter from '../../components/ProductFilter/ProductFilter';
 const Homepage = () => {
   const searchProduct = useSelector((state) => state?.product?.search);
   const searchDebounce = useDebounce(searchProduct, 1000);
-
-  const refSearch = useRef();
-
+  
   const [stateProducts, setStateProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -37,12 +35,6 @@ const Homepage = () => {
       return []; // Nếu có lỗi, trả về mảng trống
     }
   };
-  // useEffect(() => {
-  //   if(refSearch.current){
-  //     fetchProductAll(searchProduct)
-  //   }
-  //   refSearch.current = true
-  // }, [searchProduct]);
 
   const { data: products, isLoading } = useQuery({
     queryKey: ['products', searchDebounce, sortOrder, sortByDate],

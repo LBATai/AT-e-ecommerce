@@ -24,9 +24,15 @@ import { updateUser } from '../../components/redux/Slide/userSlide';
 import Pending from '../../components/Pending/Pending'
 import { getBase64 } from '../../utils';
 const { Title, Text } = Typography;
+import Order from '../OrderPage/OrderPage'
+import OrderAddress from '../../components/OrderAddress/OrderAddress'
+import { useLocation, useNavigate } from 'react-router';
 
 const ProfilePage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const user = useSelector((state) => state.user)
+  const { activeTab } = location.state || {};
   const [selectedKey, setSelectedKey] = useState('1');
   const [isEditing, setIsEditing] = useState(false);
   const [errors, setErrors] = useState({});
@@ -39,6 +45,12 @@ const ProfilePage = () => {
   const [address, setAddress] = useState('')
   const [age, setAge] = useState('')
 
+  useEffect(() => {
+    if (activeTab) {
+      setSelectedKey(activeTab); // Thực hiện hành động chuyển qua tab
+    }
+  }, [activeTab]); // Chạy lại khi activeTab thay đổi
+  
   const mutation = useMutationHooks(
     (data) => {
       const { id,access_token, ...rests} = data;
@@ -118,7 +130,7 @@ const handleOnchangeAvatar = async ({fileList}) => {
   }
   setAvatar(file.preview)
 }
-
+  // Hàm xử lý khi nhấn "Lưu thay đổi"
   const handleSubmit = () => {
     mutation.mutate({id: user?.id, name, email, avatar, phone, address, age, access_token: user?.access_token})
   setTimeout(() => {
@@ -126,7 +138,10 @@ const handleOnchangeAvatar = async ({fileList}) => {
   }, 10); // Cho mutation thời gian hoàn tất
   setIsEditing(false); // Kết thúc chế độ chỉnh sửa
   }
-  
+   // Hàm xử lý khi nhấn "Hủy"
+   const handleCancel = () => {
+    setIsEditing(false)
+  }; 
   const handlePreview = (image) => {
     setPreviewImage(image);
     setIsPreviewVisible(true);
@@ -142,32 +157,6 @@ const handleOnchangeAvatar = async ({fileList}) => {
     { key: '3', icon: <EnvironmentOutlined />, label: 'Địa chỉ' },
     { key: '4', icon: <HeartOutlined />, label: 'Yêu thích' },
     { key: '5', icon: <BellOutlined />, label: 'Thông báo' },
-  ];
-
-  const orders = [
-    {
-      id: 'DH123456',
-      date: '15/11/2024',
-      status: 'Đã giao',
-      items: [
-        { name: 'Áo thun nam', quantity: 2, price: '590.000₫' },
-        { name: 'Quần jean', quantity: 1, price: '1.290.000₫' }
-      ],
-      total: '2.890.000₫'
-    },
-    // Thêm các đơn hàng khác
-  ];
-
-  const addresses = [
-    {
-      id: 1,
-      name: 'Nhà riêng',
-      recipient: 'Nguyễn Văn A',
-      phone: '0123456789',
-      address: '123 Đường ABC, Quận 1, TP.HCM',
-      isDefault: true
-    },
-    // Thêm các địa chỉ khác
   ];
 
   const renderOverview = () => (
@@ -265,7 +254,8 @@ const handleOnchangeAvatar = async ({fileList}) => {
                 {errors.address && <Text type="danger">{errors.address}</Text>}
               </Col>
               <Col span={24}>
-                <Button type="primary" onClick={handleSubmit} >Lưu thay đổi</Button>
+                <Button type="primary" onClick={handleSubmit} style={{marginRight: '10px'}}>Lưu thay đổi</Button>
+                <Button type="primary" onClick={handleCancel} >Hủy</Button>
               </Col>
             </Row>
             ) : (
@@ -330,73 +320,14 @@ const handleOnchangeAvatar = async ({fileList}) => {
           </>
   );
 
-  const renderOrders = () => (
-    <>
-      {orders.map(order => (
-        <OrderCard key={order.id}>
-          <div className="order-header">
-            <div>
-              <Title level={5}>Đơn hàng {order.id}</Title>
-              <Text type="secondary">{order.date}</Text>
-            </div>
-            <Tag color="success">{order.status}</Tag>
-          </div>
-          <div className="order-items">
-            {order.items.map((item, index) => (
-              <Row key={index} justify="space-between" style={{ marginBottom: 8 }}>
-                <Text>{item.name} x{item.quantity}</Text>
-                <Text strong>{item.price}</Text>
-              </Row>
-            ))}
-          </div>
-          <div className="order-total">
-            <Text>Tổng cộng: </Text>
-            <Text strong style={{ fontSize: 16, color: '#1890ff' }}>{order.total}</Text>
-          </div>
-        </OrderCard>
-      ))}
-    </>
-  );
-
-  const renderAddresses = () => (
-    <>
-      <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
-        <Title level={4}>Sổ địa chỉ</Title>
-        <ActionButton type="primary" icon={<PlusOutlined />}>
-          Thêm địa chỉ mới
-        </ActionButton>
-      </Row>
-      <Row gutter={[16, 16]}>
-        {addresses.map(address => (
-          <Col xs={24} sm={12} key={address.id}>
-            <AddressCard>
-              <div className="address-header">
-                <Space>
-                  <Text strong>{address.name}</Text>
-                  {address.isDefault && <Tag color="blue">Mặc định</Tag>}
-                </Space>
-                <ActionButton icon={<EditOutlined />} type="text" />
-              </div>
-              <div style={{ marginTop: 16 }}>
-                <Text strong display="block">{address.recipient}</Text>
-                <Text type="secondary" display="block">{address.phone}</Text>
-                <Text>{address.address}</Text>
-              </div>
-            </AddressCard>
-          </Col>
-        ))}
-      </Row>
-    </>
-  );
-
   const getContent = () => {
     switch (selectedKey) {
       case '1':
         return renderOverview();
       case '2':
-        return renderOrders();
+        return <Order />;
       case '3':
-        return renderAddresses();
+        return <OrderAddress />
       case '4':
         return <StyledCard>Danh sách yêu thích trống</StyledCard>;
       case '5':

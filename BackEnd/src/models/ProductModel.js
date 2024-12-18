@@ -1,20 +1,31 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema(
-    {
-       name: {type: String, required: true, unique: true},
-       image: {type: String, required: true},
-       type: {type: String, required: true},
-       price: {type: Number, required: true},
-       countInStock: {type: Number, required: true},
-       rating: {type: Number},
-       description: {type: String},
-       discount: {type: Number},
-       selled: {type: Number},
-    },
-    {
-        timestamps: true,
-    }
+  {
+    name: { type: String, required: true, unique: true },
+    images: { type: [String], required: true },
+    type: { type: String, required: true }, // Loại sản phẩm: máy tính, áo quần, v.v.
+    price: { type: Number, required: true },
+    countInStock: { type: Number},
+    rating: { type: Number },
+    description: { type: String },
+    discount: { type: Number },
+    selled: { type: Number },
+    options: [
+      {
+        color: { type: String }, // Màu sắc
+        sizes: [
+          {
+            size: { type: String }, // Kích thước: S, M, L, XL, v.v.
+            countInStock: { type: Number, required: true }, // Số lượng từng kích thước
+          },
+        ],
+      },
+    ],
+  },
+  {
+    timestamps: true,
+  }
 );
 
 const Product = mongoose.model('Product', productSchema);

@@ -8,6 +8,8 @@ import ProfilePage from "../pages/ProfilePage/ProfilePage";
 import AdminPage from "../pages/AdminPage/AdminPage";
 import TypeProductPage from "../pages/TypeProductPage/TypeProductPage";
 import BlogPage from "../pages/BlogPage/BlogPage";
+import PaymentPage from "../pages/PaymentPage/PaymentPage";
+import OrderDetailPage from "../pages/OrderDetailPage/OrderDetailPage";
 
 export const routes = [ 
     {
@@ -35,10 +37,6 @@ export const routes = [
         component: SignUpPage
     },
     {
-        path: "/profile-user",
-        component: ProfilePage
-    },
-    {
         path: "/system/admin",
         component: AdminPage,
         isPrivate: true
@@ -50,6 +48,18 @@ export const routes = [
     {
         path: "/blog",
         component: BlogPage,
+    },
+    {
+        path: "/payment",
+        component: PaymentPage,
+    },
+    {
+        path: "/profile",
+        component: ProfilePage
+    },
+    {
+        path: "/order-detail",
+        component: OrderDetailPage,
     },
     {
         path: "*",

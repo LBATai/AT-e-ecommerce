@@ -4,42 +4,71 @@ const bcrypt = require("bcrypt")
 // User Service
 const createProduct = (newProduct) => {
     return new Promise(async (resolve, reject) => {
-        const { name, image, type, price, countInStock,rating,description, discount, selled } = newProduct
-        try {
-            const checkProduct = await Product.findOne(
-                {
-                    name: name, 
-                }
-            )
-            if(checkProduct != null){
-                resolve({
-                    status: 'error',
-                    message: 'The name of product is already'
-                })
-            }
-            const newProduct = await Product.create({
-                name, 
-                image, 
-                type, 
-                price, 
-                countInStock,
-                rating,
-                description,
-                discount,
-                selled
-            })    
-            if (newProduct){
-                resolve({
-                    status: 'success',
-                    message: 'Product created successfully',
-                    data: newProduct
-                })
-            }
-            } catch (e) {
-                reject(e);
-            }
-        })
-}
+      const { name, images, type, price, countInStock, rating, description, discount, selled, options } = newProduct;
+  
+      try {
+        // Kiểm tra sản phẩm đã tồn tại chưa
+        const checkProduct = await Product.findOne({ where: { name } });
+        if (checkProduct) {
+          return resolve({
+            status: 'error',
+            message: 'The name of the product already exists',
+          });
+        }
+  
+        // Tạo sản phẩm mới với các trường dữ liệu đầy đủ
+        const productData = {
+          name,
+          images,
+          type,
+          price,
+          countInStock,
+          rating,
+          description,
+          discount,
+          selled,
+        };
+  
+        // Nếu có `options`, thêm vào dữ liệu sản phẩm
+        if (options && Array.isArray(options)) {
+          productData.options = options;
+        }
+  
+        // Lưu sản phẩm vào database
+        const newProduct = await Product.create(productData);
+  
+        if (newProduct) {
+          resolve({
+            status: 'success',
+            message: 'Product created successfully',
+            data: newProduct,
+          });
+        } else {
+          resolve({
+            status: 'error',
+            message: 'Failed to create product',
+          });
+        }
+      } catch (e) {
+        console.error('Error occurred while creating the product:', e);
+
+        // Kiểm tra lỗi trùng lặp tên sản phẩm
+        if (e.code === 11000) {
+            reject({
+                status: 'error',
+                message: 'The name of the product already exists',
+                error: e.message,
+            });
+        } else {
+            reject({
+                status: 'error',
+                message: 'An error occurred while creating the product',
+                error: e.message,
+            });
+        }
+    }
+    });
+  };
 
 const updateProduct = (id, data) => {
     return new Promise(async (resolve, reject) => {
@@ -47,7 +76,7 @@ const updateProduct = (id, data) => {
             const checkProduct = await Product.findOne({
                 _id: id,
             })
-            console.log('checkProduct', checkProduct)
+            // console.log('checkProduct', checkProduct)
             if(checkProduct === null){
                 resolve({
                     status: 'OK',
@@ -139,7 +168,7 @@ const deleteProduct = (id) => {
             const checkProduct = await Product.findOne({
                 _id: id,
             })
-            console.log('checkProduct', checkProduct)
+            // console.log('checkProduct', checkProduct)
             if(checkProduct === null){
                 resolve({
                     status: 'OK',

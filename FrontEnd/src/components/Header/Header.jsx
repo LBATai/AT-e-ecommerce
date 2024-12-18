@@ -126,10 +126,10 @@ const Header = () => {
           <AppstoreAddOutlined /> Quản lý hệ thống
         </MenuItem>
               ) : (<div></div>)}
-        <MenuItem onClick={() => navigate('/profile-user')}>
+        <MenuItem onClick={() => navigate('/profile', { state: { activeTab: '1' } })}>
           <InfoCircleOutlined /> Thông tin tài khoản
         </MenuItem>
-        <MenuItem onClick={() => navigate('/orders')}>
+        <MenuItem onClick={() => navigate('/profile', { state: { activeTab: '2' } })}>
           <ShoppingOutlined /> Đơn mua
         </MenuItem>
         <MenuItem onClick={handleCart}>

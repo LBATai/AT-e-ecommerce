@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Layout, Row, Col, Card, Button, Image, InputNumber, List, Breadcrumb  } from 'antd';
+import { Layout, Row, Col, Card, Button, Image, InputNumber, List, Breadcrumb, message   } from 'antd';
 import { ShoppingCartOutlined, HeartOutlined } from '@ant-design/icons';
 import { WrapperProductDetail, PriceStyle, DiscountStyle,OriginalPriceStyle,DiscountedPriceStyle } from './style';
-import image1 from '../../assets/images/Hoodies/Áo hoodie nỉ lót lông cừu.jpg';
 import * as ProductService from '../../Service/ProductService';
 import { useLocation, useNavigate, useParams } from 'react-router';
 import {formatCurrencyVND} from '../../utils'
@@ -13,10 +12,10 @@ const ProductDetail = () => {
   const { Content } = Layout;
   const { id } = useParams();
   const [quantity, setQuantity] = useState(1);
-  const [size, setSize] = useState("M");
-  const [color, setColor] = useState("Đỏ");
-  const [mainImage, setMainImage] = useState(image1); // Image chính sẽ hiển thị
+  const [color, setColor] = useState('');
+  const [mainImage, setMainImage] = useState(''); // Image chính sẽ hiển thị
   const [stateProductDetails, setStateProductDetails] = useState('')
+  const [discountedPrice, setDiscountedPrice] = useState(0);
   const user = useSelector((state) => state.user);
   const location = useLocation()
   const dispatch = useDispatch()
@@ -39,30 +38,14 @@ const ProductDetail = () => {
         description: res?.data?.description,
         image: res?.data?.image,
         discount: res?.data?.discount,
-        selled: res?.data?.selled
+        selled: res?.data?.selled,
+        options: res?.data?.options,
       })
+      setMainImage(res?.data?.image || res?.data?.options?.[0]?.image || '');
    }
     return res
   }
-
- // Lấy id từ URL
-  const product = {
-    id: 1,
-    name: "Áo hoodie nỉ lót lông cừu",
-    description: "Đây là mô tả ngắn của sản phẩm.",
-    price: "1000 USD",
-    category: "Điện tử",
-    brand: "Thương Hiệu",
-    rating: 4,
-    fullDescription: `
-      Sản phẩm này được làm từ vật liệu chất lượng cao, đảm bảo độ bền và hiệu suất vượt trội.
-      Phù hợp cho cả sử dụng cá nhân và chuyên nghiệp.
-      Rất lý tưởng cho người đam mê công nghệ và sử dụng hàng ngày.
-    `,
-    sizes: ["S", "M", "L", "XL"],
-    colors: ["Đỏ", "Xanh Dương", "Xanh Lá", "Đen"],
-    images: [image1, image1, image1, ], // Các ảnh phụ
-  };
+  const [size, setSize] = useState(stateProductDetails?.options?.[0]?.sizes?.[0]?.size || ''); // Giá trị mặc định từ dữ liệu API
 
   const comments = [
     { author: "Nguyễn Văn A", content: "Sản phẩm tuyệt vời, rất đáng mua!", datetime: "2 ngày trước" },
@@ -83,64 +66,91 @@ const ProductDetail = () => {
       </span>
     ));
   };
-  //button add order product
+
+  // Tính giá sau khi giảm
+  useEffect(() => {
+    if (stateProductDetails && stateProductDetails.price) {
+      const price = stateProductDetails.price * (1 - (stateProductDetails.discount || 0) / 100);
+      setDiscountedPrice(price); // Lưu giá trị vào state
+    }
+  }, [stateProductDetails]);
+  
+  const handleSizeChange = (selectedSize) => {
+    setSize(selectedSize);
+  };
+
+  const handleColorChange = (selectedColor) => {
+    setColor(selectedColor);
+  };
+  //button addOrder product
   const handleAddOrderProduct = () => {
-    if (!user.id){
-      navigate('/sign-in', {state: location?.pathname})
-    } else {
+    if (!color) {
+      message.warning("Vui lòng chọn màu sắc trước khi thêm vào giỏ hàng.");
+      return;
+    }
+    
+    // Kiểm tra xem sản phẩm có kích thước không
+    const hasSizes = stateProductDetails.options?.some(option => option.sizes?.length > 0);
+
+    if (hasSizes && !size) {
+      message.warning("Vui lòng chọn kích thước trước khi thêm vào giỏ hàng.");
+      return;
+    }
       dispatch(addOrderProduct({
         orderItem: {
           product: stateProductDetails.id,
           amount: quantity,
           name: stateProductDetails.name,
-          price: stateProductDetails.price,
+          price: discountedPrice,
           image: stateProductDetails.image,
-          type: stateProductDetails.type
+          type: stateProductDetails.type,
+          color: color,  // Sử dụng giá trị color từ state
+          size: size, 
         }
       }))
-    }
+      
   }
-  return (
+
+return (
     <Layout style={{ backgroundColor: '#F5F5F5', padding: '20px' }}>
       <Content>
-        <Breadcrumb style={{ marginBottom: '5px', marginTop: '50px', padding: '20px', fontSize: '16px'}}>
+        <Breadcrumb style={{ marginBottom: '5px', marginTop: '50px', padding: '20px', fontSize: '16px' }}>
           <Breadcrumb.Item>
-            <a onClick={() => navigate('/home')} style={{ cursor: 'pointer',color: '#000000', fontWeight:'600' }}>
+            <a onClick={() => navigate('/home')} style={{ cursor: 'pointer', color: '#000000', fontWeight: '600' }}>
               Shop
             </a>
           </Breadcrumb.Item>
           <Breadcrumb.Item>
-            <a style={{ cursor: 'pointer',color: '#000000', fontWeight:'600'  }}>
+            <a style={{ cursor: 'pointer', color: '#000000', fontWeight: '600' }}>
               {stateProductDetails.type}
             </a>
           </Breadcrumb.Item>
           <Breadcrumb.Item>
-            <a style={{ cursor: 'pointer',color: '#000000', fontWeight:'600'  }}>
+            <a style={{ cursor: 'pointer', color: '#000000', fontWeight: '600' }}>
               {stateProductDetails.name}
             </a>
           </Breadcrumb.Item>
         </Breadcrumb>
+
         <WrapperProductDetail>
           <Row gutter={[16, 16]}>
             <Col xs={20} md={10}>
-              {/* Ảnh chính của sản phẩm */}
               <Image
                 width="90%"
                 src={mainImage}
-                alt={name}
-                style={{ borderRadius: '8px', marginBottom: '10px',marginLeft: '20px'}}
+                alt={stateProductDetails.name}
+                style={{ borderRadius: '8px', marginBottom: '10px', marginLeft: '20px' }}
               />
-              {/* Các ảnh phụ */}
-              <Row gutter={[8, 8]} style={{marginLeft: '20px'}}>
-                {product.images.map((img, index) => (
+              <Row gutter={[8, 8]} style={{ marginLeft: '20px' }}>
+                {stateProductDetails.options?.map((option, index) => (
                   <Col key={index} span={7}>
                     <Image
                       width="100%"
-                      src={img}
-                      onClick={() => setMainImage(img)}
+                      src={option.image}
+                      onClick={() => setMainImage(option.image)}
                       style={{
                         cursor: 'pointer',
-                        border: mainImage === img ? '2px solid #FF4D4F' : '1px solid #CCC',
+                        border: mainImage === option.image ? '2px solid #FF4D4F' : '1px solid #CCC',
                         borderRadius: '4px',
                       }}
                     />
@@ -151,11 +161,10 @@ const ProductDetail = () => {
             <Col xs={24} md={12}>
               <Card bordered={false}>
                 <h1>{stateProductDetails.name}</h1>
-
                 <PriceStyle>
                   {stateProductDetails.discount > 0 ? (
                     <>
-                      <div style={{display: 'flex', gap: '15px'}}>
+                      <div style={{ display: 'flex', gap: '15px' }}>
                         <OriginalPriceStyle>
                           {formatCurrencyVND(stateProductDetails.price)}
                         </OriginalPriceStyle>
@@ -164,59 +173,81 @@ const ProductDetail = () => {
                         </DiscountStyle>
                       </div>
                       <DiscountedPriceStyle>
-                        {formatCurrencyVND(
-                          stateProductDetails.price * (1 - stateProductDetails.discount / 100)
-                        )}
+                        {formatCurrencyVND(discountedPrice)}
                       </DiscountedPriceStyle>
                     </>
                   ) : (
-                    <div>
-                      {formatCurrencyVND(stateProductDetails.price)}
-                    </div>
+                    <div>{formatCurrencyVND(stateProductDetails.price)}</div>
                   )}
                 </PriceStyle>
                 <div style={{ margin: '10px 0' }}>
-                  <strong>Đánh Giá:</strong> {renderStars(stateProductDetails.rating)}
+                  <strong>Đánh Giá:</strong> {stateProductDetails.rating} {renderStars(stateProductDetails.rating)} 
                 </div>
 
                 <div style={{ marginTop: '20px' }}>
-                  <span style={{ marginRight: '10px' }}>Số lượng hàng trong kho: {stateProductDetails.countInStock}</span>
-                </div>
-                <div style={{ marginTop: '20px' }}>
-                  <span style={{ marginRight: '10px' }}>Số lượng:</span>
-                  <InputNumber min={1} max={10} value={quantity} onChange={(value) => setQuantity(value)} />
-                </div>
-
-                <div style={{ marginTop: '20px' }}>
-                  <span style={{ marginRight: '10px' }}>Kích thước:</span>
-                  <div>
-                    {product.sizes.map((s) => (
-                      <Button
-                        key={s}
-                        type={size === s ? "primary" : "default"}
-                        onClick={() => setSize(s)}
-                        style={{ marginRight: '5px', marginBottom: '5px' }}
-                      >
-                        {s}
-                      </Button>
-                    ))}
-                  </div>
+                  <span style={{ marginRight: '10px' }}>Số lượng hàng trong kho:</span>
+                  {color && size ? (
+                    // Tìm và hiển thị số lượng theo màu sắc và kích thước đã chọn
+                    stateProductDetails.options
+                      .find(option => option.color === color) // Tìm màu sắc đã chọn
+                      ?.sizes.find(sizeOption => sizeOption.size === size) // Tìm kích thước đã chọn
+                      ?.countInStock === 0 ? (
+                        <span style={{ color: 'red' }}>Hết hàng</span> // Hiển thị "Hết hàng" nếu số lượng = 0
+                      ) : (
+                        stateProductDetails.options
+                          .find(option => option.color === color) // Tìm màu sắc đã chọn
+                          ?.sizes.find(sizeOption => sizeOption.size === size) // Tìm kích thước đã chọn
+                          ?.countInStock || 0 // Hiển thị số lượng hoặc 0 nếu không tìm thấy
+                      )
+                  ) : (
+                    // Nếu chưa chọn màu sắc hoặc kích thước, hiển thị tổng số lượng hàng trong kho
+                    stateProductDetails.countInStock === 0 ? (
+                      <span style={{ color: 'red' }}>Hết hàng</span> // Hiển thị "Hết hàng" nếu tổng số lượng = 0
+                    ) : (
+                      stateProductDetails.countInStock
+                    )
+                  )}
                 </div>
 
                 <div style={{ marginTop: '20px' }}>
                   <span style={{ marginRight: '10px' }}>Màu sắc:</span>
                   <div>
-                    {product.colors.map((c) => (
+                    {stateProductDetails.options?.map((option, index) => (
                       <Button
-                        key={c}
-                        type={color === c ? "primary" : "default"}
-                        onClick={() => setColor(c)}
+                        key={index}
+                        type={color === option.color ? "primary" : "default"}
+                        onClick={() => handleColorChange(option.color)}
                         style={{ marginRight: '5px', marginBottom: '5px' }}
                       >
-                        {c}
+                        {option.color}
                       </Button>
                     ))}
                   </div>
+                </div>
+
+                {color && stateProductDetails.options?.find(option => option.color === color)?.sizes?.length > 0 && (
+                  <div style={{ marginTop: '20px' }}>
+                    <span style={{ marginRight: '10px' }}>Kích thước:</span>
+                    <div>
+                      {stateProductDetails.options
+                        ?.find(option => option.color === color)
+                        ?.sizes.map((sizeOption, index) => (
+                          <Button
+                            key={index}
+                            type={size === sizeOption.size ? "primary" : "default"}
+                            onClick={() => handleSizeChange(sizeOption.size)}
+                            style={{ marginRight: '5px', marginBottom: '5px' }}
+                          >
+                            {sizeOption.size}
+                          </Button>
+                        ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div style={{ marginTop: '20px' }}>
+                  <span style={{ marginRight: '10px' }}>Số lượng:</span>
+                  <InputNumber min={1} max={10} value={quantity} onChange={(value) => setQuantity(value)} />
                 </div>
 
                 <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
@@ -234,7 +265,6 @@ const ProductDetail = () => {
               </Card>
             </Col>
           </Row>
-
           <div style={{ 
             whiteSpace: 'pre-line', 
             padding: '20px', 
@@ -255,22 +285,6 @@ const ProductDetail = () => {
                 </div>
               )}
             />
-          </div>
-
-          <div style={{ padding: '20px', marginTop: '20px' }}>
-            <h2>Sản Phẩm Gợi Ý</h2>
-            <Row gutter={[16, 16]}>
-              {recommendedProducts.map((prod) => (
-                <Col key={prod.id} xs={24} sm={12} md={8}>
-                  <Card
-                    hoverable
-                    cover={<Image src={prod.image} alt={prod.name} />}
-                  >
-                    <Card.Meta title={prod.name} description={prod.price} />
-                  </Card>
-                </Col>
-              ))}
-            </Row>
           </div>
         </WrapperProductDetail>
       </Content>

@@ -17,7 +17,7 @@ import {
   DiscountTag,
   Name,
 } from './style';
-import {formatCurrencyVND} from '../../utils'
+import { formatCurrencyVND } from '../../utils'
 
 const CardProduct = (props) => {
   const navigate = useNavigate();
@@ -64,13 +64,13 @@ const CardProduct = (props) => {
         resetButtonPosition();
       }}
     >
-      <Card cover={<Image alt={name} src={image} />}>         
-      {discount > 0 && <DiscountTag>{discount}%</DiscountTag>}
+      <Card cover={<Image alt={name} src={image} />}>
+        {discount > 0 && <DiscountTag>{discount}%</DiscountTag>}
         <Content>
           <Name>
-          <Title style={{ color: isHovered ? '#f70000' : '#000' }}>
-            {name}
-          </Title>
+            <Title style={{ color: isHovered ? '#f70000' : '#000' }}>
+              {name}
+            </Title>
           </Name>
           <Description>{description}</Description>
           <PriceaAndRate>
@@ -90,11 +90,11 @@ const CardProduct = (props) => {
       </Card>
       <HoverActions>
         <ActionButton ref={addToCartRef}>Thêm vào giỏ hàng</ActionButton>
-        <ActionButton ref={viewDetailsRef} 
+        <ActionButton ref={viewDetailsRef}
           onClick={() => {
             navigate(`/product-detail/${id}`);
           }}>
-          Chi tiết sản phẩm 
+          Chi tiết sản phẩm
         </ActionButton>
       </HoverActions>
     </CardContainer>

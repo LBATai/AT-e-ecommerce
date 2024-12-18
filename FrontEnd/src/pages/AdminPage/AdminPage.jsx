@@ -7,9 +7,11 @@ import {
   HomeOutlined,
   SettingOutlined,
   LogoutOutlined,
+  ShoppingOutlined
 } from '@ant-design/icons';
 import AdminProduct from '../../components/AdminProduct/AdminProduct';
 import AdminUser from '../../components/AdminUser/AdminUser';
+import AdminOrder from '../../components/AdminOrder/AdminOrder';
 import {
   Container,
   Header,
@@ -37,6 +39,8 @@ const AdminPage = () => {
         return <AdminProduct />;
       case 'users':
         return <AdminUser />;
+      case 'orders':
+        return <AdminOrder />;
       default:
         return (
           <div>
@@ -105,6 +109,13 @@ const AdminPage = () => {
           >
             <UserOutlined style={{ fontSize: 20 }} />
             <span>Người dùng</span>
+          </MenuItem>
+          <MenuItem
+            active={selectedMenu === 'orders' ? 'true' : 'false'}
+            onClick={() => setSelectedMenu('orders')}
+          >
+            <ShoppingOutlined style={{ fontSize: 20 }}/>
+            <span>Đơn hàng</span>
           </MenuItem>
           <MenuItem>
             <SettingOutlined style={{ fontSize: 20 }} />

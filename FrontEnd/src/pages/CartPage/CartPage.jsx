@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Row, Col, Table, InputNumber, Button, Modal } from "antd";
+import { Row, Col, Table, InputNumber, Button, Modal,Input } from "antd";
 import { MinusOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -9,23 +9,43 @@ import { formatCurrencyVND } from "../../utils";
 const CartPage = () => {
   const order = useSelector((state) => state.order);
   const user = useSelector((state) => state.user);
+
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const [updatedItems, setUpdatedItems] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]); // Các ID sản phẩm được chọn
-  const navigate = useNavigate();
-
+  const [isCheckoutModalVisible, setIsCheckoutModalVisible] = useState(false);
+  const [isEditAddressModalVisible, setIsEditAddressModalVisible] = useState(false);
+  const [checkoutInfo, setCheckoutInfo] = useState({
+    name: "",
+    address: "",
+    phone: "",
+  });
+  useEffect(() => {
+    if (user) {
+      setCheckoutInfo({
+        name: user.name || "",
+        address: user.address || "",
+        phone: user.phone || "",
+      });
+    }
+  }, [user]);
   // Chuyển đổi dữ liệu từ order.orderItems sang cấu trúc bảng
   useEffect(() => {
     if (order?.orderItems) {
       const transformedItems = order.orderItems.map((item) => ({
-        id: item.product || item.productId,
+        id: item.product,
         name: item.name,
         type: item.type,
         amount: item.amount,
         price: item.price,
-        img: item.image,
+        image: item.image,
+        product: item.product,
+        color: item.color,
+        size: item.size,
       }));
       setUpdatedItems(transformedItems);
     }
@@ -46,7 +66,7 @@ const CartPage = () => {
       render: (_, record) => (
         <div style={{ display: "flex", alignItems: "center" }}>
           <img
-            src={record.img}
+            src={record.image}
             alt={record.name}
             style={{ width: 80, marginRight: 16, borderRadius: 8 }}
           />
@@ -65,6 +85,16 @@ const CartPage = () => {
       title: "Loại sản phẩm",
       dataIndex: "type",
       key: "type",
+    },
+    {
+      title: "Màu sắc",
+      dataIndex: "color",
+      key: "color",
+    },
+    {
+      title: "Kích thước",
+      dataIndex: "size",
+      key: "size",
     },
     {
       title: "Số lượng",
@@ -87,10 +117,12 @@ const CartPage = () => {
       title: "Giá",
       dataIndex: "price",
       key: "price",
-      render: (price, record) => `${(price * record.amount).toLocaleString()} VND`,
+      render: (price, record) => {
+        const total = price * record.amount;
+        return formatCurrencyVND(total);
+      }
     },
   ];
-
   const rowSelection = {
     selectedRowKeys,
     onChange: (keys, selectedRows) => {
@@ -110,7 +142,72 @@ const CartPage = () => {
   // useEffect(() => {
   //   console.log("Selected IDs (from state):", selectedRowKeys);
   // }, [selectedRowKeys]);
+
+  const deliveryPriceMemo = useMemo(() => {
+    const selectedItems = updatedItems.filter(item => selectedRowKeys.includes(item.id));
+    const totalPrice = selectedItems.reduce((sum, item) => sum + item.amount * item.price, 0);
   
+    if (totalPrice > 200000) {
+      // Cộng thêm phí giao hàng 10.000 VND mỗi sản phẩm phù hợp
+      return selectedItems.length * 10000;
+    } else {
+      return 0;
+    }
+  }, [updatedItems, selectedRowKeys]);
+    
+
+  const total = useMemo(() => {
+    const selectedItems = updatedItems.filter((item) => selectedRowKeys.includes(item.id));
+    const productTotal = selectedItems.reduce((sum, item) => sum + item.amount * item.price, 0);
+  
+    // Tính tổng giá bao gồm phí giao hàng
+    const deliveryPrice = productTotal > 200000 ? selectedItems.length * 10000 : 0;
+    return productTotal + deliveryPrice;
+  }, [updatedItems, selectedRowKeys]);
+
+  const checkTotal = useMemo(() => {
+    const selectedItems = updatedItems.filter((item) => selectedRowKeys.includes(item.id));
+    const productTotal = selectedItems.reduce((sum, item) => sum + item.amount * item.price, 0);
+      return productTotal ;
+  }, [updatedItems, selectedRowKeys]);
+
+  const handlePayment = () => {
+    const selectedItems = updatedItems.filter(item => selectedRowKeys.includes(item.id));
+    // Xử lý thanh toán, ví dụ gọi API thanh toán
+    console.log(checkoutInfo);
+    
+    // Đóng modal sau khi xử lý thanh toán
+    setIsCheckoutModalVisible(false);
+    navigate('/payment',  { state: { totalAmount: total, itemsPrice: checkTotal, shippingPrice:  deliveryPriceMemo, selectedItems,} })
+  };
+
+  const handleCheckout = () => {
+    if (!user.id){
+      Modal.confirm({
+        title: "Bạn phải đăng nhập để mua hàng",
+        content: "Bạn có chắc muốn đăng nhập không?",
+        okText: "Đăng nhập",
+        cancelText: "Hủy",
+        onOk: () => {
+          navigate('/sign-in', {state: location?.pathname})
+        },
+      });
+    } else if (user) {
+      setCheckoutInfo({
+        name: user.name || "",
+        address: user.address || "",
+        phone: user.phone || "",
+        
+      });
+      setIsCheckoutModalVisible(true);
+    }
+  };
+  const handleInputChange = (field, value) => {
+    setCheckoutInfo((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
   const handleRemoveAll = () => {
     Modal.confirm({
       title: "Xóa sản phẩm đã chọn",
@@ -139,32 +236,7 @@ const CartPage = () => {
       }
     }
   };
-
-  const deliveryPriceMemo = useMemo(() => {
-    const selectedItems = updatedItems.filter(item => selectedRowKeys.includes(item.id));
-    const totalPrice = selectedItems.reduce((sum, item) => sum + item.amount * item.price, 0);
   
-    if (totalPrice > 200000) {
-      // Cộng thêm phí giao hàng 10.000 VND mỗi sản phẩm phù hợp
-      return selectedItems.length * 10000;
-    } else {
-      return 0;
-    }
-  }, [updatedItems, selectedRowKeys]);
-    
-
-  const total = useMemo(() => {
-    const selectedItems = updatedItems.filter((item) => selectedRowKeys.includes(item.id));
-    const productTotal = selectedItems.reduce((sum, item) => sum + item.amount * item.price, 0);
-  
-    // Tính tổng giá bao gồm phí giao hàng
-    const deliveryPrice = productTotal > 200000 ? selectedItems.length * 10000 : 0;
-    return productTotal + deliveryPrice;
-  }, [updatedItems, selectedRowKeys]);
-  
-  const handleAddCart = () => {
-
-  }
   const handleOk = () => {
     dispatch(removeOrderProduct({ idProduct: itemToDelete.id }));
     setIsModalVisible(false);
@@ -187,7 +259,7 @@ const CartPage = () => {
   }
 
   return (
-    <Row gutter={[16, 16]} style={{ padding: 24, marginTop: "100px" }}>
+    <Row gutter={[16, 16]} style={{ padding: 24, marginTop: "100px", marginBottom: "300px"  }}>
       <Col xs={24} lg={16}>
       <div style={{ marginBottom: 16, height: 40, display: "flex", alignItems: "center"}}>
         {selectedRowKeys.length > 1 && (
@@ -213,8 +285,12 @@ const CartPage = () => {
       </Col>
       <Col xs={24} lg={8}>
         <div style={{ display: 'flex',justifyContent: 'space-between',alignItems: 'center',padding: '8px 0',}}>
-          <span>Địa chỉ giao hàng</span>
-          <span>Hiển thị địa chỉ</span>
+          <span>Địa chỉ giao hàng: {checkoutInfo.address}</span>
+          <Button type="link" onClick={() => setIsEditAddressModalVisible(true)}>Chỉnh sửa</Button>
+        </div>
+        <div style={{ display: 'flex',justifyContent: 'space-between',alignItems: 'center',padding: '8px 0',}}>
+          <span>Tạm tính: </span>
+          <span>{formatCurrencyVND(checkTotal)}</span>
         </div>
         <div style={{ display: 'flex',justifyContent: 'space-between',alignItems: 'center',padding: '8px 0',}}>
           <span>Phí giao hàng</span>
@@ -222,14 +298,14 @@ const CartPage = () => {
         </div>
         <div style={{marginTop: 24,display: "flex",justifyContent: "space-between",fontWeight: 500, fontSize: '20px'}}>
           <span>Tổng cộng: {selectedRowKeys.length}</span>
-          <span style={{color: 'red'}}>{total.toLocaleString()} VND</span>
+          <span style={{color: 'red'}}>{formatCurrencyVND(total)}</span>
         </div>
         <Button
           type="primary"
           size="large"
           style={{ marginTop: 16, width: "100%" }}
           disabled={selectedRowKeys.length === 0}
-          onClick={handleAddCart}
+          onClick={handleCheckout}
         >
           Mua hàng
         </Button>
@@ -244,6 +320,62 @@ const CartPage = () => {
         cancelText="Hủy"
       >
         <p>Bạn có muốn xóa sản phẩm này không?</p>
+      </Modal>
+
+      <Modal
+        title="Thông tin thanh toán"
+        open={isCheckoutModalVisible}
+        onOk={handlePayment}
+        onCancel={() => setIsCheckoutModalVisible(false)}
+        okText="Xác nhận"
+        cancelText="Hủy"
+      >
+        <div style={{ marginBottom: 16 }}>
+          <p>Họ và tên:</p>
+          <Input
+            placeholder="Nhập họ và tên"
+            value={checkoutInfo.name}
+            onChange={(e) => handleInputChange("name", e.target.value)}
+          />
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <p>Địa chỉ:</p>
+          <Input
+            placeholder="Nhập địa chỉ"
+            value={checkoutInfo.address}
+            onChange={(e) => handleInputChange("address", e.target.value)}
+          />
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <p>Số điện thoại:</p>
+          <Input
+            placeholder="Nhập số điện thoại"
+            value={checkoutInfo.phone}
+            onChange={(e) => handleInputChange("phone", e.target.value)}
+          />
+        </div>
+      </Modal>
+
+      {/* Modal chỉnh sửa địa chỉ */}
+      <Modal
+        title="Bạn có muốn thay đổi địa chỉ hiện tại không?"
+        open={isEditAddressModalVisible}
+        onOk={() => {
+          setIsEditAddressModalVisible(false);
+          navigate('/profile', { state: { activeTab: '3' } });
+          console.log('Updated Address:', checkoutInfo.address);
+        }}
+        onCancel={() => setIsEditAddressModalVisible(false)}
+        okText="Thay đổi"
+        cancelText="Hủy"
+      >
+        <div style={{ marginBottom: 16 }}>
+          <Input
+            placeholder="Nhập địa chỉ mới"
+            value={checkoutInfo.address}
+            disabled={true}
+          />
+        </div>
       </Modal>
     </Row>
   );

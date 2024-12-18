@@ -19,7 +19,7 @@ export const getBase64 = (file) =>
       reader.onerror = (error) => reject(error);
     });
 
-    export const renderOptions = (arr) => {
+export const renderOptions = (arr) => {
         let results = [];
       
         if (arr && arr.length > 0) {
@@ -36,7 +36,7 @@ export const getBase64 = (file) =>
         });
       
         return results;
-      };
+};
       
 //format money
 export const formatCurrencyVND = (value) => {
@@ -59,4 +59,4 @@ export const fetchAllTypeProduct = async () => {
       console.error('Error fetching types:', error);
       return [];
     }
-  };
+};

@@ -5,8 +5,8 @@ import { useMutationHooks } from '../../hooks/useMutationHook';
 import { getBase64 } from '../../utils';
 import DrawerComponent from '../DrawerComponent/DrawerComponent';
 import { useSelector } from 'react-redux'
-import * as UserService from '../../Service/UserService';
-const AdminUser = () => {
+import * as OrderService from '../../Service/OrderService';
+const AdminOrder = () => {
   const user = useSelector((state) => state.user)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [addForm] = Form.useForm(); // Form riêng cho thêm sản phẩm
@@ -28,13 +28,13 @@ const AdminUser = () => {
     onChange: onSelectChange,
   };
   useEffect(() => {
-    fetchUser();
+    fetchAllOrder();
   }, []);
 
-  const fetchUser = async () => {
+  const fetchAllOrder = async () => {
     setIsLoading(true);
     try {
-      const response = await UserService.getAllUser();
+      const response = await OrderService.getAllOrder();
       if (response && response.status === "OK") {
         setUsers(response.data); // Cập nhật sản phẩm
       } else {
@@ -88,8 +88,7 @@ const AdminUser = () => {
       fetchGetDetailsUser()
     }
   }, [rowSelected]);
-
-
+  
   useEffect(() => {
     if (mutation.isSuccess) {
       const response = mutation.data;
@@ -294,7 +293,7 @@ const AdminUser = () => {
   return (
     <div style={{ padding: '20px', background: '#fff' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h2>Quản lý Tài Khoản:  {users.length}</h2>
+        <h2>Quản lý Đơn Hàng</h2>
         <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
           Thêm Tài Khoản Mới
         </Button>
@@ -305,7 +304,7 @@ const AdminUser = () => {
             icon={<DeleteOutlined />}
             onClick={handleDeleteSelectedUsers}
           >
-            Xóa các tài khoản đã chọn
+            Xóa các đơn hàng đã chọn
           </Button>
         )}
       </div>
@@ -336,7 +335,7 @@ const AdminUser = () => {
           }
         }}
       />
-      <Modal title="Thêm Tài Khoản Mới" open={isModalOpen} onCancel={handleCancel} footer={null} width={800} maskClosable={false}>
+      <Modal title="Thêm Tài Khoản Mới" open={isModalOpen} onCancel={handleCancel} footer={null}>
         <Form form={addForm} layout="vertical" onFinish={onFinish}>
           <Form.Item
             name="name"
@@ -471,7 +470,7 @@ const AdminUser = () => {
           </Button>
         </Form>
       </Modal>
-      <DrawerComponent title={`Chỉnh sửa tài khoản: ${selectedUserName}`} isOpen={isOpenDrawer} onClose={() => setIsOpenDrawer(false)} width="50%" maskClosable={false}>
+      <DrawerComponent title={`Chỉnh sửa tài khoản: ${selectedUserName}`} isOpen={isOpenDrawer} onClose={() => setIsOpenDrawer(false)} width="50%"  >
         <Form form={updateForm} layout="vertical" onFinish={onFinishUpdateUser}>
           <Form.Item
             name="name"
@@ -577,4 +576,4 @@ const AdminUser = () => {
   );
 };
 
-export default AdminUser;
+export default AdminOrder;

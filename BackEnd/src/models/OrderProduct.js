@@ -3,11 +3,13 @@ const mongoose = require('mongoose')
 const orderSchema = new mongoose.Schema(
     {   
         orderItems: [{
-            name: {type: String, required: true, unique: true},
+            name: {type: String, required: true},
             type: {type: String, required: true},
             price: {type: Number, required: true},
             amount: {type: Number, required: true},
             image: {type: String, required: true},
+            color: { type: String }, 
+            size:  { type: String }, 
             product: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'Product',
@@ -15,11 +17,9 @@ const orderSchema = new mongoose.Schema(
             }
         }],
         shippingAddress: {
+            name: {type: String, required: true},
             address: {type: String, required: true},
-            city: {type: String, required: true},
-            postalCode: {type: String, required: true},
-            country: {type: String, required: true},
-            phone: {type: String, required: true},
+            phone: {type: String, required: true}, // Đổi sang String
         },
         paymentMethod: {type: String, required: true},
         totalPrice: {type: Number, required: true},
@@ -28,16 +28,16 @@ const orderSchema = new mongoose.Schema(
         isPaid:{type: Boolean, default: false},
         deliveredAt: {type: Date},
         isDelivered: {type: Boolean, default: false},
-        itemPrice: {type: Number, required: true},
+        itemsPrice: {type: Number, required: true},
         shippingPrice: {type: Number, required: true},
         user: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
-            required: false,
+            required: true,  // Xem xét lại tùy theo logic của bạn
         }
     },
-
 );
+
 
 const Order = mongoose.model('Order', orderSchema);
 module.exports = Order;
