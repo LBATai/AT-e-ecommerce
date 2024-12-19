@@ -21,13 +21,13 @@ import { formatCurrencyVND } from '../../utils'
 
 const CardProduct = (props) => {
   const navigate = useNavigate();
-  const { description, image, name, price, rating, discount, id } = props;
+  const { description, images, name, price, rating, discount, id, type } = props;
   const [isHovered, setIsHovered] = useState(false);
-  const addToCartRef = useRef(null);
+  const similarProduct = useRef(null);
   const viewDetailsRef = useRef(null);
   const discountedPrice = price - (price * discount) / 100;
   const resetButtonPosition = () => {
-    if (addToCartRef.current) addToCartRef.current.style.transform = 'translateX(100%)';
+    if (similarProduct.current) similarProduct.current.style.transform = 'translateX(100%)';
     if (viewDetailsRef.current) viewDetailsRef.current.style.transform = 'translateX(100%)';
   };
 
@@ -48,10 +48,10 @@ const CardProduct = (props) => {
 
   useEffect(() => {
     if (isHovered) {
-      animateButton(addToCartRef.current, 'in');
+      animateButton(similarProduct.current, 'in');
       animateButton(viewDetailsRef.current, 'in');
     } else {
-      animateButton(addToCartRef.current, 'out');
+      animateButton(similarProduct.current, 'out');
       animateButton(viewDetailsRef.current, 'out');
     }
   }, [isHovered]);
@@ -63,8 +63,8 @@ const CardProduct = (props) => {
         setIsHovered(false);
         resetButtonPosition();
       }}
-    >
-      <Card cover={<Image alt={name} src={image} />}>
+    >{/* Lấy giá trị đầu tiên của mảng images để hiển thị */}
+      <Card cover={<Image alt={name} src={images[0]} />}>
         {discount > 0 && <DiscountTag>{discount}%</DiscountTag>}
         <Content>
           <Name>
@@ -89,7 +89,11 @@ const CardProduct = (props) => {
         </Content>
       </Card>
       <HoverActions>
-        <ActionButton ref={addToCartRef}>Thêm vào giỏ hàng</ActionButton>
+        <ActionButton ref={similarProduct}
+            onClick={() => {
+            navigate(`/type/${type}`);
+          }}
+          >Sản phẩm tương tự</ActionButton>
         <ActionButton ref={viewDetailsRef}
           onClick={() => {
             navigate(`/product-detail/${id}`);

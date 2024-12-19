@@ -87,7 +87,8 @@ const AdminProduct = () => {
         images: res?.data?.images,
         discount: res?.data?.discount,
         selled: res?.data?.selled,
-        options: res.data.options
+        options: res.data.options,
+        sex: res.data.sex
       }),
         setImages(res?.data?.images);
     }
@@ -429,6 +430,17 @@ const AdminProduct = () => {
               }}
             />
           </Form.Item>
+          <Form.Item
+            name="sex"
+            label="Sản phẩm dành cho giới tính"
+            rules={[{ required: true, message: 'Vui lòng chọn giới tính sản phẩm' }]}
+          >
+            <Select placeholder="Chọn giới tính sản phẩm">
+              <Select.Option value="male">Nam</Select.Option>
+              <Select.Option value="female">Nữ</Select.Option>
+              <Select.Option value="unisex">Unisex</Select.Option>
+            </Select>
+          </Form.Item>
           <Form.Item name="rating" label="Đánh giá sản phẩm (★)"
             rules={[
               { required: true, message: 'Vui lòng nhập đánh giá sản phẩm' },
@@ -522,7 +534,7 @@ const AdminProduct = () => {
             <Upload
               onChange={handleOnchangeImages}
               multiple={true}
-              maxCount={5}
+              maxCount={3}
               beforeUpload={() => false} // Prevent auto upload
             >
               <Button icon={<UploadOutlined />}>Tải ảnh lên</Button>
@@ -683,6 +695,18 @@ const AdminProduct = () => {
             ]}>
             <Input type="number" placeholder="Nhập giá sản phẩm" />
           </Form.Item>
+          <Form.Item
+            name="sex"
+            label="Sản phẩm dành cho giới tính"
+            rules={[{ required: true, message: 'Vui lòng chọn giới tính sản phẩm' }]}
+          >
+            <Select placeholder="Chọn giới tính sản phẩm">
+              <Select.Option value="male">Nam</Select.Option>
+              <Select.Option value="female">Nữ</Select.Option>
+              <Select.Option value="unisex">Unisex</Select.Option>
+            </Select>
+          </Form.Item>
+
           <Form.Item name="rating" label="Đánh giá sản phẩm (★)"
             rules={[
               { required: true, message: 'Vui lòng nhập đánh giá sản phẩm' },
@@ -695,9 +719,39 @@ const AdminProduct = () => {
             ]}>
             <Input type="number" placeholder="Nhập đánh giá sản phẩm" />
           </Form.Item>
-          <Form.Item name="type" label="Loại sản phẩm" rules={[{ required: true, message: 'Vui lòng nhập loại sản phẩm' }]}>
-            <Input placeholder="Nhập loại sản phẩm" />
+          <Form.Item
+            name="type"
+            label="Loại sản phẩm"
+            rules={[{ required: true, message: "Vui lòng chọn loại sản phẩm" }]}
+          >
+            <Select
+              placeholder="Chọn loại sản phẩm"
+              allowClear
+              value={selectedType} // Sử dụng selectedType để quản lý giá trị đã chọn
+              onChange={(value) => {
+                if (value === 'add_type') {
+                  setIsAddingType(true); // Hiển thị ô nhập liệu khi chọn "Thêm type"
+                } else {
+                  setSelectedType(value); // Cập nhật giá trị đã chọn
+                  setIsAddingType(false); // Nếu chọn loại có sẵn, ẩn ô nhập liệu
+                }
+              }}
+              options={renderOptions(types)} // Sử dụng kết quả từ hàm renderOptions
+            />
           </Form.Item>
+
+          {isAddingType && (
+            <Form.Item label="Nhập loại sản phẩm mới">
+              <Input
+                value={newType}
+                onChange={(e) => setNewType(e.target.value)}
+                placeholder="Nhập loại sản phẩm mới"
+              />
+              <Button type="primary" onClick={handleAddType} style={{ marginTop: 10 }}>
+                Thêm loại
+              </Button>
+            </Form.Item>
+          )}
           <Form.Item name="description" label="Mô Tả" rules={[{ required: true, message: 'Vui lòng nhập mô tả sản phẩm' }]}>
             <Input.TextArea placeholder="Nhập mô tả sản phẩm" autoSize={{ minRows: 3, maxRows: 15 }} />
           </Form.Item>
@@ -747,7 +801,7 @@ const AdminProduct = () => {
             <Upload
               onChange={handleOnchangeImages}
               multiple={true}
-              maxCount={5}
+              maxCount={3}
               beforeUpload={() => false} // Prevent auto upload
             >
               <Button icon={<UploadOutlined />}>Tải ảnh lên</Button>

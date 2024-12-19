@@ -15,6 +15,7 @@ const createProduct = async (req, res) => {
       discount,
       selled,
       options,
+      sex
     } = req.body;
     // Kiểm tra nếu thiếu `images` hoặc `images` là một mảng trống
     if (!images || images.length === 0) {
@@ -152,6 +153,16 @@ const getAllType = async (req, res) => {
     });
   }
 };
+const getAllSex = async (req, res) => {
+  try {
+    const response = await ProductService.getAllSex();
+    return res.status(200).json(response);
+  } catch (e) {
+    return res.status(404).json({
+      message: e,
+    });
+  }
+};
 
 module.exports = {
   createProduct,
@@ -161,4 +172,5 @@ module.exports = {
   deleteProduct,
   deleteMultipleProduct,
   getAllType,
+  getAllSex
 };

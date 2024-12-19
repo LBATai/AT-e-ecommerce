@@ -11,6 +11,12 @@ const productSchema = new mongoose.Schema(
     description: { type: String },
     discount: { type: Number },
     selled: { type: Number },
+    isLike: {type: Boolean, default: false},
+    sex: { 
+      type: String, 
+      enum: ['male', 'female', 'unisex'], 
+      required: true 
+    },
     options: [
       {
         color: { type: String }, // Màu sắc

@@ -60,7 +60,7 @@ const deleteOrder = (id) => {
           const checkOrder = await Order.findOne({
               _id: id,
           })
-          console.log('checkOrder', checkOrder)
+        //   console.log('checkOrder', checkOrder)
           if(checkOrder === null){
               resolve({
                   status: 'OK',
@@ -103,9 +103,35 @@ const getDetailOrder = (id) => {
             }
         })
 }
+
+const updateOrder = (id, data) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const checkOrder = await Order.findOne({ _id: id });
+        if (!checkOrder) {
+          resolve({
+            status: 'Error',
+            message: 'Order not found',
+          });
+        }
+  
+        const newOrder = await Order.findByIdAndUpdate(id, data, { new: true });
+        resolve({
+          status: 'OK',
+          message: 'Update order successfully',
+          data: newOrder,
+        });
+      } catch (e) {
+        reject(e);
+      }
+    });
+  };
+  
+
 module.exports = {
     createOrder,
     getAllOrder,
     deleteOrder,
-    getDetailOrder
+    getDetailOrder,
+    updateOrder
 }

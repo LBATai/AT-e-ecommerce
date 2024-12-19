@@ -138,31 +138,12 @@ const CartPage = () => {
       // console.log("Selected IDs:", selectedIds);
     },
   };
-  
-  // useEffect(() => {
-  //   console.log("Selected IDs (from state):", selectedRowKeys);
-  // }, [selectedRowKeys]);
-
-  const deliveryPriceMemo = useMemo(() => {
-    const selectedItems = updatedItems.filter(item => selectedRowKeys.includes(item.id));
-    const totalPrice = selectedItems.reduce((sum, item) => sum + item.amount * item.price, 0);
-  
-    if (totalPrice > 200000) {
-      // Cộng thêm phí giao hàng 10.000 VND mỗi sản phẩm phù hợp
-      return selectedItems.length * 10000;
-    } else {
-      return 0;
-    }
-  }, [updatedItems, selectedRowKeys]);
     
-
   const total = useMemo(() => {
     const selectedItems = updatedItems.filter((item) => selectedRowKeys.includes(item.id));
     const productTotal = selectedItems.reduce((sum, item) => sum + item.amount * item.price, 0);
   
-    // Tính tổng giá bao gồm phí giao hàng
-    const deliveryPrice = productTotal > 200000 ? selectedItems.length * 10000 : 0;
-    return productTotal + deliveryPrice;
+    return productTotal;
   }, [updatedItems, selectedRowKeys]);
 
   const checkTotal = useMemo(() => {
@@ -174,11 +155,11 @@ const CartPage = () => {
   const handlePayment = () => {
     const selectedItems = updatedItems.filter(item => selectedRowKeys.includes(item.id));
     // Xử lý thanh toán, ví dụ gọi API thanh toán
-    console.log(checkoutInfo);
+    // console.log(checkoutInfo);
     
     // Đóng modal sau khi xử lý thanh toán
     setIsCheckoutModalVisible(false);
-    navigate('/payment',  { state: { totalAmount: total, itemsPrice: checkTotal, shippingPrice:  deliveryPriceMemo, selectedItems,} })
+    navigate('/payment',  { state: { totalAmount: total, itemsPrice: checkTotal,  selectedItems,} })
   };
 
   const handleCheckout = () => {
@@ -293,11 +274,11 @@ const CartPage = () => {
           <span>{formatCurrencyVND(checkTotal)}</span>
         </div>
         <div style={{ display: 'flex',justifyContent: 'space-between',alignItems: 'center',padding: '8px 0',}}>
-          <span>Phí giao hàng</span>
-          <span>{formatCurrencyVND(deliveryPriceMemo)}</span>
+          <span>Tổng số sản phẩm: </span>
+          <span>{selectedRowKeys.length}</span>
         </div>
         <div style={{marginTop: 24,display: "flex",justifyContent: "space-between",fontWeight: 500, fontSize: '20px'}}>
-          <span>Tổng cộng: {selectedRowKeys.length}</span>
+          <span>Tổng cộng: </span>
           <span style={{color: 'red'}}>{formatCurrencyVND(total)}</span>
         </div>
         <Button

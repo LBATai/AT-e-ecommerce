@@ -31,9 +31,9 @@ const Header = () => {
     { path: '/blog', label: 'Blog' },
   ];
   const categoryMap = {
-    "Thời trang": ["quần short", "áo polo", "áo thun", "giày", "túi"],
-    "Điện tử": ["điện thoại", "máy tính", "tai nghe"],
-    "Gia dụng": ["tủ lạnh", "máy giặt", "lò vi sóng"],
+    "Áo": ["quần tây", "áo polo", "áo thun", "giày", "túi"],
+    "Quần": ["quần tây", "máy tính", "tai nghe"],
+    "Giới tính": ["quần tây", "máy giặt", "lò vi sóng"],
     // Thêm các danh mục khác
   };
   const categorizeItems = (items) => {

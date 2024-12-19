@@ -26,9 +26,9 @@ const TypeProductPage = () => {
   const [sortByDate, setSortByDate] = useState(false); // Sắp xếp theo ngày tạo (mới nhất)
 
   // Hàm gọi API để lấy danh sách sản phẩm
-  const fetchProductAll = async (search, type) => {
+  const fetchProductAll = async (search, type, sex) => {
     try {
-      const res = await ProductService.getAllProduct(search, type);
+      const res = await ProductService.getAllProduct(search, type, sex);
       return res?.data || [];
     } catch (error) {
       console.error('Error fetching products:', error);

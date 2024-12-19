@@ -6,6 +6,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Pending from '../../components/Pending/Pending'
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
+import {formatCurrencyVND} from '../../utils'
+
 const OrderPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -16,12 +18,6 @@ const OrderPage = () => {
   const user = useSelector((state) => state.user);
   const userId= user?.id
   // const token = user?.access_token
-  const paymentMethodNames = {
-    credit: 'Thẻ tín dụng',
-    debit: 'Thẻ ghi nợ',
-    paypal: 'PayPal',
-    cod: 'Thanh toán khi nhận hàng',
-  };
   // Hàm fetch dữ liệu từ API
   const fetchOrderAll = async () => {
     try {
@@ -88,15 +84,18 @@ const OrderPage = () => {
               {new Date(order.createdAt).toLocaleDateString()}
             </Text>
           </div>
-          <Tag color={order.isDelivered ? "success" : "warning"}>
-            {order.isDelivered ? "Đã giao" : "Chưa giao"}
+          <Tag color={order.isDelivered ? (order.isSuccess ? "success" : "warning") : "warning"}>
+            {order.isDelivered
+              ? (order.isSuccess ? "Đã giao hàng thành công" : "Đang giao hàng")
+              : "Chưa giao hàng"
+            }
           </Tag>
         </div>
         <div className="order-items">
           {order.orderItems.map((item, index) => (
             <Row key={index} justify="space-between" style={{ marginBottom: 8 }}>
               <Text>{item.name} x{item.amount}</Text>
-              <Text strong>{item.price.toLocaleString()}₫</Text>
+              <Text strong>{formatCurrencyVND(item.price)}</Text>
             </Row>
           ))}
         </div>
@@ -106,20 +105,23 @@ const OrderPage = () => {
               <Col>
                 <Text>Tổng cộng: </Text>
                 <Text strong style={{ fontSize: 16, color: '#1890ff' }}>
-                  {(order.itemsPrice + order.shippingPrice).toLocaleString()}₫
+                  {formatCurrencyVND(order.itemsPrice + order.shippingPrice)}
                 </Text>
               </Col>
             </span>
             <span>
               <Col>
-                <Button
-                  type="primary"
-                  danger
-                  onClick={() => handleCancelOrder(order._id)}
-                  style={{ marginRight: 8 }}
-                >
-                  Hủy đơn hàng
-                </Button>
+                {/* Chỉ hiển thị nút "Hủy đơn hàng" nếu isDelivered là false */}
+                {!order.isDelivered && (
+                  <Button
+                    type="primary"
+                    danger
+                    onClick={() => handleCancelOrder(order._id)}
+                    style={{ marginRight: 8 }}
+                  >
+                    Hủy đơn hàng
+                  </Button>
+                )}
                 <Button type="default" onClick={() => handleViewDetails(order._id)}>
                   Xem chi tiết
                 </Button>
@@ -130,7 +132,7 @@ const OrderPage = () => {
         <div className="order-payment">
           <Text>Phương thức thanh toán: </Text>
           <Text style={{fontWeight:'600'}}>
-            {paymentMethodNames[order.paymentMethod] || 'Phương thức không xác định'}
+            {order.paymentMethod || 'Phương thức không xác định'}
           </Text>
         </div>
       </OrderCard>

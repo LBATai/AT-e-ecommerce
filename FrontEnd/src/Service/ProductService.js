@@ -5,21 +5,44 @@ export const axiosJWT = axios.create({
     baseURL: 'http://localhost:3001',
     withCredentials: true, // Bắt buộc để gửi và nhận cookies
 });
+export const getAllProduct = async (search, type, sex, priceFrom, priceTo) => {
+  let res = {};
+  let filter = '';
 
-export const getAllProduct = async (search, type, typeHeader) => {
-    let res = {};
-    // console.log('type',type)
-    if (search) {
-      // Gửi filter theo đúng định dạng
-      res = await axios.get(`${import.meta.env.VITE_API_URL_BACKEND}/product/getAll-product?filter=name:${search}`);
-    } else if (type){
-        res = await axios.get(`${import.meta.env.VITE_API_URL_BACKEND}/product/getAll-product?filter=type:${type}`);
+  // Thêm các điều kiện lọc khác
+  if (search) {
+    filter = `name:${search}`;
+  } else if (type) {
+    filter = `type:${type}`;
+  } else if (sex) {
+    filter = `sex:${sex}`;
+  }
+
+  // Thêm điều kiện lọc theo khoảng giá nếu có
+  if (priceFrom && priceTo) {
+    if (filter) {
+      filter += `&price[gte]=${priceFrom}&price[lte]=${priceTo}`;
+    } else {
+      filter = `price[gte]=${priceFrom}&price[lte]=${priceTo}`;
+    }
+  }
+
+  // Gửi request với các tham số lọc
+  try {
+    if (filter) {
+      res = await axios.get(
+        `${import.meta.env.VITE_API_URL_BACKEND}/product/getAll-product?filter=${filter}`
+      );
     } else {
       res = await axios.get(`${import.meta.env.VITE_API_URL_BACKEND}/product/getAll-product`);
     }
-    // console.log('res data', res.data)
     return res.data;
-  };
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    return [];
+  }
+};
+
 
 export const createProduct  = async (data) => {
     // console.log('data', data)
@@ -63,7 +86,16 @@ export const getAllType = async () => {
         const res = await axios.get(`${import.meta.env.VITE_API_URL_BACKEND}/product/getAll-type`);
         return res.data;
     } catch (error) {
-        console.error('Error deleting products:', error);
+        console.error('Error get all types:', error);
+        throw error;
+    }
+};
+export const getAllSex = async () => {
+    try {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL_BACKEND}/product/getAll-sex`);
+        return res.data;
+    } catch (error) {
+        console.error('Error get all sexs:', error);
         throw error;
     }
 };

@@ -72,7 +72,7 @@ export const MainContent = styled.div`
 `;
 
 export const Sidebar = styled.aside`
-  width: 260px;
+  width: 160px;
   background-color: white;
   border-radius: 8px;
   padding: 1rem;

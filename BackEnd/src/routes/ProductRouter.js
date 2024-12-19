@@ -10,5 +10,6 @@ router.get('/getAll-product', ProductController.getAllProduct)
 router.delete('/delete-product/:id', ProductController.deleteProduct)
 router.post('/delete-multiple', ProductController.deleteMultipleProduct);
 router.get('/getAll-type', ProductController.getAllType);
+router.get('/getAll-sex', ProductController.getAllSex);
 
 module.exports = router

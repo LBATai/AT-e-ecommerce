@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt")
 // User Service
 const createProduct = (newProduct) => {
     return new Promise(async (resolve, reject) => {
-      const { name, images, type, price, countInStock, rating, description, discount, selled, options } = newProduct;
+      const { name, images, type, price, countInStock, rating, description, discount, selled, options, sex } = newProduct;
   
       try {
         // Kiểm tra sản phẩm đã tồn tại chưa
@@ -27,6 +27,7 @@ const createProduct = (newProduct) => {
           description,
           discount,
           selled,
+          sex
         };
   
         // Nếu có `options`, thêm vào dữ liệu sản phẩm
@@ -161,6 +162,21 @@ const getAllType = () => {
             }
         })
 }
+const getAllSex = () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const allSex = await Product.distinct('sex')
+            resolve({
+                status: 'OK',
+                message: 'Get all sex is successful',
+                data: allSex,
+            })
+            } catch (e) {
+                reject(e);
+                console.log(e);
+            }
+        })
+}
 
 const deleteProduct = (id) => {
     return new Promise(async (resolve, reject) => {
@@ -242,5 +258,6 @@ module.exports = {
     getAllProduct,
     deleteProduct,
     deleteMultipleProduct,
-    getAllType
+    getAllType,
+    getAllSex
 }

@@ -134,7 +134,7 @@ const OrderDetailPage = () => {
             <Col span={8}>
               <Text strong>Trạng thái giao hàng: </Text>
               <Tag color={orderDetails.isDelivered ? "success" : "warning"}>
-                {orderDetails.isDelivered ? "Đã giao" : "Chưa giao"}
+                {orderDetails.isDelivered ? "Đang giao hàng" : "Chưa giao hàng"}
               </Tag>
             </Col>
           </Row>
@@ -165,14 +165,32 @@ const OrderDetailPage = () => {
             <Button type="primary" onClick={() => navigate(-1)}>
               Quay lại
             </Button>
-            <Button
-              type="primary"
-              danger
-              onClick={handleCancelOrder}
-              disabled={orderDetails.isDelivered || orderDetails.isPaid}
-            >
-              Hủy đơn hàng
-            </Button>
+            {orderDetails.isPaid && orderDetails.isSuccess && orderDetails.isDelivered ? (
+                <Tag
+                style={{
+                  fontWeight: '600',
+                  fontSize: '16px', // Thay đổi kích thước chữ
+                  color: '#fff', // Màu chữ trắng
+                  backgroundColor: '#ff0033', // Màu nền của Tag
+                  padding: '6px 12px', // Thêm padding để làm cho Tag đẹp hơn
+                  borderRadius: '4px', // Cạnh tròn cho Tag
+                  display: 'inline-block', // Hiển thị theo kiểu inline để căn chỉnh dễ dàng hơn
+                  textAlign: 'center', // Căn giữa chữ
+                }}
+              >
+                Đơn hàng đã hoàn thành
+              </Tag> // Hiển thị thông báo "Đơn hàng đã hoàn thành"
+              ) : (
+                !(orderDetails.isPaid || orderDetails.isSuccess || orderDetails.isDelivered) && (
+                  <Button
+                    type="primary"
+                    danger
+                    onClick={handleCancelOrder}
+                  >
+                    Hủy đơn hàng
+                  </Button>
+                )
+              )}
           </Row>
         </>
       ) : (

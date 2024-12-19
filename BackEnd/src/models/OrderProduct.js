@@ -26,6 +26,7 @@ const orderSchema = new mongoose.Schema(
         paidAt: {type: Date},
         createdAt: {type: Date, default: Date.now},
         isPaid:{type: Boolean, default: false},
+        isSuccess:{type: Boolean, default: false},
         deliveredAt: {type: Date},
         isDelivered: {type: Boolean, default: false},
         itemsPrice: {type: Number, required: true},
@@ -34,7 +35,7 @@ const orderSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
             required: true,  // Xem xét lại tùy theo logic của bạn
-        }
+        },
     },
 );
 

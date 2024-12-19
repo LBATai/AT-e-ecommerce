@@ -7,6 +7,7 @@ import { useLocation, useNavigate, useParams } from 'react-router';
 import {formatCurrencyVND} from '../../utils'
 import { useDispatch, useSelector } from 'react-redux';
 import { addOrderProduct } from '../../components/redux/Slide/orderSlide';
+import CommentSection from '../../components/CommentSection/CommentSection';
 const ProductDetail = () => {
   const navigate = useNavigate();
   const { Content } = Layout;
@@ -36,26 +37,21 @@ const ProductDetail = () => {
         type: res?.data?.type,
         countInStock: res?.data?.countInStock,
         description: res?.data?.description,
-        image: res?.data?.image,
+        images: res?.data?.images,
         discount: res?.data?.discount,
         selled: res?.data?.selled,
         options: res?.data?.options,
       })
-      setMainImage(res?.data?.image || res?.data?.options?.[0]?.image || '');
+      setMainImage(res?.data?.images?.[0] || 'default-image-url');
    }
     return res
   }
+
   const [size, setSize] = useState(stateProductDetails?.options?.[0]?.sizes?.[0]?.size || ''); // Giá trị mặc định từ dữ liệu API
 
   const comments = [
     { author: "Nguyễn Văn A", content: "Sản phẩm tuyệt vời, rất đáng mua!", datetime: "2 ngày trước" },
     { author: "Lê Thị B", content: "Giá cả hợp lý, chất lượng ổn.", datetime: "5 ngày trước" },
-  ];
-
-  const recommendedProducts = [
-    { id: 2, name: "Sản Phẩm 2", price: "500 USD", image: "path_to_image2" },
-    { id: 3, name: "Sản Phẩm 3", price: "750 USD", image: "path_to_image3" },
-    { id: 4, name: "Sản Phẩm 4", price: "1200 USD", image: "path_to_image4" },
   ];
 
   const renderStars = (rating) => {
@@ -91,7 +87,8 @@ const ProductDetail = () => {
     
     // Kiểm tra xem sản phẩm có kích thước không
     const hasSizes = stateProductDetails.options?.some(option => option.sizes?.length > 0);
-
+    // Lấy ảnh đầu tiên từ mảng images
+    const productImage = stateProductDetails.images?.[0] 
     if (hasSizes && !size) {
       message.warning("Vui lòng chọn kích thước trước khi thêm vào giỏ hàng.");
       return;
@@ -102,13 +99,13 @@ const ProductDetail = () => {
           amount: quantity,
           name: stateProductDetails.name,
           price: discountedPrice,
-          image: stateProductDetails.image,
+          image: productImage,
           type: stateProductDetails.type,
           color: color,  // Sử dụng giá trị color từ state
           size: size, 
         }
       }))
-      
+      message.success("Thêm sản phẩm vào giỏ hàng thành công.");
   }
 
 return (
@@ -141,22 +138,25 @@ return (
                 alt={stateProductDetails.name}
                 style={{ borderRadius: '8px', marginBottom: '10px', marginLeft: '20px' }}
               />
-              <Row gutter={[8, 8]} style={{ marginLeft: '20px' }}>
-                {stateProductDetails.options?.map((option, index) => (
+            <Row gutter={[8, 8]} style={{ marginLeft: '20px' }}>
+              {stateProductDetails.images?.length > 1 &&
+                stateProductDetails.images.map((image, index) => (
                   <Col key={index} span={7}>
                     <Image
                       width="100%"
-                      src={option.image}
-                      onClick={() => setMainImage(option.image)}
+                      src={image}
+                      alt={`Image ${index + 1}`}
                       style={{
                         cursor: 'pointer',
-                        border: mainImage === option.image ? '2px solid #FF4D4F' : '1px solid #CCC',
+                        border: mainImage === image ? '2px solid #FF4D4F' : '1px solid #CCC',
                         borderRadius: '4px',
                       }}
+                      onClick={() => setMainImage(image)} // Đặt ảnh chính khi nhấn vào ảnh nhỏ
                     />
                   </Col>
                 ))}
-              </Row>
+            </Row>
+
             </Col>
             <Col xs={24} md={12}>
               <Card bordered={false}>
@@ -275,16 +275,8 @@ return (
           </div>
 
           <div style={{ padding: '20px', marginTop: '20px' }}>
-            <h2>Đánh Giá từ Khách Hàng</h2>
-            <List
-              dataSource={comments}
-              renderItem={(item) => (
-                <div style={{ marginBottom: '15px' }}>
-                  <strong>{item.author}</strong> - {item.datetime}
-                  <p>{item.content}</p>
-                </div>
-              )}
-            />
+            {/* Thêm CommentSection vào đây */}
+            <CommentSection initialComments={comments} productId={stateProductDetails.id} />
           </div>
         </WrapperProductDetail>
       </Content>

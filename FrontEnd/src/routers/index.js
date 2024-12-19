@@ -7,6 +7,8 @@ import SignUpPage from "../pages/SignUpPage/SignUpPage";
 import ProfilePage from "../pages/ProfilePage/ProfilePage";
 import AdminPage from "../pages/AdminPage/AdminPage";
 import TypeProductPage from "../pages/TypeProductPage/TypeProductPage";
+import SexProductPage from "../pages/SexProductPage/SexProductPage";
+import PriceProductPage from "../pages/PriceProductPage/PriceProductPage";
 import BlogPage from "../pages/BlogPage/BlogPage";
 import PaymentPage from "../pages/PaymentPage/PaymentPage";
 import OrderDetailPage from "../pages/OrderDetailPage/OrderDetailPage";
@@ -44,6 +46,14 @@ export const routes = [
     {
         path: "/type/:type",
         component: TypeProductPage,
+    },
+    {
+        path: "/sex/:sex",
+        component: SexProductPage,
+    },
+    {
+        path: "/price-range/:price",
+        component: PriceProductPage,
     },
     {
         path: "/blog",

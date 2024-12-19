@@ -26,6 +26,20 @@ export const TypeProduct = styled.div`
   }
   text-align: start;
 `;
+export const SexProduct = styled.div`
+  display: flex;
+  flex-direction: column;
+  margin-left: 10px;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 8px;
+  transition: all 0.3s ease; /* Thêm hiệu ứng chuyển động mượt mà khi hover */
+
+  &:hover {
+    background-color: #E6E6E6;
+  }
+  text-align: start;
+`;
 
 export const PriceRange = styled.div`
 `

@@ -13,6 +13,7 @@ const createOrder = async (req, res) => {
       totalPrice,
       shippingPrice,
       itemsPrice,
+      user
     } = req.body;
     if (
       !name ||
@@ -99,10 +100,32 @@ const getDetailOrder = async (req, res) => {
     });
   }
 };
+const updateOrder = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const data = req.body;
+
+    if (!orderId) {
+      return res.status(400).json({
+        status: "Error",
+        message: "Order ID is required",
+      });
+    }
+
+    const response = await OrderService.updateOrder(orderId, data);
+    return res.status(200).json(response);
+  } catch (e) {
+    return res.status(500).json({
+      status: "Error",
+      message: e.message || "Internal Server Error",
+    });
+  }
+};
 
 module.exports = {
   createOrder,
   getAllOrder,
   deleteOrder,
   getDetailOrder,
+  updateOrder
 };

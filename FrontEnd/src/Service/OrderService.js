@@ -7,7 +7,7 @@ export const axiosJWT = axios.create({
 });
 
 export const createOrder  = async (id,access_token, data) => {
-  console.log('data', data)
+  // console.log('data', data)
     const res = await axiosJWT.post(`${import.meta.env.VITE_API_URL_BACKEND}/order/create-order/${id}`, data, {
         headers: {
             token: `Bearer ${access_token}`
@@ -36,6 +36,12 @@ export const deleteOrder  = async (id) => {
 
 export const getDetailsOrder = async (id) => {
   const res = await axios.get(`${import.meta.env.VITE_API_URL_BACKEND}/order/detail-order/${id}`,)
-  // console.log('res.data', res.data)
+  console.log('res.data', res.data)
+  return res.data;
+}
+
+export const updateOrder  = async (id, data) => {
+  // console.log('acctoken:', access_token, )
+  const res = await axios.put(`${import.meta.env.VITE_API_URL_BACKEND}/order/update-order/${id}`,data)
   return res.data;
 }
