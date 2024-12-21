@@ -1,33 +1,69 @@
+import { Share2, Minus, Plus, Star, StarHalf, MessageCircle } from 'lucide-react';
+import {
+  DiscountStyle,
+  ProductContainer,
+  Breadcrumb,
+  ProductGrid,
+  ProductImage,
+  ProductInfo,
+  InfoRow,
+  Price,
+  ColorButton,
+  SizeButton,
+  QuantityWrapper,
+  QuantityButton,
+  QuantityInput,
+  ActionButton,
+  PromotionButton,
+  ShareWrapper,
+  ShareButton,
+  TabWrapper,
+  TabButton,
+  TabContent,
+  ReviewCard,
+  RatingWrapper,
+  RatingScore,
+  StarWrapper,
+  ReviewWrapper,
+  ReviewHeader,
+  ReviewDate,
+  ReviewImages,
+  ReviewImage,
+  DiscountedPriceStyle
+} from './style';
 import { useEffect, useState } from 'react';
-import { Layout, Row, Col, Card, Button, Image, InputNumber, List, Breadcrumb, message   } from 'antd';
-import { ShoppingCartOutlined, HeartOutlined } from '@ant-design/icons';
-import { WrapperProductDetail, PriceStyle, DiscountStyle,OriginalPriceStyle,DiscountedPriceStyle } from './style';
 import * as ProductService from '../../Service/ProductService';
-import { useLocation, useNavigate, useParams } from 'react-router';
-import {formatCurrencyVND} from '../../utils'
+import { useNavigate, useParams } from 'react-router';
+import { formatCurrencyVND } from '../../utils';
 import { useDispatch, useSelector } from 'react-redux';
-import { addOrderProduct } from '../../components/redux/Slide/orderSlide';
-import { updateStock } from '../../components/redux/Slide/productSlide';
+import { addOrderProduct, updateStock } from '../../components/redux/Slide/orderSlide';
 import CommentSection from '../../components/CommentSection/CommentSection';
+import { message} from 'antd';
+
 const ProductDetail = () => {
+  const [quantity, setQuantity] = useState(1);
+  const [activeTab, setActiveTab] = useState('description');
+  const handleIncrement = () => setQuantity(prev => prev + 1);
+  const handleDecrement = () => setQuantity(prev => prev > 1 ? prev - 1 : 1);
   const navigate = useNavigate();
-  const { Content } = Layout;
   const { id } = useParams();
   const comments = [];
-  const [quantity, setQuantity] = useState(1);
   const [color, setColor] = useState('');
   const [mainImage, setMainImage] = useState(''); // Image chính sẽ hiển thị
-  const [stateProductDetails, setStateProductDetails] = useState('')
+  const [stateProductDetails, setStateProductDetails] = useState('');
   const [discountedPrice, setDiscountedPrice] = useState(0);
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
+  const stock = useSelector((state) => state.order.stock); // Lấy stock từ Redux store
+  const [size, setSize] = useState(stateProductDetails?.options?.[0]?.sizes?.[0]?.size || ''); // Giá trị mặc định từ dữ liệu API
 
   useEffect(() => {
-    if (id){
-      fetchGetDetailsProduct()
+    if (id) {
+      fetchGetDetailsProduct();
     }
   }, [id]);
+
   const fetchGetDetailsProduct = async () => {
-    const res = await ProductService.getDetailsProduct(id)
+    const res = await ProductService.getDetailsProduct(id);
     if (res?.data) {
       setStateProductDetails({
         id: res?.data._id,
@@ -41,13 +77,14 @@ const ProductDetail = () => {
         discount: res?.data?.discount,
         selled: res?.data?.selled,
         options: res?.data?.options,
-      })
+      });
+      // Đặt màu mặc định là màu đầu tiên
+      const defaultColor = res?.data?.options?.[0]?.color || '';
+      setColor(defaultColor);
       setMainImage(res?.data?.images?.[0] || 'default-image-url');
-   }
-    return res
-  }
-
-  const [size, setSize] = useState(stateProductDetails?.options?.[0]?.sizes?.[0]?.size || ''); // Giá trị mặc định từ dữ liệu API
+    }
+    return res;
+  };
 
   const renderStars = (rating) => {
     const maxRating = 5;
@@ -65,30 +102,109 @@ const ProductDetail = () => {
       setDiscountedPrice(price); // Lưu giá trị vào state
     }
   }, [stateProductDetails]);
-  
+
   const handleSizeChange = (selectedSize) => {
     setSize(selectedSize);
   };
 
+
   const handleColorChange = (selectedColor) => {
     setColor(selectedColor);
   };
+
+  const updateStockValues = (quantity) => {
+    setStateProductDetails((prevState) => {
+      const updatedOptions = prevState.options.map((option) => {
+        if (option.color === color) {
+          const updatedSizes = option.sizes.map((sizeOption) => {
+            if (sizeOption.size === size) {
+              return {
+                ...sizeOption,
+                countInStock: sizeOption.countInStock,
+              };
+            }
+            return sizeOption;
+          });
+          return {
+            ...option,
+            sizes: updatedSizes,
+          };
+        }
+        return option;
+      });
+
+      return {
+        ...prevState,
+        countAllInStock: prevState.countAllInStock,
+        options: updatedOptions,
+      };
+    });
+  };
+  const getStockCount = () => {
+    if (color && size) {
+      const stockKey = `${stateProductDetails.id}-${color}-${size}`;
+      const reduxStock = stock[stockKey]; // Số lượng đã sử dụng trong Redux store
+      const productStock = stateProductDetails.options
+        ?.find((option) => option.color === color)
+        ?.sizes.find((sizeOption) => sizeOption.size === size)?.countInStock; // Số lượng tồn kho từ chi tiết sản phẩm
+
+      // Nếu `reduxStock` khác undefined, trả về `productStock - reduxStock`
+      if (reduxStock !== undefined) {
+        const productStockAfter = productStock + reduxStock;
+        return productStockAfter
+      }
+
+      // Nếu không có trong Redux store, trả về `productStock`
+      return productStock;
+    }
+
+    // Nếu không có `color` hoặc `size`, trả về số lượng tồn kho tổng cộng
+    return stateProductDetails.countAllInStock;
+  };
+
   //button addOrder product
   const handleAddOrderProduct = () => {
-    if (!color) {
-      message.warning("Vui lòng chọn màu sắc trước khi thêm vào giỏ hàng.");
-      return;
-    }
-    
+  // Kiểm tra xem người dùng đã chọn màu sắc và kích thước chưa
+  if (!color || !size) {
+    message.error('Vui lòng chọn màu sắc và kích thước.');
+    return;
+  }
     // Kiểm tra xem sản phẩm có kích thước không
-    const hasSizes = stateProductDetails.options?.some(option => option.sizes?.length > 0);
+    const hasSizes = stateProductDetails.options?.some((option) => option.sizes?.length > 0);
     // Lấy ảnh đầu tiên từ mảng images
-    const productImage = stateProductDetails.images?.[0] 
-    if (hasSizes && !size) {
-      message.warning("Vui lòng chọn kích thước trước khi thêm vào giỏ hàng.");
+    const productImage = stateProductDetails.images?.[0];
+
+
+    const stockKey = `${stateProductDetails.id}-${color}-${size}`;
+
+    // Lấy reduxStock từ Redux store
+    const reduxStock = stock[stockKey];
+
+    // Lấy productStock từ chi tiết sản phẩm
+    const productStock = stateProductDetails.options
+      ?.find((option) => option.color === color)
+      ?.sizes.find((sizeOption) => sizeOption.size === size)?.countInStock;
+
+    // Tính toán currentStock
+    const currentStock =
+      reduxStock !== undefined
+        ? productStock // Nếu có trong Redux store, lấy productStock trừ reduxStock
+        : productStock; // Nếu không, dùng productStock trực tiếp
+
+    // Kiểm tra tồn kho
+    if (currentStock <= 0) {
+      message.error('Sản phẩm này đã hết hàng.');
       return;
     }
-      dispatch(addOrderProduct({
+
+    if (quantity > currentStock) {
+      message.error('Số lượng sản phẩm vượt quá số lượng còn lại.');
+      return;
+    }
+
+
+    dispatch(
+      addOrderProduct({
         orderItem: {
           product: stateProductDetails.id,
           amount: quantity,
@@ -96,193 +212,231 @@ const ProductDetail = () => {
           price: discountedPrice,
           image: productImage,
           type: stateProductDetails.type,
-          color: color,  // Sử dụng giá trị color từ state
-          size: size, 
-        }
-      }))
-      // Dispatch cập nhật số lượng trong Redux
-      dispatch(updateStock({
-        productId: stateProductDetails.id,
-        color,
-        size,
-        quantity,
-    }));
-      message.success("Thêm sản phẩm vào giỏ hàng thành công.");
-  }
+          color: color, // Sử dụng giá trị color từ state
+          size: size,
+        },
+      })
+    );
 
-return (
-    <Layout style={{ backgroundColor: '#F5F5F5', padding: '20px' }}>
-      <Content>
-        <Breadcrumb style={{ marginBottom: '5px', marginTop: '50px', padding: '20px', fontSize: '16px' }}>
-          <Breadcrumb.Item>
-            <a onClick={() => navigate('/home')} style={{ cursor: 'pointer', color: '#000000', fontWeight: '600' }}>
-              Shop
-            </a>
-          </Breadcrumb.Item>
-          <Breadcrumb.Item>
-            <a style={{ cursor: 'pointer', color: '#000000', fontWeight: '600' }}>
-              {stateProductDetails.type}
-            </a>
-          </Breadcrumb.Item>
-          <Breadcrumb.Item>
-            <a style={{ cursor: 'pointer', color: '#000000', fontWeight: '600' }}>
-              {stateProductDetails.name}
-            </a>
-          </Breadcrumb.Item>
-        </Breadcrumb>
+    dispatch(updateStock({ productId: stateProductDetails.id, color, size, quantity }));
 
-        <WrapperProductDetail>
-          <Row gutter={[16, 16]}>
-            <Col xs={20} md={10}>
-              <Image
-                width="90%"
-                src={mainImage}
-                alt={stateProductDetails.name}
-                style={{ borderRadius: '8px', marginBottom: '10px', marginLeft: '20px' }}
-              />
-            <Row gutter={[8, 8]} style={{ marginLeft: '20px' }}>
-              {stateProductDetails.images?.length > 1 &&
-                stateProductDetails.images.map((image, index) => (
-                  <Col key={index} span={7}>
-                    <Image
-                      width="100%"
-                      src={image}
-                      alt={`Image ${index + 1}`}
-                      style={{
-                        cursor: 'pointer',
-                        border: mainImage === image ? '2px solid #FF4D4F' : '1px solid #CCC',
-                        borderRadius: '4px',
-                      }}
-                      onClick={() => setMainImage(image)} // Đặt ảnh chính khi nhấn vào ảnh nhỏ
-                    />
-                  </Col>
+    message.success('Thêm sản phẩm vào giỏ hàng thành công.');
+    updateStockValues(quantity);
+  };
+
+  const reviews = [
+    {
+      id: 1,
+      user: "Nguyễn Văn A",
+      rating: 5,
+      date: "2024-03-15",
+      comment: "Áo rất đẹp và chất lượng. Mặc ấm, form áo vừa vặn. Sẽ ủng hộ shop dài dài.",
+      images: ["/api/placeholder/100/100", "/api/placeholder/100/100"]
+    },
+    {
+      id: 2,
+      user: "Trần Thị B",
+      rating: 4,
+      date: "2024-03-10",
+      comment: "Áo đẹp, giao hàng nhanh. Chỉ có điều màu hơi sáng hơn trong ảnh một chút.",
+      images: []
+    }
+  ];
+
+  return (
+    <ProductContainer>
+      <Breadcrumb>
+        <a onClick={() => navigate('/home')}>Trang chủ</a>
+        <span> / </span>
+        <a href="#">{stateProductDetails.type}</a>
+        <span> / </span>
+        <span>{stateProductDetails.name}</span>
+      </Breadcrumb>
+
+      <ProductGrid>
+        <ProductImage>
+          <img src={mainImage} alt="Product" />
+        </ProductImage>
+
+        <ProductInfo>
+          <h1>{stateProductDetails.name}</h1>
+
+          <InfoRow>
+            <span>Mã sản phẩm:</span>
+            <span>{stateProductDetails.id}</span>
+          </InfoRow>
+          <InfoRow>
+            <span>Tình trạng:</span>
+            <span className="status">
+              {color && size ? (
+                getStockCount() === 0 ? (
+                  <span style={{ color: 'red' }}>Hết hàng</span>
+                ) : (
+                  getStockCount() > 0 ? (
+                    `${getStockCount()}`
+                  ) : (
+                    <span style={{ color: 'red' }}>Hết hàng</span>
+                  )
+                )
+              ) : color ? (
+                <>Còn hàng</> // Hiển thị "Còn hàng" nếu chỉ chọn màu mà chưa chọn kích thước
+              ) : (
+                <>Chưa chọn màu và size</> // Nếu chưa chọn màu và size, hiển thị trạng thái này
+              )}
+            </span>
+          </InfoRow>
+
+          <InfoRow>
+            <span>Thương hiệu:</span>
+            <span>AT.Shop</span>
+          </InfoRow>
+
+          <DiscountStyle>-{stateProductDetails.discount}%</DiscountStyle>
+          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '10px' }}>
+            <DiscountedPriceStyle>{formatCurrencyVND(stateProductDetails.price)}</DiscountedPriceStyle>
+            <Price>{formatCurrencyVND(discountedPrice)}</Price>
+          </div>
+
+          <div>
+            <div className="size-header">
+              <span>Màu sắc:</span>
+            </div>
+            <div className="size-buttons">
+              {stateProductDetails.options?.map((option, index) => (
+                <ColorButton
+                  key={index}
+                  selected={color === option.color}
+                  onClick={() => handleColorChange(option.color)}
+                >
+                  {option.color}
+                </ColorButton>
+              ))}
+            </div>
+          </div>
+
+          {color && (
+            <div style={{ marginTop: '20px' }}>
+              <div className="size-header">
+                <span>Kích thước:</span>
+                <a href="#">Hướng dẫn chọn size</a>
+              </div>
+              <div className="size-buttons">
+                {[...stateProductDetails.options?.find((option) => option.color === color)?.sizes.map(sizeOption => sizeOption.size)]
+                  .filter((value, index, self) => self.indexOf(value) === index) // Loại bỏ các phần tử trùng lặp
+                  .map((sizeOption, index) => (
+                    <SizeButton
+                      key={index}
+                      selected={size === sizeOption}
+                      onClick={() => handleSizeChange(sizeOption)}
+                    >
+                      {sizeOption}
+                    </SizeButton>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          <QuantityWrapper style={{ marginTop: '20px' }}>
+            <span style={{ marginRight: '10px' }}>Số lượng:</span>
+            <div>
+              <QuantityButton onClick={() => setQuantity(quantity - 1)} disabled={quantity <= 1}>-</QuantityButton>
+              <QuantityInput min={1} max={getStockCount()} value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} />
+              <QuantityButton onClick={() => setQuantity(quantity + 1)} disabled={quantity >= getStockCount()}>+</QuantityButton>
+            </div>
+          </QuantityWrapper>
+
+          <div className="actions">
+            <ActionButton onClick={handleAddOrderProduct} variant="secondary" disabled={
+              !color || !size || getStockCount() === 0 || quantity > getStockCount()
+            }>THÊM VÀO GIỎ</ActionButton>
+            <ActionButton onClick={handleAddOrderProduct} variant="primary" disabled={
+              !color || !size || getStockCount() === 0 || quantity > getStockCount()
+            }>MUA NGAY</ActionButton>
+          </div>
+
+          <PromotionButton>
+            CLICK VÀO ĐÂY ĐỂ NHẬN ƯU ĐÃI
+          </PromotionButton>
+
+          <ShareWrapper>
+            <span>Chia sẻ:</span>
+            <div>
+              <ShareButton color="facebook"><Share2 size={20} /></ShareButton>
+              <ShareButton color="twitter"><Share2 size={20} /></ShareButton>
+              <ShareButton color="pinterest"><Share2 size={20} /></ShareButton>
+              <ShareButton><Share2 size={20} /></ShareButton>
+            </div>
+          </ShareWrapper>
+        </ProductInfo>
+      </ProductGrid>
+
+      <TabWrapper>
+        <div className="tab-buttons">
+          <TabButton
+            active={activeTab === 'description'}
+            onClick={() => setActiveTab('description')}
+          >
+            MÔ TẢ SẢN PHẨM
+          </TabButton>
+          <TabButton
+            active={activeTab === 'reviews'}
+            onClick={() => setActiveTab('reviews')}
+          >
+            ĐÁNH GIÁ ({reviews.length})
+          </TabButton>
+        </div>
+
+        <TabContent visible={activeTab === 'description'}>
+          <h3>Thông tin sản phẩm:</h3>
+          <p>{stateProductDetails?.description}</p>
+        </TabContent>
+
+        <TabContent visible={activeTab === 'reviews'}>
+          <RatingWrapper>
+            <div className="rating-summary">
+              <RatingScore>{stateProductDetails?.rating}</RatingScore>
+              <StarWrapper>
+                {[...Array(stateProductDetails?.rating)].map((_, i) => (
+                  <Star key={i} className="fill" />
                 ))}
-            </Row>
+              </StarWrapper>
+              <div className="rating-count">{reviews.length} đánh giá</div>
+            </div>
+            <ActionButton variant="secondary" className="review-button">
+              <MessageCircle size={16} />
+              Viết đánh giá
+            </ActionButton>
+          </RatingWrapper>
 
-            </Col>
-            <Col xs={24} md={12}>
-              <Card bordered={false}>
-                <h1>{stateProductDetails.name}</h1>
-                <PriceStyle>
-                  {stateProductDetails.discount > 0 ? (
-                    <>
-                      <div style={{ display: 'flex', gap: '15px' }}>
-                        <OriginalPriceStyle>
-                          {formatCurrencyVND(stateProductDetails.price)}
-                        </OriginalPriceStyle>
-                        <DiscountStyle>
-                          -{stateProductDetails.discount}%
-                        </DiscountStyle>
-                      </div>
-                      <DiscountedPriceStyle>
-                        {formatCurrencyVND(discountedPrice)}
-                      </DiscountedPriceStyle>
-                    </>
-                  ) : (
-                    <div>{formatCurrencyVND(stateProductDetails.price)}</div>
-                  )}
-                </PriceStyle>
-                <div style={{ margin: '10px 0' }}>
-                  <strong>Đánh Giá:</strong> {stateProductDetails.rating} {renderStars(stateProductDetails.rating)} 
-                </div>
-
-                <div style={{ marginTop: '20px' }}>
-                  <span style={{ marginRight: '10px' }}>Số lượng hàng trong kho:</span>
-                  {color && size ? (
-                    // Tìm và hiển thị số lượng theo màu sắc và kích thước đã chọn
-                    stateProductDetails.options
-                      .find(option => option.color === color) // Tìm màu sắc đã chọn
-                      ?.sizes.find(sizeOption => sizeOption.size === size) // Tìm kích thước đã chọn
-                      ?.countInStock === 0 ? (
-                        <span style={{ color: 'red' }}>Hết hàng</span> // Hiển thị "Hết hàng" nếu số lượng = 0
-                      ) : (
-                        stateProductDetails.options
-                          .find(option => option.color === color) // Tìm màu sắc đã chọn
-                          ?.sizes.find(sizeOption => sizeOption.size === size) // Tìm kích thước đã chọn
-                          ?.countInStock || 0 // Hiển thị số lượng hoặc 0 nếu không tìm thấy
-                      )
-                  ) : (
-                    // Nếu chưa chọn màu sắc hoặc kích thước, hiển thị tổng số lượng hàng trong kho
-                    stateProductDetails.countAllInStock === 0 ? (
-                      <span style={{ color: 'red' }}>Hết hàng</span> // Hiển thị "Hết hàng" nếu tổng số lượng = 0
-                    ) : (
-                      stateProductDetails.countAllInStock
-                    )
-                  )}
-                </div>
-
-                <div style={{ marginTop: '20px' }}>
-                  <span style={{ marginRight: '10px' }}>Màu sắc:</span>
-                  <div>
-                    {stateProductDetails.options?.map((option, index) => (
-                      <Button
-                        key={index}
-                        type={color === option.color ? "primary" : "default"}
-                        onClick={() => handleColorChange(option.color)}
-                        style={{ marginRight: '5px', marginBottom: '5px' }}
-                      >
-                        {option.color}
-                      </Button>
+          <ReviewWrapper>
+            {reviews.map(review => (
+              <ReviewCard key={review.id}>
+                <ReviewHeader>
+                  <span className="username">{review.user}</span>
+                  <span className="separator">|</span>
+                  <StarWrapper>
+                    {[...Array(review.rating)].map((_, i) => (
+                      <Star key={i} className="fill" />
                     ))}
-                  </div>
-                </div>
-
-                {color && stateProductDetails.options?.find(option => option.color === color)?.sizes?.length > 0 && (
-                  <div style={{ marginTop: '20px' }}>
-                    <span style={{ marginRight: '10px' }}>Kích thước:</span>
-                    <div>
-                      {stateProductDetails.options
-                        ?.find(option => option.color === color)
-                        ?.sizes.map((sizeOption, index) => (
-                          <Button
-                            key={index}
-                            type={size === sizeOption.size ? "primary" : "default"}
-                            onClick={() => handleSizeChange(sizeOption.size)}
-                            style={{ marginRight: '5px', marginBottom: '5px' }}
-                          >
-                            {sizeOption.size}
-                          </Button>
-                        ))}
-                    </div>
-                  </div>
+                  </StarWrapper>
+                </ReviewHeader>
+                <ReviewDate>
+                  {new Date(review.date).toLocaleDateString('vi-VN')}
+                </ReviewDate>
+                <p>{review.comment}</p>
+                {review.images.length > 0 && (
+                  <ReviewImages>
+                    {review.images.map((img, i) => (
+                      <ReviewImage key={i} src={img} alt={`Review ${i + 1}`} />
+                    ))}
+                  </ReviewImages>
                 )}
-                
-                <div style={{ marginTop: '20px' }}>
-                  <span style={{ marginRight: '10px' }}>Số lượng:</span>
-                  <InputNumber min={1} max={10} value={quantity} onChange={(value) => setQuantity(value)} />
-                </div>
-
-                <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
-                  <Col>
-                    <Button onClick={handleAddOrderProduct} type="primary" icon={<ShoppingCartOutlined />} size="large">
-                      Thêm vào Giỏ Hàng
-                    </Button>
-                  </Col>
-                  <Col>
-                    <Button type="default" icon={<HeartOutlined />} size="large">
-                      Thêm vào Yêu Thích
-                    </Button>
-                  </Col>
-                </Row>
-              </Card>
-            </Col>
-          </Row>
-          <div style={{ 
-            whiteSpace: 'pre-line', 
-            padding: '20px', 
-            marginLeft: '20px',
-            marginTop: '20px' 
-          }}>
-            <h2>Mô Tả Sản Phẩm</h2>
-            <p>{stateProductDetails.description}</p>
-          </div>
-        </WrapperProductDetail>
-        <div style={{ marginTop: '20px' }}>
-            {/* Thêm CommentSection vào đây */}
-            <CommentSection initialComments={comments} productId={stateProductDetails.id} />
-          </div>
-      </Content>
-    </Layout>
+              </ReviewCard>
+            ))}
+          </ReviewWrapper>
+        </TabContent>
+      </TabWrapper>
+    </ProductContainer>
   );
 };
 

@@ -3,7 +3,7 @@ import { Row, Col, Table, InputNumber, Button, Modal,Input } from "antd";
 import { MinusOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { increaseAmount, decreaseAmount, removeOrderProduct, removeOrderAllProduct  } from "../../components/redux/Slide/orderSlide";
+import { increaseAmount, decreaseAmount, removeOrderProduct, removeOrderAllProduct, updateStock } from "../../components/redux/Slide/orderSlide";
 import { formatCurrencyVND } from "../../utils";
 
 const CartPage = () => {
@@ -219,7 +219,16 @@ const CartPage = () => {
   };
   
   const handleOk = () => {
-    dispatch(removeOrderProduct({ idProduct: itemToDelete.id }));
+    if (itemToDelete) {
+      dispatch(removeOrderProduct({ idProduct: itemToDelete.id }));
+      dispatch(updateStock({
+        productId: itemToDelete.product,
+        color: itemToDelete.color,
+        size: itemToDelete.size,
+        quantity: itemToDelete.amount,
+        increase: true
+      }));
+    }
     setIsModalVisible(false);
   };
 

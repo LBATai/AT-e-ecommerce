@@ -1,16 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { Row, Col, Button, Radio, Space, message } from "antd";
+import React, { useState, useEffect, useMemo } from "react";
+import { Row, Col, Button, Radio, Space, message  } from "antd";
 import { useSelector, useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { formatCurrencyVND } from "../../utils";
 import { CreditCardOutlined, PayCircleOutlined } from "@ant-design/icons";
 import { FaPaypal } from "react-icons/fa";
-import { DeliveryStyle, PayStyle, PageWrapper, TitleStyle } from "./style";
-import { useMutationHooks } from "../../hooks/useMutationHook";
+import {DeliveryStyle,PayStyle, PageWrapper, TitleStyle} from './style'
+import { useMutationHooks } from '../../hooks/useMutationHook';
 import * as OrderService from "../../Service/OrderService";
-import Pending from "../../components/Pending/Pending";
-import { markProductsAsPaid, removePaidProducts } from "../../components/redux/Slide/orderSlide";
-import { updateStock } from "../../components/redux/Slide/productSlide"; // Import reducer cập nhật kho
+import Pending from '../../components/Pending/Pending'
+import { markProductsAsPaid, removePaidProducts } from '../../components/redux/Slide/orderSlide';
 
 const PaymentPage = () => {
   const location = useLocation();
@@ -19,7 +18,6 @@ const PaymentPage = () => {
   const { totalAmount, itemsPrice, selectedItems } = location.state || {};
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
   const [isPending, setIsPending] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("cod"); // State quản lý phương thức thanh toán
   const [deliveryMethod, setDeliveryMethod] = useState("standard"); // State quản lý phương thức giao hàng
@@ -28,8 +26,6 @@ const PaymentPage = () => {
     address: "",
     phone: "",
   });
-
-  const [currentShippingPrice, setCurrentShippingPrice] = useState(10000); // Phí giao hàng mặc định
 
   useEffect(() => {
     if (user) {
@@ -41,41 +37,35 @@ const PaymentPage = () => {
     }
   }, [user]);
 
+  // Xử lý phí giao hàng thay đổi theo phương thức giao hàng
   const getShippingPrice = (method) => {
     switch (method) {
       case "standard":
-        return 10000;
+        return 10000; // phí giao hàng tiêu chuẩn
       case "express":
-        return 20000;
+        return 20000; // phí giao hàng nhanh
       default:
         return 0;
     }
   };
+
+  // Cập nhật giá trị phí giao hàng khi phương thức giao hàng thay đổi
+  const [currentShippingPrice, setCurrentShippingPrice] = useState(getShippingPrice(deliveryMethod));
 
   useEffect(() => {
     setCurrentShippingPrice(getShippingPrice(deliveryMethod));
   }, [deliveryMethod]);
 
   const mutationAddOrder = useMutationHooks(async (data) => {
-    const { token, ...restData } = data;
-    const userId = data.id || user?.id;
-    const res = await OrderService.createOrder(userId, token, restData);
+    const { token, ...restData } = data; // Giả sử `data` có chứa token
+    const userId = data.id || user?.id; // Lấy userId từ data hoặc từ user
+  
+    const res = await OrderService.createOrder(userId, token, restData); // Gọi API
     return res;
   });
 
   const handleCheckout = async () => {
-    // Kiểm tra thông tin đầu vào
-    if (!checkoutInfo.address || !checkoutInfo.phone) {
-      message.error("Vui lòng điền đầy đủ thông tin giao hàng.");
-      return;
-    }
-
-    if (!selectedItems || selectedItems.length === 0) {
-      message.error("Không có sản phẩm nào để đặt hàng.");
-      return;
-    }
-
-    setIsPending(true);
+    setIsPending(true); 
     try {
       const payload = {
         token: user?.access_token,
@@ -86,36 +76,23 @@ const PaymentPage = () => {
         paymentMethod: paymentMethod,
         deliveryMethod: deliveryMethod,
         itemsPrice: itemsPrice,
-        shippingPrice: currentShippingPrice,
-        totalPrice: itemsPrice + currentShippingPrice,
+        shippingPrice: currentShippingPrice, // Sử dụng giá trị phí giao hàng cập nhật
+        totalPrice: itemsPrice + currentShippingPrice, // Cộng thêm phí giao hàng vào tổng tiền
         user: user?.id,
       };
-
+  
       await mutationAddOrder.mutateAsync(payload);
 
-      // Cập nhật Redux
-      selectedItems.forEach((item) => {
-        dispatch(
-          updateStock({
-            productId: item.product,
-            color: item.color,
-            size: item.size,
-            quantity: item.amount,
-          })
-        );
-      });
-
-      const selectedItemIds = selectedItems.map((item) => item.product);
+      const selectedItemIds = selectedItems.map(item => item.product);
       dispatch(markProductsAsPaid({ selectedItemIds }));
       dispatch(removePaidProducts({ selectedItemIds }));
-
-      message.success("Đặt hàng thành công!");
-      navigate("/profile", { state: { activeTab: "2" } });
+    
+      navigate('/profile', { state: { activeTab: '2' } });
     } catch (error) {
       if (error.response?.status === 400) {
-        message.error(error.response.data.message || "Sản phẩm đã tồn tại.");
+        message.error(error.response.data.message || 'Sản phẩm đã tồn tại.');
       } else {
-        message.error("Đã xảy ra lỗi. Vui lòng thử lại sau.");
+        message.error('Đã xảy ra lỗi. Vui lòng thử lại sau.');
       }
     } finally {
       setIsPending(false);
@@ -127,7 +104,7 @@ const PaymentPage = () => {
       <Pending isPending={isPending}>
         <TitleStyle>Thanh toán</TitleStyle>
         <Row gutter={[16, 16]} style={{ padding: 24, marginTop: "100px" }}>
-          <Col xs={24} lg={11} style={{ marginLeft: "250px" }}>
+          <Col xs={24} lg={11} style={{marginLeft: '250px'}}>
             <DeliveryStyle>
               Chọn phương thức giao hàng
               <Radio.Group
@@ -170,7 +147,7 @@ const PaymentPage = () => {
             </PayStyle>
           </Col>
 
-          <Col xs={24} lg={8} style={{ backgroundColor: "#fff", padding: "20px", height: "50%" }}>
+          <Col xs={24} lg={8} style={{backgroundColor: '#fff', padding: '20px', height:'50%'}}>
             <div
               style={{
                 display: "flex",
@@ -214,9 +191,7 @@ const PaymentPage = () => {
             >
               <span>Tổng cộng: </span>
               <span style={{ color: "red" }}>
-                {totalAmount !== undefined
-                  ? formatCurrencyVND(itemsPrice + currentShippingPrice)
-                  : "Chưa có dữ liệu"}
+                {totalAmount !== undefined ? formatCurrencyVND(itemsPrice + currentShippingPrice) : "Chưa có dữ liệu"}
               </span>
             </div>
             <Button
@@ -235,3 +210,4 @@ const PaymentPage = () => {
 };
 
 export default PaymentPage;
+
