@@ -4,20 +4,23 @@ const Comment = require("../models/CommentModel")
 
 const bcrypt = require("bcrypt")
 // Tạo bình luận mới
-const createComment = (newComment) => {
+const createComment = (commentData) => {
     return new Promise(async (resolve, reject) => {
-        const { productId, userId, rating, content} = newComment
+        const { productId, userId, rating, content, avatarUser, nameUser} = commentData
         try {
-            const createnewComment = await Order.create({
-                product: productId,
+            const createnewComment = await Comment.create({
+                productId,
                 rating,
                 content,
-                user: userId
-            })    
+                userId,
+                avatarUser,
+                nameUser,
+            })  
+              
             if (createnewComment){
                 resolve({
                     status: 'success',
-                    message: 'Order created successfully',
+                    message: 'Comment created successfully',
                     data: createnewComment
                 })
             }
@@ -28,56 +31,26 @@ const createComment = (newComment) => {
             }
         })
 }
-// Cập nhật bình luận
-const updateComment = async (commentId, content, rating) => {
-    try {
-        const updatedComment = await Comment.findByIdAndUpdate(
-            commentId,
-            { content, rating, updated: Date.now() },
-            { new: true }
-        );
-        if (!updatedComment) throw new Error('Bình luận không tồn tại');
-        return updatedComment;
-    } catch (error) {
-        throw new Error('Không thể cập nhật bình luận: ' + error.message);
-    }
-};
 
-// Xóa bình luận
-const deleteComment = async (commentId) => {
-    try {
-        const deletedComment = await Comment.findByIdAndDelete(commentId);
-        if (!deletedComment) throw new Error('Bình luận không tồn tại');
-        return deletedComment;
-    } catch (error) {
-        throw new Error('Không thể xóa bình luận: ' + error.message);
-    }
-};
-
-// Lấy tất cả bình luận của một sản phẩm
 const getCommentsByProduct = async (productId) => {
     try {
-        const comments = await Comment.find({ product: productId }).populate('user', 'name email');
-        return comments;
+      let comments;
+      if (productId) {
+        // Lọc đơn hàng theo trường 'user' với giá trị userId
+        comments = await Comment.find({ productId: productId });
+      } 
+      return {
+        status: 'OK',
+        message: 'Get comments successful',
+        data: comments,
+      };
     } catch (error) {
-        throw new Error('Không thể lấy bình luận: ' + error.message);
+      console.error('Error fetching comments:', error);
+      throw new Error('Error occurred while fetching comments');
     }
-};
-
-// Lấy bình luận của một người dùng cho một sản phẩm
-const getCommentByUserAndProduct = async (productId, userId) => {
-    try {
-        const comment = await Comment.findOne({ product: productId, user: userId });
-        return comment;
-    } catch (error) {
-        throw new Error('Không thể lấy bình luận: ' + error.message);
-    }
-};
+  };
 
 module.exports = {
     createComment,
-    updateComment,
-    deleteComment,
     getCommentsByProduct,
-    getCommentByUserAndProduct,
 };

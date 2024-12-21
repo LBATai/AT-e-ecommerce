@@ -27,6 +27,7 @@ const ScrollToTopButton = () => {
         alignItems: 'center',
         boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
         cursor: 'pointer',
+        marginRight: '55px'
       }}
     >
       <ArrowUpOutlined style={{ fontSize: '20px' }} />

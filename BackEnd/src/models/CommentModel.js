@@ -2,13 +2,13 @@ const mongoose = require('mongoose')
 
 const commentSchema = new mongoose.Schema(
     {   
-        product: {
+        productId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Product',
             required: true,
             index: true, 
         },
-        user: {
+        userId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
             required: true,
@@ -17,7 +17,7 @@ const commentSchema = new mongoose.Schema(
             type: Date,
             default: Date.now,
         },
-        updated: {  // Thêm trường updated để ghi lại thời gian chỉnh sửa
+        updated: {  
             type: Date,
         },
         rating: {
@@ -32,10 +32,18 @@ const commentSchema = new mongoose.Schema(
             minlength: 1,
             maxlength: 1000,
         },
+        avatarUser: {
+            type: String,
+            required: true,
+        },
+        nameUser: {
+            type: String,
+            required: true,
+        },
     },
 );
 
-commentSchema.index({ product: 1, user: 1 });
+commentSchema.index({  productId: 1, userId: 1 });
 
 const Comment = mongoose.model('Comment', commentSchema);
 module.exports = Comment;

@@ -4,19 +4,7 @@ const ProductService = require("../services/ProductService");
 
 const createProduct = async (req, res) => {
   try {
-    const {
-      name,
-      images,
-      type,
-      price,
-      countInStock,
-      rating,
-      description,
-      discount,
-      selled,
-      options,
-      sex
-    } = req.body;
+    const {images} = req.body;
     // Kiểm tra nếu thiếu `images` hoặc `images` là một mảng trống
     if (!images || images.length === 0) {
       return res.status(400).json({

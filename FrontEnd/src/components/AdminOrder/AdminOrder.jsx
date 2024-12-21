@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Input, Modal, Form, message, Space, Drawer, Select, Tag } from 'antd';
+import { Table, Button, Input, Modal, Form, message, Space, Drawer, Select, Tag, Typography} from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useSelector } from 'react-redux';
 import * as OrderService from '../../Service/OrderService';
@@ -11,7 +11,7 @@ const AdminOrder = () => {
   const [stateOrderDetails, setStateOrderDetails] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-
+  const { Text } = Typography;
   const onSelectChange = (newSelectedRowKeys) => setSelectedRowKeys(newSelectedRowKeys);
 
   useEffect(() => {
@@ -148,11 +148,11 @@ const AdminOrder = () => {
       key: 'paymentStatus',
       render: (text, record) => (
         <span>
+          <Text type="secondary">Phương thức: {record.paymentMethod || 'Chưa xác định'}</Text>
+          <br />
           <Tag color={record.isPaid ? "success" : "warning"}>
             {record.isPaid ? "Đã thanh toán" : "Chưa thanh toán"}
           </Tag>
-          <br />
-          <Text type="secondary">Phương thức: {record.paymentMethod || 'Chưa xác định'}</Text>
         </span>
       ),
     },
@@ -162,8 +162,8 @@ const AdminOrder = () => {
       dataIndex: 'isDelivered',
       key: 'isDelivered',
       render: (isDelivered, record) => {
-        console.log('isDelivered:', isDelivered); // Kiểm tra giá trị của isDelivered
-        console.log('isSuccess:', record.isSuccess); // Kiểm tra giá trị của isSuccess
+        // console.log('isDelivered:', isDelivered); // Kiểm tra giá trị của isDelivered
+        // console.log('isSuccess:', record.isSuccess); // Kiểm tra giá trị của isSuccess
         return (
           <span>
             <Tag color={isDelivered ? (record.isSuccess ? "success" : "processing") : "warning"}>

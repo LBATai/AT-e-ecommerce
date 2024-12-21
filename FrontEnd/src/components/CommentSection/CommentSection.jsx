@@ -1,26 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { List, Input, Button, Rate, message } from 'antd';
+import { List, Input, Button, Rate, message} from 'antd';
 import { UserOutlined } from '@ant-design/icons';
-import { getCommentsByProduct, createComment, deleteComment, updateComment } from '../../Service/CommentService';
-
-const CommentSection = ({ initialComments, productId }) => {
+import { useMutationHooks } from '../../hooks/useMutationHook';
+import * as CommentService from '../../Service/CommentService';
+import { useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
+import {CommentWrapper} from './style'
+import { formatDate } from '../../utils'
+const CommentSection = () => {
+  const { id } = useParams();  // Lấy productId từ URL
+  const user = useSelector((state) => state.user);
+  const { TextArea } = Input;
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [productId, setProductId] = useState(id);
   const [rating, setRating] = useState(0);
-  console.log("Product ID:", productId); // Kiểm tra xem productId đã được truyền đúng chưa
+  const [userAvatar, setUserAvatar] = useState('');
+  const [nameUser, setNameUser] = useState('');
 
-//   useEffect(() => {
-//     // Lấy danh sách bình luận khi component mount
-//     const fetchComments = async () => {
-//       try {
-//         const fetchedComments = await getCommentsByProduct(productId);
-//         setComments(fetchedComments);
-//       } catch (error) {
-//         message.error('Lỗi khi lấy bình luận.');
-//       }
-//     };
-//     fetchComments();
-//   }, [productId]);
+  useEffect(() => {
+    setUserAvatar(user?.avatar);
+    setNameUser(user?.name);
+  }, [user?.avatar]);
 
   const handleCommentChange = (e) => {
     setNewComment(e.target.value);
@@ -30,57 +31,85 @@ const CommentSection = ({ initialComments, productId }) => {
     setRating(value);
   };
 
+  // create new comment
+  const commentData = {
+    content: newComment,
+    rating: rating,
+    productId: productId,
+    userId: user.id,
+    avatarUser: userAvatar,
+    nameUser: nameUser,
+  };
+  const mutationCreateComment = useMutationHooks(
+    async (commentData) => {
+      const response = await CommentService.createComment(commentData);
+      return response;
+    }
+  );
   const handleAddComment = async () => {
     if (!newComment) {
       message.warning('Vui lòng nhập bình luận');
       return;
     }
-
-    const commentData = {
-      content: newComment,
-      rating: rating,
-    };
-
-    try {
-      const newCommentItem = await createComment(productId, commentData);
-      setComments([newCommentItem, ...comments]);
-      setNewComment('');
-      setRating(0);
-      message.success('Bình luận đã được thêm.');
-    } catch (error) {
-      message.error('Lỗi khi thêm bình luận.');
+    if (rating === 0) {
+      message.warning('Vui lòng chọn đánh giá');
+      return;
     }
+    mutationCreateComment.mutate(commentData, {
+      onSuccess: () => {
+        // Reset comment và rating sau khi thêm bình luận thành công
+        setNewComment('');
+        setRating(0);
+        // Gọi lại danh sách bình luận
+        fetchCommentsByProduct();
+        message.success('Thêm bình luận thành công');
+      },
+      onError: () => {
+        message.error('Lỗi khi thêm bình luận');
+      }
+    });
   };
 
-  const handleDeleteComment = async (commentId) => {
-    try {
-      await deleteComment(commentId);
-      setComments(comments.filter(comment => comment._id !== commentId));
-      message.success('Bình luận đã được xóa.');
-    } catch (error) {
-      message.error('Lỗi khi xóa bình luận.');
+  // lấy danh sách comment
+  useEffect(() => {
+    if (id) {
+      fetchCommentsByProduct();
+    } else {
+      message.error('Product ID không hợp lệ');
     }
+  }, [productId]);
+  const fetchCommentsByProduct = async () => {
+    try {
+      const response = await CommentService.getCommentsByProduct(productId);
+      setComments(response.data);
+    } catch (error) {
+      message.error('Lỗi khi lấy bình luận.');
+    }
+  }
+
+  const handleDeleteComment = async (commentId) => {
+    // Xử lý xóa bình luận nếu cần
   };
 
   const handleUpdateComment = async (commentId, updatedContent) => {
-    try {
-      const updatedComment = await updateComment(commentId, { content: updatedContent });
-      setComments(comments.map(comment => (comment._id === commentId ? updatedComment : comment)));
-      message.success('Bình luận đã được cập nhật.');
-    } catch (error) {
-      message.error('Lỗi khi cập nhật bình luận.');
-    }
+    // Xử lý cập nhật bình luận nếu cần
   };
 
   return (
-    <div>
+    <CommentWrapper>
       <h2>Đánh Giá từ Khách Hàng</h2>
       <List
         dataSource={comments}
         renderItem={(item) => (
           <div style={{ marginBottom: '15px' }}>
-            <strong>{item.author}</strong> - {item.datetime}
-            <p>{item.content}</p>
+            <p>
+              <span><img alt="user avatar" src={userAvatar} style={{ width: '30px', height: '30px', borderRadius: '50%', }} /></span>
+              <span style={{marginTop: '50px'}}>{nameUser}</span>
+            </p>
+            <p>{formatDate(item.created)}</p>
+            <p>
+              {item.content}
+            </p>
             <Rate disabled value={item.rating} />
             {/* Các nút chỉnh sửa và xóa nếu cần */}
             <Button onClick={() => handleDeleteComment(item._id)}>Xóa</Button>
@@ -89,11 +118,13 @@ const CommentSection = ({ initialComments, productId }) => {
         )}
       />
       <div style={{ marginTop: '20px' }}>
-        <Input
+        <TextArea 
           placeholder="Nhập bình luận..."
           value={newComment}
           onChange={handleCommentChange}
           prefix={<UserOutlined />}
+          autoSize={{ minRows: 1, maxRows: 6 }} // Tự động thay đổi chiều cao
+          style={{ width: '40%' }} // Đặt chiều rộng cụ thể
         />
         <div style={{ marginTop: '10px' }}>
           <Rate onChange={handleRatingChange} value={rating} />
@@ -103,10 +134,10 @@ const CommentSection = ({ initialComments, productId }) => {
           onClick={handleAddComment}
           style={{ marginTop: '10px' }}
         >
-          Thêm Bình Luận
+          Bình luận
         </Button>
       </div>
-    </div>
+    </CommentWrapper>
   );
 };
 

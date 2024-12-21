@@ -53,7 +53,7 @@ const AdminProduct = () => {
     selectedRowKeys,
     onChange: onSelectChange,
   };
-  const fetchProducts = async () => {
+  const fetchAllProducts = async () => {
     setIsLoading(true);
     try {
       const response = await ProductService.getAllProduct();
@@ -71,7 +71,7 @@ const AdminProduct = () => {
     }
   };
   useEffect(() => {
-    fetchProducts();
+    fetchAllProducts();
   }, []);
   const fetchGetDetailsProduct = async () => {
     const res = await ProductService.getDetailsProduct(rowSelected)
@@ -82,7 +82,7 @@ const AdminProduct = () => {
         price: res?.data?.price,
         rating: res?.data?.rating,
         type: res?.data?.type,
-        countInStock: res?.data?.countInStock,
+        countAllInStock: res?.data?.countAllInStock,
         description: res?.data?.description,
         images: res?.data?.images,
         discount: res?.data?.discount,
@@ -107,7 +107,7 @@ const AdminProduct = () => {
   useEffect(() => {
     if (mutation.isSuccess) {
       const response = mutation.data;
-  
+
       if (response && response.message === 'Product created successfully') {
         message.success('Sản phẩm đã được thêm thành công!');
         setIsModalOpen(false); // Tắt modal
@@ -120,7 +120,7 @@ const AdminProduct = () => {
         message.error(response.message || 'Vui lòng nhập đủ các thông tin của sản phẩm!');
       }
     }
-  
+
     if (mutation.isError) {
       // Kiểm tra nếu có lỗi trả về từ API
       if (mutation.error && mutation.error.response && mutation.error.response.data) {
@@ -138,7 +138,7 @@ const AdminProduct = () => {
       }
     }
   }, [mutation.isSuccess, mutation.isError, mutation.data, mutation.error]);
-  
+
 
 
 
@@ -177,7 +177,7 @@ const AdminProduct = () => {
           const res = await ProductService.deleteProduct(record._id);
           if (res?.status === 'OK') {
             message.success('Xóa sản phẩm thành công!');
-            fetchProducts(); // Làm mới danh sách sản phẩm sau khi xóa
+            fetchAllProducts(); // Làm mới danh sách sản phẩm sau khi xóa
           } else {
             message.error('Xóa sản phẩm thất bại!');
           }
@@ -223,7 +223,7 @@ const AdminProduct = () => {
           const res = await ProductService.deleteMultipleProducts(selectedRowKeys); // Gọi API xóa nhiều sản phẩm
           if (res?.status === 'OK') {
             message.success('Xóa sản phẩm thành công!');
-            fetchProducts(); // Làm mới danh sách sản phẩm
+            fetchAllProducts(); // Làm mới danh sách sản phẩm
             setSelectedRowKeys([]); // Reset danh sách sản phẩm được chọn
           } else {
             message.error('Xóa sản phẩm thất bại!');
@@ -246,6 +246,22 @@ const AdminProduct = () => {
   };
 
   const onFinish = (values) => {
+    if (values.options && Array.isArray(values.options)) {
+      // Kiểm tra nếu chưa thêm màu sắc nào
+      if (!values.options || !Array.isArray(values.options) || values.options.length === 0) {
+        message.error("Vui lòng thêm ít nhất một màu sắc.");
+        return;
+      }
+      // Kiểm tra xem từng màu sắc có kích thước hay không
+      const invalidColor = values.options.find(
+        (option) => !option.sizes || option.sizes.length === 0
+      );
+
+      if (invalidColor) {
+        message.error("Vui lòng thêm ít nhất một kích thước cho mỗi màu sắc.");
+        return;
+      }
+    }
     const newProduct = {
       ...values,
       images, // Thêm hình ảnh đã chọn (nếu có)
@@ -262,13 +278,54 @@ const AdminProduct = () => {
   );
 
   const onFinishUpdateProduct = (values) => {
+    // Tính toán lại tổng số lượng tồn kho từ options
+    let totalStock = 0;
+
+    if (values.options && Array.isArray(values.options)) {
+      // Kiểm tra nếu chưa thêm màu sắc nào
+      if (!values.options || !Array.isArray(values.options) || values.options.length === 0) {
+        message.error("Vui lòng thêm ít nhất một màu sắc.");
+        return;
+      }
+      // Kiểm tra xem từng màu sắc có kích thước hay không
+      const invalidColor = values.options.find(
+        (option) => !option.sizes || option.sizes.length === 0
+      );
+
+      if (invalidColor) {
+        message.error("Vui lòng thêm ít nhất một kích thước cho mỗi màu sắc.");
+        return;
+      }
+
+      // Nếu tất cả đều hợp lệ, tính tổng số lượng tồn kho
+      values.options.forEach((option) => {
+        if (option.sizes && Array.isArray(option.sizes)) {
+          option.sizes.forEach((size) => {
+            // Chuyển đổi countInStock về số trước khi cộng
+            totalStock += Number(size.countInStock) || 0; // Sử dụng Number() để ép kiểu, tránh lỗi nối chuỗi
+          });
+        }
+      });
+    } else {
+      message.error("Vui lòng thêm ít nhất một màu sắc và kích thước.");
+      return;
+    }
+
+    // Chuẩn bị dữ liệu cập nhật
     const data = {
       ...values,
       images, // Nếu có thêm images
+      countAllInStock: totalStock, // Đảm bảo API nhận đúng giá trị
     };
+
     // Truyền id, access_token và dữ liệu cần cập nhật vào mutate
-    mutationUpdateProduct.mutate({ id: rowSelected, access_token: user?.access_token, ...data });
+    mutationUpdateProduct.mutate({
+      id: rowSelected,
+      access_token: user?.access_token,
+      ...data,
+    });
   };
+
 
   useEffect(() => {
     if (mutationUpdateProduct.isSuccess) {
@@ -336,9 +393,9 @@ const AdminProduct = () => {
     },
     {
       title: 'Số Lượng',
-      dataIndex: 'countInStock',
-      key: 'countInStock',
-      sorter: (a, b) => a.countInStock - b.countInStock
+      dataIndex: 'countAllInStock',
+      key: 'countAllInStock',
+      sorter: (a, b) => a.countAllInStock - b.countAllInStock
     },
     {
       title: 'Thao Tác',
@@ -374,16 +431,7 @@ const AdminProduct = () => {
           </Button>
         )}
       </div>
-
-      <Input.Search
-        placeholder="Tìm sản phẩm..."
-        allowClear
-        enterButton="Tìm kiếm"
-        size="large"
-        style={{ marginBottom: '20px' }}
-        onChange={(e) => setSearchText(e.target.value)} // Cập nhật từ khóa
-        onSearch={handleSearch}
-      />
+      <Input.Search placeholder="Tìm sản phẩm..." style={{ marginBottom: '20px' }} allowClear />
 
       <Table
         rowSelection={rowSelection}
@@ -441,18 +489,6 @@ const AdminProduct = () => {
               <Select.Option value="unisex">Unisex</Select.Option>
             </Select>
           </Form.Item>
-          <Form.Item name="rating" label="Đánh giá sản phẩm (★)"
-            rules={[
-              { required: true, message: 'Vui lòng nhập đánh giá sản phẩm' },
-              {
-                validator: (_, value) =>
-                  value && (value < 1 || value > 5)
-                    ? Promise.reject(new Error('Đánh giá sản phẩm phải nằm trong khoảng 1 đến 5 sao'))
-                    : Promise.resolve(),
-              },
-            ]}>
-            <Input type="number" placeholder="Nhập đánh giá sản phẩm" />
-          </Form.Item>
           <Form.Item
             name="type"
             label="Loại sản phẩm"
@@ -489,7 +525,7 @@ const AdminProduct = () => {
           <Form.Item name="description" label="Mô Tả" rules={[{ required: true, message: 'Vui lòng nhập mô tả sản phẩm' }]}>
             <Input.TextArea placeholder="Nhập mô tả sản phẩm" autoSize={{ minRows: 3, maxRows: 15 }} />
           </Form.Item>
-          <Form.Item name="countInStock" label="Số Lượng sản phẩm"
+          {/* <Form.Item name="countInStock" label="Số Lượng sản phẩm"
             rules={[
               { required: true, message: 'Vui lòng nhập số lượng' },
               {
@@ -500,7 +536,7 @@ const AdminProduct = () => {
               },
             ]}>
             <Input type="number" placeholder="Nhập số lượng sản phẩm" />
-          </Form.Item>
+          </Form.Item> */}
           <Form.Item name="discount" label="Phần trăm giảm giá"
             rules={[
               { required: true, message: 'Vui lòng nhập phần trăm giảm giá trong khoảng 0 - 100' },
@@ -512,18 +548,6 @@ const AdminProduct = () => {
               },
             ]}>
             <Input type="number" placeholder="Nhập phần trăm giảm giá" />
-          </Form.Item>
-          <Form.Item name="selled" label="Số lượng đã bán"
-            rules={[
-              { required: true, message: 'Vui lòng nhập số lượng đã bán' },
-              {
-                validator: (_, value) =>
-                  value && (value < 0)
-                    ? Promise.reject(new Error('Số lượng sản phẩm đã bán phải lớn hơn hoặc bằng 0'))
-                    : Promise.resolve(),
-              },
-            ]}>
-            <Input type="number" placeholder="Nhập số lượng đã bán" />
           </Form.Item>
           {/* Hình ảnh của form thêm mới */}
           <Form.Item
@@ -706,19 +730,6 @@ const AdminProduct = () => {
               <Select.Option value="unisex">Unisex</Select.Option>
             </Select>
           </Form.Item>
-
-          <Form.Item name="rating" label="Đánh giá sản phẩm (★)"
-            rules={[
-              { required: true, message: 'Vui lòng nhập đánh giá sản phẩm' },
-              {
-                validator: (_, value) =>
-                  value && (value < 1 || value > 5)
-                    ? Promise.reject(new Error('Đánh giá sản phẩm phải nằm trong khoảng 1 đến 5 sao'))
-                    : Promise.resolve(),
-              },
-            ]}>
-            <Input type="number" placeholder="Nhập đánh giá sản phẩm" />
-          </Form.Item>
           <Form.Item
             name="type"
             label="Loại sản phẩm"
@@ -755,7 +766,7 @@ const AdminProduct = () => {
           <Form.Item name="description" label="Mô Tả" rules={[{ required: true, message: 'Vui lòng nhập mô tả sản phẩm' }]}>
             <Input.TextArea placeholder="Nhập mô tả sản phẩm" autoSize={{ minRows: 3, maxRows: 15 }} />
           </Form.Item>
-          <Form.Item name="countInStock" label="Số Lượng sản phẩm"
+          {/* <Form.Item name="countInStock" label="Số Lượng sản phẩm"
             rules={[
               { required: true, message: 'Vui lòng nhập số lượng' },
               {
@@ -766,7 +777,7 @@ const AdminProduct = () => {
               },
             ]}>
             <Input type="number" placeholder="Nhập số lượng sản phẩm" />
-          </Form.Item>
+          </Form.Item> */}
           <Form.Item name="discount" label="Phần trăm giảm giá"
             rules={[
               { required: true, message: 'Vui lòng nhập phần trăm giảm giá trong khoảng 0 - 100' },
@@ -779,20 +790,6 @@ const AdminProduct = () => {
             ]}>
             <Input type="number" placeholder="Nhập phần trăm giảm giá " />
           </Form.Item>
-          <Form.Item name="selled" label="Số lượng đã bán"
-            rules={[
-              { required: true, message: 'Vui lòng nhập số lượng đã bán' },
-              {
-                validator: (_, value) =>
-                  value && (value < 0)
-                    ? Promise.reject(new Error('Số lượng sản phẩm đã bán phải lớn hơn hoặc bằng 0'))
-                    : Promise.resolve(),
-              },
-            ]}>
-            <Input type="number" placeholder="Nhập số lượng đã bán" />
-          </Form.Item>
-
-          {/* Hình ảnh của form chỉnh sửa */}
           <Form.Item
             label="Hình Ảnh"
             rules={[{ required: true, message: 'Vui lòng chọn hình ảnh sản phẩm' }]}

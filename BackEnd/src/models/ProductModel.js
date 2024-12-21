@@ -6,11 +6,11 @@ const productSchema = new mongoose.Schema(
     images: { type: [String], required: true },
     type: { type: String, required: true }, // Loại sản phẩm: máy tính, áo quần, v.v.
     price: { type: Number, required: true },
-    countInStock: { type: Number},
-    rating: { type: Number },
+    countAllInStock: { type: Number },
+    rating: { type: Number, default: 5},
     description: { type: String },
     discount: { type: Number },
-    selled: { type: Number },
+    selled: { type: Number, default: 0 },
     isLike: {type: Boolean, default: false},
     sex: { 
       type: String, 
@@ -33,6 +33,23 @@ const productSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Middleware to calculate countAllInStock before saving the product
+productSchema.pre('save', function(next) {
+  let totalStock = 0;
+
+  // Tính tổng số lượng trong options
+  this.options.forEach(option => {
+    option.sizes.forEach(size => {
+      totalStock += size.countInStock;
+    });
+  });
+
+  // Gán tổng số lượng vào countAllInStock
+  this.countAllInStock = totalStock;
+
+  next();
+});
 
 const Product = mongoose.model('Product', productSchema);
 module.exports = Product;

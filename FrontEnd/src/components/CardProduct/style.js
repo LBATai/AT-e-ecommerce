@@ -16,7 +16,7 @@ export const CardContainer = styled.div`
     height: 100%; /* Đảm bảo chiều cao đầy đủ */
     display: flex;
     flex-direction: column;
-    border-radius: 0px; /* Xóa bo tròn */
+    border-radius: 0 0 0 0; /* Xóa bo tròn */
   }
 
   .ant-card-body {
@@ -26,7 +26,9 @@ export const CardContainer = styled.div`
     flex-direction: column;
     justify-content: space-between; /* Đảm bảo nội dung cách đều */
   }
-
+  .ant-card-cover {
+    border-radius: 0 0 0 0;
+  }
   &:hover {
     border-color: #5f5f5f;
     box-shadow: inset 0 6px 12px rgba(0, 0, 0, 0.5);

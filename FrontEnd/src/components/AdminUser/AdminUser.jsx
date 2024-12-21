@@ -28,10 +28,10 @@ const AdminUser = () => {
     onChange: onSelectChange,
   };
   useEffect(() => {
-    fetchUser();
+    fetchAllUser();
   }, []);
 
-  const fetchUser = async () => {
+  const fetchAllUser = async () => {
     setIsLoading(true);
     try {
       const response = await UserService.getAllUser();
@@ -133,7 +133,7 @@ const AdminUser = () => {
           const res = await UserService.deleteUser(record._id);
           if (res?.status === 'OK') {
             message.success('Xóa tài khoản thành công!');
-            fetchUser(); // Làm mới danh sách tài khoản  sau khi xóa
+            fetchAllUser(); // Làm mới danh sách tài khoản  sau khi xóa
           } else {
             message.error('Xóa tài khoản  thất bại!');
           }
@@ -161,7 +161,7 @@ const AdminUser = () => {
           const res = await UserService.deleteMultipleUsers(selectedRowKeys);
           if (res?.status === 'OK') {
             message.success('Xóa tài khoản thành công!');
-            fetchUser(); // Cập nhật lại danh sách sau khi xóa
+            fetchAllUser(); // Cập nhật lại danh sách sau khi xóa
             setSelectedRowKeys([]); // Reset danh sách tài khoản đã chọn
           } else {
             message.error('Xóa tài khoản thất bại!');
@@ -310,13 +310,7 @@ const AdminUser = () => {
         )}
       </div>
 
-      <Input.Search
-        placeholder="Tìm tài khoản.."
-        allowClear
-        enterButton="Tìm kiếm"
-        size="large"
-        style={{ marginBottom: '20px' }}
-      />
+      <Input.Search placeholder="Tìm tài khoản..." style={{ marginBottom: '20px' }} allowClear />
 
       <Table
         rowSelection={rowSelection}

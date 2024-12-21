@@ -1,4 +1,6 @@
 import * as ProductService from './Service/ProductService'
+import * as UserService from './Service/UserService'
+import * as OrderService from './Service/OrderService'
 
 export const isJsonString = (data) => {
     try {
@@ -48,9 +50,26 @@ export const formatCurrencyVND = (value) => {
     currency: 'VND',
   }).format(roundedValue);
 };
+//format date
+export const formatDate = (isoDate) => {
+  const date = new Date(isoDate);
+
+  // Thêm 7 giờ để chuyển sang giờ Việt Nam
+  const vietnamTime = new Date(date.getTime() + 7 );
+
+  const day = vietnamTime.getDate().toString().padStart(2, '0'); // Ngày
+  const month = (vietnamTime.getMonth() + 1).toString().padStart(2, '0'); // Tháng
+  const year = vietnamTime.getFullYear(); // Năm
+  const hours = vietnamTime.getHours().toString().padStart(2, '0'); // Giờ
+  const minutes = vietnamTime.getMinutes().toString().padStart(2, '0'); // Phút
+  const seconds = vietnamTime.getSeconds().toString().padStart(2, '0'); // Giây
+
+  return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+};
 
 
-// all fetch
+
+// fetch all types product
 export const fetchAllTypeProduct = async () => {
     try {
       const res = await ProductService.getAllType();
@@ -59,4 +78,36 @@ export const fetchAllTypeProduct = async () => {
       console.error('Error fetching types:', error);
       return [];
     }
+};
+
+// fetch all users
+export const fetchAllUser = async () => {
+  try {
+    const response = await UserService.getAllUser();
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching types:', error);
+    return [];
+  }
+};
+
+//fetch all products
+export const fetchAllProducts = async () => {
+  try {
+    const response = await ProductService.getAllProduct();
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi lấy sản phẩm:", error);
+    message.error("Không thể lấy danh sách sản phẩm");
+  }
+};
+
+// fetch all orders
+export const fetchAllOrders = async () => {
+  try {
+    const response = await OrderService.getAllOrder();
+    return response.data;
+  } catch (error) {
+    message.error('Không thể lấy danh sách đơn hàng');
+  }
 };

@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt")
 // User Service
 const createProduct = (newProduct) => {
     return new Promise(async (resolve, reject) => {
-      const { name, images, type, price, countInStock, rating, description, discount, selled, options, sex } = newProduct;
+      const { name, images, type, price, countAllInStock, rating, description, discount, selled, options, sex } = newProduct;
   
       try {
         // Kiểm tra sản phẩm đã tồn tại chưa
@@ -22,7 +22,7 @@ const createProduct = (newProduct) => {
           images,
           type,
           price,
-          countInStock,
+          countAllInStock,
           rating,
           description,
           discount,

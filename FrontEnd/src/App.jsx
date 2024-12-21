@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { updateUser } from "./components/redux/Slide/userSlide";
 import * as UserService from './Service/UserService';
 import ScrollToTopButton from "./components/ScrollToTopButton/ScrollToTopButton";
+import ChatBot from './components/Chatbot/Chatbot'
 import "./index.css"
 
 function App() {
@@ -104,6 +105,7 @@ function Main() {
           );
         })}
       </Routes>
+      <ChatBot/>
       <ScrollToTopButton />
       {/* Chỉ hiển thị Footer nếu không phải trang login hoặc sign-up */}
       {!shouldHideHeaderFooter && <Footer />}

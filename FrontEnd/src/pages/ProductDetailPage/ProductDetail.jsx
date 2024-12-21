@@ -7,18 +7,18 @@ import { useLocation, useNavigate, useParams } from 'react-router';
 import {formatCurrencyVND} from '../../utils'
 import { useDispatch, useSelector } from 'react-redux';
 import { addOrderProduct } from '../../components/redux/Slide/orderSlide';
+import { updateStock } from '../../components/redux/Slide/productSlide';
 import CommentSection from '../../components/CommentSection/CommentSection';
 const ProductDetail = () => {
   const navigate = useNavigate();
   const { Content } = Layout;
   const { id } = useParams();
+  const comments = [];
   const [quantity, setQuantity] = useState(1);
   const [color, setColor] = useState('');
   const [mainImage, setMainImage] = useState(''); // Image chính sẽ hiển thị
   const [stateProductDetails, setStateProductDetails] = useState('')
   const [discountedPrice, setDiscountedPrice] = useState(0);
-  const user = useSelector((state) => state.user);
-  const location = useLocation()
   const dispatch = useDispatch()
 
   useEffect(() => {
@@ -35,7 +35,7 @@ const ProductDetail = () => {
         price: res?.data?.price,
         rating: res?.data?.rating,
         type: res?.data?.type,
-        countInStock: res?.data?.countInStock,
+        countAllInStock: res?.data?.countAllInStock,
         description: res?.data?.description,
         images: res?.data?.images,
         discount: res?.data?.discount,
@@ -48,11 +48,6 @@ const ProductDetail = () => {
   }
 
   const [size, setSize] = useState(stateProductDetails?.options?.[0]?.sizes?.[0]?.size || ''); // Giá trị mặc định từ dữ liệu API
-
-  const comments = [
-    { author: "Nguyễn Văn A", content: "Sản phẩm tuyệt vời, rất đáng mua!", datetime: "2 ngày trước" },
-    { author: "Lê Thị B", content: "Giá cả hợp lý, chất lượng ổn.", datetime: "5 ngày trước" },
-  ];
 
   const renderStars = (rating) => {
     const maxRating = 5;
@@ -105,6 +100,13 @@ const ProductDetail = () => {
           size: size, 
         }
       }))
+      // Dispatch cập nhật số lượng trong Redux
+      dispatch(updateStock({
+        productId: stateProductDetails.id,
+        color,
+        size,
+        quantity,
+    }));
       message.success("Thêm sản phẩm vào giỏ hàng thành công.");
   }
 
@@ -201,10 +203,10 @@ return (
                       )
                   ) : (
                     // Nếu chưa chọn màu sắc hoặc kích thước, hiển thị tổng số lượng hàng trong kho
-                    stateProductDetails.countInStock === 0 ? (
+                    stateProductDetails.countAllInStock === 0 ? (
                       <span style={{ color: 'red' }}>Hết hàng</span> // Hiển thị "Hết hàng" nếu tổng số lượng = 0
                     ) : (
-                      stateProductDetails.countInStock
+                      stateProductDetails.countAllInStock
                     )
                   )}
                 </div>
@@ -268,17 +270,17 @@ return (
           <div style={{ 
             whiteSpace: 'pre-line', 
             padding: '20px', 
+            marginLeft: '20px',
             marginTop: '20px' 
           }}>
             <h2>Mô Tả Sản Phẩm</h2>
             <p>{stateProductDetails.description}</p>
           </div>
-
-          <div style={{ padding: '20px', marginTop: '20px' }}>
+        </WrapperProductDetail>
+        <div style={{ marginTop: '20px' }}>
             {/* Thêm CommentSection vào đây */}
             <CommentSection initialComments={comments} productId={stateProductDetails.id} />
           </div>
-        </WrapperProductDetail>
       </Content>
     </Layout>
   );

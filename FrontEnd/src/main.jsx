@@ -17,7 +17,7 @@ createRoot(document.getElementById('root')).render(
         </PersistGate>
       </Provider>
     {/* </StrictMode> */}
-    <ReactQueryDevtools initialIsOpen={false} />
+    {/* <ReactQueryDevtools initialIsOpen={false} /> */}
   </QueryClientProvider>
 
 )

@@ -6,11 +6,9 @@ const createComment = async (req, res) => {
   // console.log('req.body: ' , req.body);
   try {
     const {
-        productId, userId, rating, content
+        productId, userId, rating, content, avatarUser, nameUser
     } = req.body;
-    if (
-        !productId || !userId || !rating || !content
-    ) {
+    if ( !productId || !userId || !rating || !content || !avatarUser || !nameUser) {
       return res.status(200).json({
         status: "Error",
         message: "Please provide all required fields of the comment",
@@ -26,63 +24,31 @@ const createComment = async (req, res) => {
     });
   }
 };
-// Cập nhật bình luận
-const updateComment = async (req, res) => {
-    const { commentId } = req.params;
-    const { content, rating } = req.body;
 
-    try {
-        const updatedComment = await CommentService.updateComment(commentId, content, rating);
-        res.status(200).json({ message: 'Bình luận đã được cập nhật', comment: updatedComment });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-// Xóa bình luận
-const deleteComment = async (req, res) => {
-    const { commentId } = req.params;
-
-    try {
-        const deletedComment = await CommentService.deleteComment(commentId);
-        res.status(200).json({ message: 'Bình luận đã được xóa', comment: deletedComment });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-// Lấy tất cả bình luận của một sản phẩm
 const getCommentsByProduct = async (req, res) => {
-    const { productId } = req.params;
-
-    try {
-        const comments = await CommentService.getCommentsByProduct(productId);
-        res.status(200).json({ comments });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-// Lấy bình luận của người dùng cho một sản phẩm
-const getCommentByUserAndProduct = async (req, res) => {
-    const { productId } = req.params;
-    const userId = req.user._id;
-
-    try {
-        const comment = await CommentService.getCommentByUserAndProduct(productId, userId);
-        if (!comment) {
-            return res.status(404).json({ message: 'Bình luận không tồn tại' });
+  try {
+    const { filter } = req.query; // Lấy giá trị filter từ query string
+    let productId = null;
+    // Kiểm tra nếu filter có giá trị và chứa userId
+    // Kiểm tra và tách giá trị filter
+    if (filter && filter.includes(":")) {
+        const parsedFilter = filter.split(":");
+        if (parsedFilter.length === 2 && parsedFilter[0] === "productId") {
+          productId = parsedFilter[1]; // Lấy giá trị productId từ filter
         }
-        res.status(200).json({ comment });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
     }
+    // Truyền userId vào hàm getAllOrder của Service
+    const response = await CommentService.getCommentsByProduct(productId);
+    return res.status(200).json(response);
+  } catch (e) {
+    console.error("Error in get all comments:", e);
+    return res.status(500).json({
+      message: "Error occurred while fetching comments",
+    });
+  }
 };
 
 module.exports = {
     createComment,
-    updateComment,
-    deleteComment,
     getCommentsByProduct,
-    getCommentByUserAndProduct,
 };

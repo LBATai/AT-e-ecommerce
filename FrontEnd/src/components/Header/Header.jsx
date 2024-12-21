@@ -191,7 +191,7 @@ const Header = () => {
           )}
         </WrapperNav>
         </Col>
-        <Col span={2} onClick={toggleSearch} style={{ cursor: 'pointer' }}>
+        {/* <Col span={2} onClick={toggleSearch} style={{ cursor: 'pointer' }}>
           <div >
                 {isSearchVisible ? (
                   <CloseOutlined 
@@ -213,15 +213,11 @@ const Header = () => {
                     enterButton="Tìm"
                     size="large"
                     onChange={handleSearch}
-                    style={{
-                      height: '100px',
-                      fontSize: '16px',
-                      padding: '10px',
-                    }}
+
                   />
                 </SearchBox>
               )}
-        </Col>
+        </Col> */}
         <Col span={6} style={{ display: 'flex' }}>
           <Pending isPending={isPending}>
             <WrapperHeaderAccout>

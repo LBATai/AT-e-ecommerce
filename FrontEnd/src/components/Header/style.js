@@ -8,14 +8,15 @@ export const WrapperHeader = styled(Row)`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  position: fixed; /* Đảm bảo luôn cố định */
-  top: 0; /* Căn chỉnh ở đầu trang */
+  position: fixed;
+  top: 0;
   left: 0;
-  width: 100%; /* Chiếm toàn bộ chiều rộng */
-  z-index: 999; /* Đặt z-index cao hơn để nằm trên các thành phần khác */
+  width: 100%;
+  z-index: 999;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
 
   @media (max-width: 768px) {
-    padding: 10px 20px; /* Giảm padding cho màn hình nhỏ */
+    padding: 10px 20px;
     flex-direction: column;
     align-items: flex-start;
   }
@@ -34,18 +35,19 @@ export const WrapperTextHeader = styled.span`
     margin-bottom: 10px;
   }
 `;
+
 export const Popopover = styled.div`
- display: flex;
+  display: flex;
   flex-direction: column;
-  width: 200px; /* Đặt chiều rộng */
-  height: 200px; /* Đặt chiều cao */
+  width: 200px;
+  height: 200px;
   background-color: #fff;
   padding: 10px;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 `;
 
-// Định nghĩa style cho các mục menu
+// MenuItem style
 export const MenuItem = styled.div`
   display: flex;
   align-items: center;
@@ -54,7 +56,7 @@ export const MenuItem = styled.div`
   cursor: pointer;
   color: #333;
   font-weight: 600;
-  transition: background-color 0.3s ease; /* Thêm hiệu ứng chuyển màu khi hover */
+  transition: background-color 0.3s ease;
 
   &:hover {
     background-color: #cfcfcf;
@@ -63,7 +65,7 @@ export const MenuItem = styled.div`
   .anticon {
     font-size: 18px;
     margin-right: 10px;
-    color: #0080ff; /* Thêm màu cho icon */
+    color: #0080ff;
   }
 `;
 
@@ -125,7 +127,7 @@ export const CartItemCount = styled.span`
   }
 `;
 
-// Product list dropdown (when hovering over cart)
+// Product list dropdown (hover over cart)
 export const ProductListBox = styled.div`
   position: absolute;
   top: 100%;
@@ -176,7 +178,7 @@ export const PopoverContent = styled.div`
   font-size: 16px;
   color: #333;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  
+
   .ant-popover-inner {
     padding: 0 !important;
   }
@@ -208,7 +210,7 @@ export const HamburgerMenu = styled.div`
   height: 20px;
   width: 25px;
   cursor: pointer;
-  
+
   @media (max-width: 768px) {
     display: flex;
   }
@@ -220,6 +222,7 @@ export const HamburgerLine = styled.div`
   border-radius: 2px;
   width: 100%;
 `;
+
 export const WrapperNav = styled.div`
   display: flex;
   align-items: center;
@@ -229,26 +232,26 @@ export const WrapperNav = styled.div`
   font-weight: 600;
 
   span.active {
-    background-color: #f0f0f0; /* Màu nền */
-    color: #000000; /* Màu chữ */
-    font-weight: bold; /* In đậm chữ */
-    border-radius: 4px; /* Bo góc */
+    background-color: #f0f0f0;
+    color: #000000;
+    font-weight: bold;
+    border-radius: 4px;
   }
 
   span {
-    position: relative; /* Để pseudo-element hoạt động */
+    position: relative;
     cursor: pointer;
     text-align: center;
-    z-index: 1; /* Đảm bảo nội dung luôn nằm trên pseudo-element */
+    z-index: 1;
     overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 80px; /* Chiều rộng cố định */
-    height: 30px; /* Chiều cao cố định */
-    padding: 5px 10px; /* Khoảng cách bên trong */
-    border-radius: 4px; /* Bo góc */
-    transition: none; /* Loại bỏ transition khi nhấn vào phần tử */
+    width: 80px;
+    height: 30px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: none;
 
     &:hover {
       color: #000000;
@@ -257,23 +260,24 @@ export const WrapperNav = styled.div`
     &::before {
       content: '';
       position: absolute;
-      top: 50%; /* Bắt đầu ở giữa */
+      top: 50%;
       left: 0;
       width: 100%;
-      height: 0; /* Chiều cao bắt đầu từ 0 */
+      height: 0;
       background-color: #f0f0f0;
-      z-index: -1; /* Đưa nền ra sau chữ */
-      transition: height 0.15s ease-out; /* Hiệu ứng cho phần tử này */
+      z-index: -1;
+      transition: height 0.15s ease-out;
       transform: translateY(-50%);
     }
 
     &:hover::before {
-      height: 100%; /* Khi hover, nền mở rộng toàn bộ */
-      top: 0; /* Đưa lên đầu */
-      transform: translateY(0); /* Reset lại vị trí */
+      height: 100%;
+      top: 0;
+      transform: translateY(0);
     }
   }
 `;
+
 export const SearchBox = styled.div`
   position: absolute;
   top: 100%;
@@ -283,7 +287,6 @@ export const SearchBox = styled.div`
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
   z-index: 100;
   margin-top: 12px;
-  border-radius: 5px;
 `;
 
 export const MenuDropdown = styled.div``;
@@ -295,7 +298,7 @@ export const DropdownMenu = styled.div`
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   font-size: 16px;
   color: #333;
-  min-width: 300px; /* Đảm bảo chiều rộng */
+  min-width: 300px;
   transition: all 0.3s ease;
 
   strong {
@@ -306,25 +309,25 @@ export const DropdownMenu = styled.div`
   }
 
   ul {
-    display: flex; /* Hiển thị danh sách nằm ngang */
-    gap: 15px; /* Khoảng cách giữa các mục */
-    list-style: none; /* Bỏ dấu chấm */
+    display: flex;
+    gap: 15px;
+    list-style: none;
     margin: 0;
     padding: 0;
   }
 
   li {
     padding: 5px 10px;
-    background-color: #f9f9f9;
-    border-radius: 4px;
-    transition: background-color 0.3s ease, transform 0.3s ease;
     cursor: pointer;
-    text-align: center;
+    border-radius: 4px;
+    transition: all 0.3s ease;
 
     &:hover {
-      background-color: #e6f7ff;
-      transform: translateY(-3px); /* Hiệu ứng nổi khi hover */
+      background-color: #f0f0f0;
     }
   }
-`;
 
+  @media (max-width: 768px) {
+    min-width: 250px;
+  }
+`;

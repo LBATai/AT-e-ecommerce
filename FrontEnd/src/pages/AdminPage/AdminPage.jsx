@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   BellOutlined,
@@ -29,10 +29,46 @@ import {
   PageTitle,
   AvatarWrapper,
 } from './style';
+import { fetchAllUser, fetchAllProducts, fetchAllOrders } from '../../utils' 
 
 const AdminPage = () => {
   const [selectedMenu, setSelectedMenu] = useState('dashboard');
   const navigate = useNavigate();
+  const [userCount, setUserCount] = useState(0); // State lưu số lượng người dùng
+  const [productCount, setProductCount] = useState(0); // State lưu số lượng người dùng
+  const [orderCount, setOrderCount] = useState(0); // State lưu số lượng người dùng
+
+  useEffect(() => {
+    const getUserCount = async () => {
+      try {
+        const users = await fetchAllUser(); // Lấy danh sách người dùng
+        setUserCount(users.length); // Cập nhật số lượng người dùng
+      } catch (error) {
+        console.error("Lỗi khi lấy số lượng người dùng", error);
+      }
+    };
+    const getProdcutCount = async () => {
+      try {
+        const products = await fetchAllProducts(); 
+        setProductCount(products.length); 
+      } catch (error) {
+        console.error("Lỗi khi lấy số lượng sản phẩm", error);
+      }
+    };
+    const getOrderCount = async () => {
+      try {
+        const orders = await fetchAllOrders(); 
+        setOrderCount(orders.length); 
+      } catch (error) {
+        console.error("Lỗi khi lấy số lượng đơn hàng", error);
+      }
+    };
+
+    getUserCount()
+    getProdcutCount()
+    getOrderCount()
+  }, []);
+
   const renderContent = () => {
     switch (selectedMenu) {
       case 'products':
@@ -48,15 +84,15 @@ const AdminPage = () => {
             <DashboardGrid>
               <StatCard>
                 <StatTitle>Tổng số người dùng</StatTitle>
-                <StatValue>1,234</StatValue>
+                <StatValue>{userCount}</StatValue>
               </StatCard>
               <StatCard>
                 <StatTitle>Tổng số sản phẩm</StatTitle>
-                <StatValue>567</StatValue>
+                <StatValue>{productCount}</StatValue>
               </StatCard>
               <StatCard>
                 <StatTitle>Tổng số đơn hàng</StatTitle>
-                <StatValue>890</StatValue>
+                <StatValue>{orderCount}</StatValue>
               </StatCard>
               <StatCard>
                 <StatTitle>Doanh thu</StatTitle>
