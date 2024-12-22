@@ -87,10 +87,10 @@ const Homepage = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       <Slider />
-      
+
       {/* Mobile Menu Button */}
       <div className="md:hidden p-4 bg-white sticky top-0 z-50 shadow-sm">
-        <button 
+        <button
           onClick={toggleNav}
           className="flex items-center space-x-2 text-gray-600"
         >
@@ -103,7 +103,7 @@ const Homepage = () => {
       <div className="flex flex-col md:flex-row">
         {/* Overlay for mobile nav */}
         {isNavOpen && (
-          <div 
+          <div
             className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
             onClick={toggleNav}
           />
@@ -138,7 +138,7 @@ const Homepage = () => {
           <div className="p-5">
             <Pending isPending={isLoading}>
               <ProductFilter onSortChange={handleSortChange} onSortByDate={handleSortByDate} />
-              
+
               {/* Product Grid */}
               <div className="w-full mt-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {currentProducts.length === 0 ? (
@@ -154,18 +154,19 @@ const Homepage = () => {
                   ))
                 )}
               </div>
+              {/* Pagination */}
+              <div className="flex justify-center py-8">
+                <Pagination
+                  current={currentPage}
+                  pageSize={itemsPerPage}
+                  total={stateProducts.length}
+                  onChange={handlePageChange}
+                />
+              </div>
             </Pending>
           </div>
 
-          {/* Pagination */}
-          <div className="flex justify-center py-8">
-            <Pagination
-              current={currentPage}
-              pageSize={itemsPerPage}
-              total={stateProducts.length}
-              onChange={handlePageChange}
-            />
-          </div>
+
         </div>
       </div>
     </div>

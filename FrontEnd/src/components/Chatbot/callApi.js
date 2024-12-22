@@ -11,7 +11,7 @@ export const fetchAllTypeProduct = async () => {
   }
 };
 // fetch all products
-export const fetchProductAll = async () => {
+export const fetchAllProduct = async () => {
   try {
     const res = await ProductService.getAllProduct();
     return res?.data || [];

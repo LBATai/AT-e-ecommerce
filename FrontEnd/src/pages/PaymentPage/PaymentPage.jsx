@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Row, Col, Button, Radio, Space, message  } from "antd";
+import React, { useState, useEffect } from "react";
+import { Row, Col, Button, Radio, Space, message } from "antd";
 import { useSelector, useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { formatCurrencyVND } from "../../utils";
 import { CreditCardOutlined, PayCircleOutlined } from "@ant-design/icons";
 import { FaPaypal } from "react-icons/fa";
-import {DeliveryStyle,PayStyle, PageWrapper, TitleStyle} from './style'
+import { DeliveryStyle, PayStyle, PageWrapper, TitleStyle } from './style';
 import { useMutationHooks } from '../../hooks/useMutationHook';
 import * as OrderService from "../../Service/OrderService";
-import Pending from '../../components/Pending/Pending'
+import Pending from '../../components/Pending/Pending';
 import { markProductsAsPaid, removePaidProducts } from '../../components/redux/Slide/orderSlide';
 
 const PaymentPage = () => {
@@ -19,8 +19,8 @@ const PaymentPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isPending, setIsPending] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("cod"); // State quản lý phương thức thanh toán
-  const [deliveryMethod, setDeliveryMethod] = useState("standard"); // State quản lý phương thức giao hàng
+  const [paymentMethod, setPaymentMethod] = useState("cod");
+  const [deliveryMethod, setDeliveryMethod] = useState("standard");
   const [checkoutInfo, setCheckoutInfo] = useState({
     name: "",
     address: "",
@@ -37,19 +37,17 @@ const PaymentPage = () => {
     }
   }, [user]);
 
-  // Xử lý phí giao hàng thay đổi theo phương thức giao hàng
   const getShippingPrice = (method) => {
     switch (method) {
       case "standard":
-        return 10000; // phí giao hàng tiêu chuẩn
+        return 10000;
       case "express":
-        return 20000; // phí giao hàng nhanh
+        return 20000;
       default:
         return 0;
     }
   };
 
-  // Cập nhật giá trị phí giao hàng khi phương thức giao hàng thay đổi
   const [currentShippingPrice, setCurrentShippingPrice] = useState(getShippingPrice(deliveryMethod));
 
   useEffect(() => {
@@ -57,15 +55,14 @@ const PaymentPage = () => {
   }, [deliveryMethod]);
 
   const mutationAddOrder = useMutationHooks(async (data) => {
-    const { token, ...restData } = data; // Giả sử `data` có chứa token
-    const userId = data.id || user?.id; // Lấy userId từ data hoặc từ user
-  
-    const res = await OrderService.createOrder(userId, token, restData); // Gọi API
+    const { token, ...restData } = data;
+    const userId = data.id || user?.id;
+    const res = await OrderService.createOrder(userId, token, restData);
     return res;
   });
 
   const handleCheckout = async () => {
-    setIsPending(true); 
+    setIsPending(true);
     try {
       const payload = {
         token: user?.access_token,
@@ -76,17 +73,17 @@ const PaymentPage = () => {
         paymentMethod: paymentMethod,
         deliveryMethod: deliveryMethod,
         itemsPrice: itemsPrice,
-        shippingPrice: currentShippingPrice, // Sử dụng giá trị phí giao hàng cập nhật
-        totalPrice: itemsPrice + currentShippingPrice, // Cộng thêm phí giao hàng vào tổng tiền
+        shippingPrice: currentShippingPrice,
+        totalPrice: itemsPrice + currentShippingPrice,
         user: user?.id,
       };
-  
+
       await mutationAddOrder.mutateAsync(payload);
 
       const selectedItemIds = selectedItems.map(item => item.product);
       dispatch(markProductsAsPaid({ selectedItemIds }));
       dispatch(removePaidProducts({ selectedItemIds }));
-    
+
       navigate('/profile', { state: { activeTab: '2' } });
     } catch (error) {
       if (error.response?.status === 400) {
@@ -102,102 +99,75 @@ const PaymentPage = () => {
   return (
     <PageWrapper>
       <Pending isPending={isPending}>
-        <TitleStyle>Thanh toán</TitleStyle>
-        <Row gutter={[16, 16]} style={{ padding: 24, marginTop: "100px" }}>
-          <Col xs={24} lg={11} style={{marginLeft: '250px'}}>
-            <DeliveryStyle>
-              Chọn phương thức giao hàng
-              <Radio.Group
-                value={deliveryMethod}
-                onChange={(e) => setDeliveryMethod(e.target.value)}
-                style={{ width: "100%" }}
-              >
-                <Space direction="vertical" style={{ width: "100%" }}>
-                  <Radio value="standard" style={{ width: "100%" }}>
-                    Giao hàng tiêu chuẩn: 10.000 đ
-                  </Radio>
-                  <Radio value="express" style={{ width: "100%" }}>
-                    Giao hàng nhanh: 20.000 đ
-                  </Radio>
-                </Space>
-              </Radio.Group>
-            </DeliveryStyle>
-            <PayStyle>
-              Chọn phương thức thanh toán
-              <Radio.Group
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                style={{ width: "100%" }}
-              >
-                <Space direction="vertical" style={{ width: "100%" }}>
-                  <Radio value="Thẻ tín dụng" style={{ width: "100%" }}>
-                    <CreditCardOutlined style={{ marginRight: 8 }} /> Thẻ tín dụng
-                  </Radio>
-                  <Radio value="Thẻ ghi nợ" style={{ width: "100%" }}>
-                    <PayCircleOutlined style={{ marginRight: 8 }} /> Thẻ ghi nợ
-                  </Radio>
-                  <Radio value="paypal" style={{ width: "100%" }}>
-                    <FaPaypal style={{ marginRight: 8, color: "#003087" }} /> PayPal
-                  </Radio>
-                  <Radio value="Thanh toán khi nhận hàng" style={{ width: "100%" }}>
-                    Thanh toán khi nhận hàng
-                  </Radio>
-                </Space>
-              </Radio.Group>
-            </PayStyle>
+        <TitleStyle className="text-3xl font-semibold mb-6">Thanh toán</TitleStyle>
+        <Row gutter={[16, 16]} className="p-6 mt-24">
+          <Col xs={24} lg={11} className="ml-16">
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <DeliveryStyle className="mb-4">
+                <div className="text-lg font-medium mb-2">Chọn phương thức giao hàng</div>
+                <Radio.Group
+                  value={deliveryMethod}
+                  onChange={(e) => setDeliveryMethod(e.target.value)}
+                  className="w-full"
+                >
+                  <Space direction="vertical" className="w-full">
+                    <Radio value="standard" className="w-full">
+                      Giao hàng tiêu chuẩn: 10.000 đ
+                    </Radio>
+                    <Radio value="express" className="w-full">
+                      Giao hàng nhanh: 20.000 đ
+                    </Radio>
+                  </Space>
+                </Radio.Group>
+              </DeliveryStyle>
+              <PayStyle>
+                <div className="text-lg font-medium mb-2">Chọn phương thức thanh toán</div>
+                <Radio.Group
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="w-full"
+                >
+                  <Space direction="vertical" className="w-full">
+                    <Radio value="Thẻ tín dụng" className="w-full">
+                      <CreditCardOutlined className="mr-2" /> Thẻ tín dụng
+                    </Radio>
+                    <Radio value="Thẻ ghi nợ" className="w-full">
+                      <PayCircleOutlined className="mr-2" /> Thẻ ghi nợ
+                    </Radio>
+                    <Radio value="paypal" className="w-full">
+                      <FaPaypal className="mr-2 text-[#003087]" /> PayPal
+                    </Radio>
+                    <Radio value="Thanh toán khi nhận hàng" className="w-full">
+                      Thanh toán khi nhận hàng
+                    </Radio>
+                  </Space>
+                </Radio.Group>
+              </PayStyle>
+            </div>
           </Col>
 
-          <Col xs={24} lg={8} style={{backgroundColor: '#fff', padding: '20px', height:'50%'}}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "8px 0",
-              }}
-            >
+          <Col xs={24} lg={8} className="bg-white p-6 shadow-md rounded-lg">
+            <div className="flex justify-between items-center py-2">
               <span>Địa chỉ giao hàng: {checkoutInfo.address}</span>
             </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "8px 0",
-              }}
-            >
+            <div className="flex justify-between items-center py-2">
               <span>Tạm tính: </span>
               <span>{formatCurrencyVND(itemsPrice)}</span>
             </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "8px 0",
-              }}
-            >
+            <div className="flex justify-between items-center py-2">
               <span>Phí giao hàng: </span>
               <span>{formatCurrencyVND(currentShippingPrice)}</span>
             </div>
-            <div
-              style={{
-                marginTop: 24,
-                display: "flex",
-                justifyContent: "space-between",
-                fontWeight: 500,
-                fontSize: "20px",
-              }}
-            >
+            <div className="mt-6 flex justify-between font-semibold text-lg">
               <span>Tổng cộng: </span>
-              <span style={{ color: "red" }}>
+              <span className="text-red-500">
                 {totalAmount !== undefined ? formatCurrencyVND(itemsPrice + currentShippingPrice) : "Chưa có dữ liệu"}
               </span>
             </div>
             <Button
               type="primary"
               size="large"
-              style={{ marginTop: 16, width: "100%" }}
+              className="mt-6 w-full"
               onClick={handleCheckout}
             >
               Đặt hàng
@@ -210,4 +180,3 @@ const PaymentPage = () => {
 };
 
 export default PaymentPage;
-

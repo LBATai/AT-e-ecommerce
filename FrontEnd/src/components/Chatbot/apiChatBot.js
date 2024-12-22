@@ -1,9 +1,7 @@
 import {
   GoogleGenerativeAI,
-  HarmCategory,
-  HarmBlockThreshold,
 } from "@google/generative-ai";
-import { fetchAllTypeProduct, fetchProductAll } from './callApi'; // Import hàm fetchAllTypeProduct
+import { fetchAllTypeProduct, fetchAllProduct } from './callApi'; // Import hàm fetchAllTypeProduct
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey);
@@ -23,7 +21,7 @@ const generationConfig = {
 async function run(textInput) {
   // Lấy danh sách các loại sản phẩm từ API
   const types = await fetchAllTypeProduct();
-  const products = await fetchProductAll();
+  const products = await fetchAllProduct();
 
    // Kiểm tra xem câu hỏi có liên quan đến loại sản phẩm hay không
   let modifiedTextInput = textInput;

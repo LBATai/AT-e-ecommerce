@@ -2,17 +2,13 @@ const mongoose = require('mongoose');
 
 const orderAddressSchema = new mongoose.Schema(
   {
-    options: [
-      {
-        color: { type: String }, // Màu sắc
-        sizes: [
-          {
-            size: { type: String }, // Kích thước: S, M, L, XL, v.v.
-            countInStock: { type: Number, required: true }, // Số lượng từng kích thước
-          },
-        ],
-      },
-    ],
+    order_id: { type: String, required: true },
+    address: { type: String, required: true },
+    city: { type: String, required: true },
+    postal_code: { type: String, required: true },
+    country: { type: String, required: true },
+    phone: { type: String, required: true },
+    email: { type: String, required: true },
   },
   {
     timestamps: true,
