@@ -11,14 +11,13 @@ export const DiscountStyle = styled.div`
   margin-top: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   margin-top: -2px;
-  width: 40px;
+  width: 52px;
 `;
 export const ProductContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 1rem;
   font-family: system-ui, sans-serif;
-  margin-top: 5rem;
   h1 {
     font-size: 1.5rem;
     font-weight: 500;
@@ -226,6 +225,22 @@ export const Price = styled.div`
   font-size: 1.5rem;
   font-weight: 500;
   color: #dc2626;
+`;
+export const ReviewAvatar = styled.div`
+  border-radius: 50%;
+  overflow: hidden;
+  width: 30px;
+  height: 30px;
+  margin-right: 10px;
+  background-color: #f5f6fa;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 `;
 
 export const ColorButton = styled.button`

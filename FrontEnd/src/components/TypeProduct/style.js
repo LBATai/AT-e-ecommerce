@@ -2,9 +2,9 @@
 import styled from 'styled-components';
 
 export const TypeProductWrapper = styled.div`
-  margin-top: 70px;
   margin-bottom: 10px;
   background-color: #fff;
+  padding: 10px;
 `;
 
 export const CategoryItem = styled.div`

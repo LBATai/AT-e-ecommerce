@@ -1,252 +1,211 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { 
-  WrapperHeader, WrapperTextHeader, 
-  WrapperHeaderAccout, WrapperHeaderCart, CartItemCount, ProductListBox, Popopover, MenuItem ,WrapperNav,SearchBox, DropdownMenu
-} from './style';
-import { Col, Popover, Dropdown, Space, Input, message } from 'antd'; // Use Popover instead of Dropdown
+import { useState, useEffect, useRef } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CloseOutlined ,SearchOutlined , UserOutlined, DownOutlined, CaretDownOutlined, ShoppingCartOutlined, AppstoreAddOutlined, InfoCircleOutlined, ShoppingOutlined, LogoutOutlined } from '@ant-design/icons';
-import { useSelector } from 'react-redux';
-import Pending from '../Pending/Pending';
-import { useDispatch } from 'react-redux';
-import * as UserService from '../../Service/UserService';
 import { resetUser } from '../redux/Slide/userSlide.js';
-import DisableCopy from '../DisableCopy/DisableCopy.jsx';
+import * as UserService from '../../Service/UserService';
+import * as ProductService from '../../Service/ProductService';
 import { searchProduct } from '../redux/Slide/productSlide.js';
-import * as ProductService from '../../Service/ProductService.js'
 
 const Header = () => {
   const user = useSelector((state) => state.user);
-  const location = useLocation(); // Lấy đường dẫn hiện tại
-  const dispatch = useDispatch();
+  const order = useSelector((state) => state.order);
   const navigate = useNavigate();
-  const [categories, setCategories] = useState([]);
-  const order = useSelector((state) => state.order)
-  const { Search } = Input;
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const [categories, setCategories] = useState({});
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [search, setSearch] = useState('');
+  const [userAvatar, setUserAvatar] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [prevScrollPos, setPrevScrollPos] = useState(window.pageYOffset);
+  const [isVisible, setIsVisible] = useState(true);
+  const [isDropdownVisible, setIsDropdownVisible] = useState(false); // Thêm trạng thái hiển thị dropdown
+  const dropdownRef = useRef(null);
 
-  const navItems = [
-    { path: '/', label: 'Trang chủ' },
-    { path: '/home', label: 'Cửa hàng' },
-    { label: 'Danh mục' },
-    { path: '/blog', label: 'Blog' },
-  ];
-  const categoryMap = {
-    "Áo": ["quần tây", "áo polo", "áo thun", "giày", "túi"],
-    "Quần": ["quần tây", "máy tính", "tai nghe"],
-    "Giới tính": ["quần tây", "máy giặt", "lò vi sóng"],
-    // Thêm các danh mục khác
-  };
-  const categorizeItems = (items) => {
-    const categorized = {};
-  
-    // Duyệt qua từng mục trong categoryMap
-    Object.keys(categoryMap).forEach((parentCategory) => {
-      categorized[parentCategory] = []; // Tạo mảng trống cho danh mục cha
-  
-      items.forEach((item) => {
-        if (categoryMap[parentCategory].includes(item.toLowerCase())) {
-          categorized[parentCategory].push(item); // Thêm danh mục con vào danh mục cha tương ứng
-        }
-      });
-    });
-  
-    return categorized;
-  };
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownVisible(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await ProductService.getAllType(); // API trả về danh sách các danh mục
-        const items = res.data; // ['quần', 'áo', 'máy tính', ...]
+        const res = await ProductService.getAllType();
+        const items = res.data;
         const categorizedData = categorizeItems(items);
-        setCategories(categorizedData); // Lưu dữ liệu đã phân loại vào state
+        setCategories(categorizedData);
       } catch (error) {
         console.error('Error fetching categories:', error);
       }
     };
-  
+
     fetchCategories();
-  }, []);
-    
-  const handleNavigateToCategory = (type) => {
-    navigate(`/type/${type}`);
-  };
-  const handleCart = () => {
-    navigate('/cart');
-  };
-
-  const handleHome = () => {
-    navigate('/home');
-  };
-
-  const handleLogin = () => {
-    navigate('/sign-in');
-  };
-
-  const [cartItems, setCartItems] = useState([]);
-  const [isHovering, setIsHovering] = useState(false);
-  const [isPending, setIsPending] = useState(false);
-  const [userAvatar, setUserAvatar] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isSearchVisible, setIsSearchVisible] = useState(false); // Quản lý trạng thái hộp tìm kiếm
-  const [search, setSearch] = useState(''); 
-
+    setUserAvatar(user?.avatar);
+    setIsAdmin(user?.isAdmin);
+  }, [user]);
 
   useEffect(() => {
-    setUserAvatar(user?.avatar);
-    setIsAdmin(user?.isAdmin)
-  }, [user?.avatar], [user?.isAdmin]);
-  
+    const handleScroll = () => {
+      const currentScrollPos = window.pageYOffset;
+      setIsVisible(prevScrollPos > currentScrollPos || currentScrollPos < 10);
+      setPrevScrollPos(currentScrollPos);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [prevScrollPos]);
+
+  const categorizeItems = (items) => {
+    const categoryMap = {
+      "Áo": ["quần tây", "áo polo", "áo thun", "giày", "túi"],
+      "Quần": ["quần tây", "máy tính", "tai nghe"],
+      "Giới tính": ["quần tây", "máy giặt", "lò vi sóng"],
+    };
+    const categorized = {};
+    Object.keys(categoryMap).forEach((parentCategory) => {
+      categorized[parentCategory] = items.filter((item) =>
+        categoryMap[parentCategory].includes(item.toLowerCase())
+      );
+    });
+    return categorized;
+  };
+
   const handleSignOut = async () => {
     try {
       await UserService.signOut();
       localStorage.removeItem('access_token');
       dispatch(resetUser());
-      message.success('Đăng xuất thành công!');
+      alert('Đăng xuất thành công!');
     } catch (error) {
-      message.error('Đăng xuất thất bại! Vui lòng thử lại.');
       console.error('Sign out error:', error);
+      alert('Đăng xuất thất bại!');
     }
   };
 
-  const toggleSearch = () => {
-    setIsSearchVisible((prev) => !prev); // Bật/tắt hiển thị hộp tìm kiếm
-  };
-  const handleSearchClick = (event) => {
-    event.stopPropagation(); // Ngăn chặn sự kiện lan truyền ra ngoài
-  };
-  const handleSearch = (e) => {
-    setSearch(e.target.value);
-    dispatch(searchProduct(e.target.value));
-  };
-  // Content for user popover
-  const userPopoverContent = (
-      <Popopover>
-        {isAdmin === true ? (
-        <MenuItem onClick={() => navigate('/system/admin')}>
-          <AppstoreAddOutlined /> Quản lý hệ thống
-        </MenuItem>
-              ) : (<div></div>)}
-        <MenuItem onClick={() => navigate('/profile', { state: { activeTab: '1' } })}>
-          <InfoCircleOutlined /> Thông tin tài khoản
-        </MenuItem>
-        <MenuItem onClick={() => navigate('/profile', { state: { activeTab: '2' } })}>
-          <ShoppingOutlined /> Đơn mua
-        </MenuItem>
-        <MenuItem onClick={handleCart}>
-          <ShoppingCartOutlined /> Giỏ hàng
-        </MenuItem>
-        <MenuItem onClick={handleSignOut}>
-          <LogoutOutlined /> Đăng xuất
-        </MenuItem>
-      </Popopover>
-  );
-
+  const toggleDropdown = () => setIsDropdownVisible((prev) => !prev);
   return (
-    <DisableCopy>
-      <WrapperHeader>
-        <Col span={6}>
-          <WrapperTextHeader onClick={handleHome}>AT-Ecommerce</WrapperTextHeader>
-        </Col>
-        <Col span={10}>
-        <WrapperNav>
-          {navItems.map((item, index) =>
-            item.label === 'Danh mục' ? (
-              <Dropdown
-                placement="bottom"
-                arrow
-                menu={{
-                  items: Object.keys(categories).map((parentCategory) => ({
-                    key: parentCategory,
-                    label: (
-                      <DropdownMenu>
-                        <strong>{parentCategory}</strong>
-                        <ul>
-                          {categories[parentCategory].map((type, idx) => (
-                            <li
-                              key={idx}
-                              onClick={() => handleNavigateToCategory(type)}
-                            >
-                              {type}
-                            </li>
-                          ))}
-                        </ul>
-                      </DropdownMenu>
-                    ),
-                  })),
-                }}
-              >
-                <span onClick={(e) => e.preventDefault()}>
-                  <Space>Danh mục</Space>
-                </span>
-              </Dropdown>
-            ) : (
-              <span
-                key={item.path}
-                onClick={() => navigate(item.path)}
-                className={location.pathname === item.path ? 'active' : ''}
-              >
-                {item.label}
-              </span>
-            )
-          )}
-        </WrapperNav>
-        </Col>
-        {/* <Col span={2} onClick={toggleSearch} style={{ cursor: 'pointer' }}>
-          <div >
-                {isSearchVisible ? (
-                  <CloseOutlined 
-                  style={{ 
-                    fontSize: '24px', color: '#000000', marginLeft: '60px' , backgroundColor:'#fff',
-                    border: '1px solid #ccc',
-                    borderRadius: '4px',
-                    padding: '5px',
-                    cursor: 'pointer',
-                  }} />
-                ) : (
-                  <SearchOutlined style={{ fontSize: '24px', color: '#fff', marginLeft: '60px'  }} />
-                )}
-          </div>
-              {isSearchVisible && (
-                <SearchBox onClick={handleSearchClick}>
-                  <Search
-                    placeholder="Tìm kiếm sản phẩm"
-                    enterButton="Tìm"
-                    size="large"
-                    onChange={handleSearch}
+    <header
+      className={`bg-white text-gray-800 p-4 flex justify-between items-center shadow-md sticky top-0 z-50 transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}
+    >
+      <div className="text-lg font-bold cursor-pointer" onClick={() => navigate('/home')}>
+        AT-Ecommerce
+      </div>
 
-                  />
-                </SearchBox>
-              )}
-        </Col> */}
-        <Col span={6} style={{ display: 'flex' }}>
-          <Pending isPending={isPending}>
-            <WrapperHeaderAccout>
-              {userAvatar ? (
-                <img alt="user avatar" src={userAvatar} style={{ width: '30px', height: '30px', borderRadius: '50%' }} />
-              ) : (
-                <UserOutlined style={{ fontSize: '30px' }} />
-              )}
-              <div>
-                {user?.name ? (
-                  <Popover content={userPopoverContent} trigger="click">
-                    <span style={{ cursor: 'pointer' }}>
-                      {user.name} <CaretDownOutlined />
-                    </span>
-                  </Popover>
-                ) : (
-                  <span onClick={handleLogin}>Đăng nhập</span>
-                )}
+      <nav className="hidden md:flex space-x-8">
+        <a href="/" className={`hover:text-blue-500 ${location.pathname === '/' ? 'text-blue-500' : ''}`}>Trang chủ</a>
+        <a href="/home" className={`hover:text-blue-500 ${location.pathname === '/home' ? 'text-blue-500' : ''}`}>Cửa hàng</a>
+        <div className="relative group">
+          <span className="cursor-pointer">Danh mục</span>
+          <div className="absolute left-0 mt-2 hidden group-hover:block bg-white text-black shadow-lg rounded-lg w-48 transition-all ease-in-out duration-300 transform opacity-0 group-hover:opacity-100">
+            {Object.keys(categories).map((category) => (
+              <div key={category} className="p-2 border-b last:border-none">
+                <strong>{category}</strong>
+                <ul className="mt-1 ml-2">
+                  {categories[category].map((type, idx) => (
+                    <li key={idx} className="text-sm cursor-pointer hover:underline" onClick={() => navigate(`/type/${type}`)}>
+                      {type}
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </WrapperHeaderAccout>
-          </Pending>
+            ))}
+          </div>
+        </div>
+        <a href="/blog" className={`hover:text-blue-500 ${location.pathname === '/blog' ? 'text-blue-500' : ''}`}>Blog</a>
+      </nav>
 
-          <WrapperHeaderCart onClick={() => navigate('/cart')}>
-                <ShoppingCartOutlined style={{ fontSize: '30px' }} />
-                <CartItemCount>{order?.orderItems?.length}</CartItemCount>
-          </WrapperHeaderCart>
-        </Col>
-      </WrapperHeader>
-    </DisableCopy>
+      <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
+          {userAvatar ? (
+            <img
+              src={userAvatar}
+              alt="User Avatar"
+              className="w-8 h-8 rounded-full"
+            />
+          ) : (
+            <span className="text-xl cursor-pointer" onClick={toggleDropdown}>👤</span>
+          )}
+          <div ref={dropdownRef}>
+            {user?.name ? (
+              <div className="relative group" onClick={toggleDropdown}>
+                <span className="cursor-pointer">
+                  {user.name} ▼
+                </span>
+
+                {isDropdownVisible && (
+            <div className="absolute right-0 mt-2 bg-white text-black shadow-lg rounded-lg w-48">
+              {isAdmin && (
+                <div
+                  className="p-2 border-b hover:bg-gray-200 cursor-pointer"
+                  onClick={() => navigate('/system/admin')}
+                >
+                  Quản lý hệ thống
+                </div>
+              )}
+              <div
+                className="p-2 border-b hover:bg-gray-200 cursor-pointer"
+                onClick={() => navigate('/profile', { state: { activeTab: '1' } })}
+              >
+                Thông tin tài khoản
+              </div>
+              <div
+                className="p-2 border-b hover:bg-gray-200 cursor-pointer"
+                onClick={() => navigate('/profile', { state: { activeTab: '2' } })}
+              >
+                Đơn mua
+              </div>
+              <div
+                className="p-2 border-b hover:bg-gray-200 cursor-pointer"
+                onClick={() => navigate('/cart')}
+              >
+                Giỏ hàng
+              </div>
+              <div
+                className="p-2 hover:bg-gray-200 cursor-pointer"
+                onClick={handleSignOut}
+              >
+                Đăng xuất
+              </div>
+            </div>
+          )}
+              </div>
+            ) : (
+              <span className="cursor-pointer" onClick={() => navigate('/sign-in')}>
+                Đăng nhập
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="relative cursor-pointer" onClick={() => navigate('/cart')}>
+          <span className="text-xl">🛒</span>
+          {order?.orderItems?.length > 0 && (
+            <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+              {order.orderItems.length}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <button
+        className="md:hidden block text-gray-800 hover:text-blue-500 focus:outline-none focus:text-blue-500"
+        onClick={() => {
+          const menu = document.getElementById('mobile-menu');
+          menu.classList.toggle('hidden');
+        }}
+      >
+        ☰
+      </button>
+      <div id="mobile-menu" className="hidden md:hidden bg-white text-gray-800 absolute top-full left-0 w-full shadow-lg transition-all ease-in-out duration-300 opacity-0 group-hover:opacity-100">
+        <a href="/" className="block p-4 border-b hover:bg-gray-200">Trang chủ</a>
+        <a href="/home" className="block p-4 border-b hover:bg-gray-200">Cửa hàng</a>
+        <a href="/blog" className="block p-4 border-b hover:bg-gray-200">Blog</a>
+      </div>
+    </header>
   );
 };
 

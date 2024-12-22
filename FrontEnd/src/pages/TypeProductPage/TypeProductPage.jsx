@@ -86,7 +86,6 @@ const TypeProductPage = () => {
 
   return (
     <>
-      <TypeProduct />
       <Slider />
       <WrapperHome>
         <NavbarContainer>

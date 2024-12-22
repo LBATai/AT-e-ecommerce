@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Row, Col, Table, InputNumber, Button, Modal,Input } from "antd";
+import { Row, Col, Table, InputNumber, Button, Modal, Input } from "antd";
 import { MinusOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -9,21 +9,17 @@ import { formatCurrencyVND } from "../../utils";
 const CartPage = () => {
   const order = useSelector((state) => state.order);
   const user = useSelector((state) => state.user);
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const [updatedItems, setUpdatedItems] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
-  const [selectedRowKeys, setSelectedRowKeys] = useState([]); // Các ID sản phẩm được chọn
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [isCheckoutModalVisible, setIsCheckoutModalVisible] = useState(false);
   const [isEditAddressModalVisible, setIsEditAddressModalVisible] = useState(false);
-  const [checkoutInfo, setCheckoutInfo] = useState({
-    name: "",
-    address: "",
-    phone: "",
-  });
+  const [checkoutInfo, setCheckoutInfo] = useState({ name: "", address: "", phone: "" });
+
   useEffect(() => {
     if (user) {
       setCheckoutInfo({
@@ -33,7 +29,7 @@ const CartPage = () => {
       });
     }
   }, [user]);
-  // Chuyển đổi dữ liệu từ order.orderItems sang cấu trúc bảng
+
   useEffect(() => {
     if (order?.orderItems) {
       const transformedItems = order.orderItems.map((item) => ({
@@ -57,25 +53,25 @@ const CartPage = () => {
         <>
           Sản phẩm
           {updatedItems.length > 0 && (
-            <span style={{ marginLeft: 8 }}>({updatedItems.length})</span>
+            <span className="ml-2">({updatedItems.length})</span>
           )}
         </>
       ),
       dataIndex: "name",
       key: "name",
       render: (_, record) => (
-        <div style={{ display: "flex", alignItems: "center" }}>
+        <div className="flex items-center">
           <img
             src={record.image}
             alt={record.name}
-            style={{ width: 80, marginRight: 16, borderRadius: 8 }}
+            className="w-20 mr-4 rounded-md"
           />
           <div>
-            <p style={{ margin: 0, fontWeight: 500 }}>{record.name}</p>
+            <p className="m-0 font-medium">{record.name}</p>
           </div>
           <Button
             icon={<DeleteOutlined />}
-            style={{ marginLeft: "auto" }}
+            className="ml-auto"
             onClick={() => handleDelete(record)}
           />
         </div>
@@ -101,15 +97,23 @@ const CartPage = () => {
       dataIndex: "amount",
       key: "amount",
       render: (_, record) => (
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <Button icon={<MinusOutlined />} onClick={() => handleAmountChange(record.id, -1)} />
+        <div className="flex items-center">
+          <Button
+            icon={<MinusOutlined />}
+            onClick={() => handleAmountChange(record.id, -1)}
+            className="bg-gray-300 hover:bg-gray-400"
+          />
           <InputNumber
             min={1}
             value={record.amount}
-            style={{ width: 60, margin: "0 8px" }}
+            className="w-16 mx-2"
             onChange={(value) => handleAmountChange(record.id, value - record.amount)}
           />
-          <Button icon={<PlusOutlined />} onClick={() => handleAmountChange(record.id, 1)} />
+          <Button
+            icon={<PlusOutlined />}
+            onClick={() => handleAmountChange(record.id, 1)}
+            className="bg-gray-300 hover:bg-gray-400"
+          />
         </div>
       ),
     },
@@ -120,57 +124,48 @@ const CartPage = () => {
       render: (price, record) => {
         const total = price * record.amount;
         return formatCurrencyVND(total);
-      }
+      },
     },
   ];
+
   const rowSelection = {
     selectedRowKeys,
     onChange: (keys, selectedRows) => {
       let selectedIds = [];
       if (keys.length === updatedItems.length) {
-        // Check All được nhấn, lấy tất cả ID từ updatedItems
         selectedIds = updatedItems.map((item) => item.id);
       } else {
-        // Lấy danh sách ID từ các hàng được chọn
         selectedIds = selectedRows.map((row) => row.id);
       }
-      setSelectedRowKeys(selectedIds); // Cập nhật danh sách ID đã chọn
-      // console.log("Selected IDs:", selectedIds);
+      setSelectedRowKeys(selectedIds);
     },
   };
-    
+
   const total = useMemo(() => {
     const selectedItems = updatedItems.filter((item) => selectedRowKeys.includes(item.id));
-    const productTotal = selectedItems.reduce((sum, item) => sum + item.amount * item.price, 0);
-  
-    return productTotal;
+    return selectedItems.reduce((sum, item) => sum + item.amount * item.price, 0);
   }, [updatedItems, selectedRowKeys]);
 
   const checkTotal = useMemo(() => {
     const selectedItems = updatedItems.filter((item) => selectedRowKeys.includes(item.id));
-    const productTotal = selectedItems.reduce((sum, item) => sum + item.amount * item.price, 0);
-      return productTotal ;
+    return selectedItems.reduce((sum, item) => sum + item.amount * item.price, 0);
   }, [updatedItems, selectedRowKeys]);
 
   const handlePayment = () => {
     const selectedItems = updatedItems.filter(item => selectedRowKeys.includes(item.id));
-    // Xử lý thanh toán, ví dụ gọi API thanh toán
-    // console.log(checkoutInfo);
-    
-    // Đóng modal sau khi xử lý thanh toán
     setIsCheckoutModalVisible(false);
-    navigate('/payment',  { state: { totalAmount: total, itemsPrice: checkTotal,  selectedItems,} })
+    navigate("/payment", { state: { totalAmount: total, itemsPrice: checkTotal, selectedItems } });
   };
 
   const handleCheckout = () => {
-    if (!user.id){
+    if (!user.id) {
       Modal.confirm({
         title: "Bạn phải đăng nhập để mua hàng",
         content: "Bạn có chắc muốn đăng nhập không?",
         okText: "Đăng nhập",
         cancelText: "Hủy",
         onOk: () => {
-          navigate('/sign-in', {state: location?.pathname})
+          navigate("/sign-in", { state: location?.pathname });
         },
       });
     } else if (user) {
@@ -178,17 +173,11 @@ const CartPage = () => {
         name: user.name || "",
         address: user.address || "",
         phone: user.phone || "",
-        
       });
       setIsCheckoutModalVisible(true);
     }
   };
-  const handleInputChange = (field, value) => {
-    setCheckoutInfo((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+
   const handleRemoveAll = () => {
     Modal.confirm({
       title: "Xóa sản phẩm đã chọn",
@@ -196,8 +185,8 @@ const CartPage = () => {
       okText: "Xóa",
       cancelText: "Hủy",
       onOk: () => {
-        dispatch(removeOrderAllProduct({ idProducts: selectedRowKeys })); // Truyền danh sách ID sản phẩm được chọn
-        setSelectedRowKeys([]); // Xóa hết các sản phẩm được chọn
+        dispatch(removeOrderAllProduct({ idProducts: selectedRowKeys }));
+        setSelectedRowKeys([]);
       },
     });
   };
@@ -217,7 +206,7 @@ const CartPage = () => {
       }
     }
   };
-  
+
   const handleOk = () => {
     if (itemToDelete) {
       dispatch(removeOrderProduct({ idProduct: itemToDelete.id }));
@@ -226,7 +215,7 @@ const CartPage = () => {
         color: itemToDelete.color,
         size: itemToDelete.size,
         quantity: itemToDelete.amount,
-        increase: true
+        increase: true,
       }));
     }
     setIsModalVisible(false);
@@ -235,12 +224,13 @@ const CartPage = () => {
   const handleCancel = () => {
     setIsModalVisible(false);
   };
+
   if (updatedItems.length === 0) {
     return (
-      <Row style={{ padding: 24, marginTop: "100px", textAlign: "center" }}>
+      <Row className="p-6 mt-24 text-center">
         <Col span={24}>
           <h2>Giỏ hàng của bạn đang trống</h2>
-          <Button type="primary" onClick={() => navigate("/")} style={{ marginTop: 16 }}>
+          <Button type="primary" onClick={() => navigate("/")} className="mt-4">
             Quay lại trang mua sắm
           </Button>
         </Col>
@@ -249,21 +239,21 @@ const CartPage = () => {
   }
 
   return (
-    <Row gutter={[16, 16]} style={{ padding: 24, marginTop: "100px", marginBottom: "300px"  }}>
+    <Row gutter={[16, 16]} className="p-6 mt-24 mb-72">
       <Col xs={24} lg={16}>
-      <div style={{ marginBottom: 16, height: 40, display: "flex", alignItems: "center"}}>
-        {selectedRowKeys.length > 1 && (
+        <div className="mb-4 flex items-center">
+          {selectedRowKeys.length > 1 && (
             <Button
               type="primary"
               danger
               icon={<DeleteOutlined />}
               onClick={handleRemoveAll}
-              style={{ marginBottom: 16 }}
+              className="mb-4"
             >
               Xóa sản phẩm đã chọn
             </Button>
           )}
-      </div>
+        </div>
         <Table
           dataSource={updatedItems}
           columns={columns}
@@ -271,29 +261,33 @@ const CartPage = () => {
           rowKey="id"
           rowSelection={rowSelection}
           bordered
+          className="rounded-lg shadow-md"
         />
       </Col>
+
       <Col xs={24} lg={8}>
-        <div style={{ display: 'flex',justifyContent: 'space-between',alignItems: 'center',padding: '8px 0',}}>
+        <div className="flex justify-between items-center p-2">
           <span>Địa chỉ giao hàng: {checkoutInfo.address}</span>
-          <Button type="link" onClick={() => setIsEditAddressModalVisible(true)}>Chỉnh sửa</Button>
+          <Button type="link" onClick={() => setIsEditAddressModalVisible(true)}>
+            Chỉnh sửa
+          </Button>
         </div>
-        <div style={{ display: 'flex',justifyContent: 'space-between',alignItems: 'center',padding: '8px 0',}}>
+        <div className="flex justify-between items-center p-2">
           <span>Tạm tính: </span>
           <span>{formatCurrencyVND(checkTotal)}</span>
         </div>
-        <div style={{ display: 'flex',justifyContent: 'space-between',alignItems: 'center',padding: '8px 0',}}>
+        <div className="flex justify-between items-center p-2">
           <span>Tổng số sản phẩm: </span>
           <span>{selectedRowKeys.length}</span>
         </div>
-        <div style={{marginTop: 24,display: "flex",justifyContent: "space-between",fontWeight: 500, fontSize: '20px'}}>
+        <div className="mt-6 flex justify-between font-medium text-xl">
           <span>Tổng cộng: </span>
-          <span style={{color: 'red'}}>{formatCurrencyVND(total)}</span>
+          <span className="text-red-600">{formatCurrencyVND(total)}</span>
         </div>
         <Button
           type="primary"
           size="large"
-          style={{ marginTop: 16, width: "100%" }}
+          className="mt-4 w-full"
           disabled={selectedRowKeys.length === 0}
           onClick={handleCheckout}
         >
@@ -320,7 +314,7 @@ const CartPage = () => {
         okText="Xác nhận"
         cancelText="Hủy"
       >
-        <div style={{ marginBottom: 16 }}>
+        <div className="mb-4">
           <p>Họ và tên:</p>
           <Input
             placeholder="Nhập họ và tên"
@@ -328,7 +322,7 @@ const CartPage = () => {
             onChange={(e) => handleInputChange("name", e.target.value)}
           />
         </div>
-        <div style={{ marginBottom: 16 }}>
+        <div className="mb-4">
           <p>Địa chỉ:</p>
           <Input
             placeholder="Nhập địa chỉ"
@@ -336,7 +330,7 @@ const CartPage = () => {
             onChange={(e) => handleInputChange("address", e.target.value)}
           />
         </div>
-        <div style={{ marginBottom: 16 }}>
+        <div className="mb-4">
           <p>Số điện thoại:</p>
           <Input
             placeholder="Nhập số điện thoại"
@@ -346,24 +340,22 @@ const CartPage = () => {
         </div>
       </Modal>
 
-      {/* Modal chỉnh sửa địa chỉ */}
       <Modal
         title="Bạn có muốn thay đổi địa chỉ hiện tại không?"
         open={isEditAddressModalVisible}
         onOk={() => {
           setIsEditAddressModalVisible(false);
-          navigate('/profile', { state: { activeTab: '3' } });
-          console.log('Updated Address:', checkoutInfo.address);
+          navigate("/profile", { state: { activeTab: "3" } });
         }}
         onCancel={() => setIsEditAddressModalVisible(false)}
         okText="Thay đổi"
         cancelText="Hủy"
       >
-        <div style={{ marginBottom: 16 }}>
+        <div className="mb-4">
           <Input
             placeholder="Nhập địa chỉ mới"
             value={checkoutInfo.address}
-            disabled={true}
+            disabled
           />
         </div>
       </Modal>

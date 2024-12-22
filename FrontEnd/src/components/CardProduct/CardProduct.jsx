@@ -1,23 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Card, Rate } from 'antd';
-import { StarOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import {
-  CardContainer,
-  Image,
-  Content,
-  Title,
-  Description,
-  Price,
-  DiscountedPrice,
-  Rating,
-  HoverActions,
-  ActionButton,
-  PriceaAndRate,
-  DiscountTag,
-  Name,
-} from './style';
-import { formatCurrencyVND } from '../../utils'
 
 const CardProduct = (props) => {
   const navigate = useNavigate();
@@ -26,6 +8,14 @@ const CardProduct = (props) => {
   const similarProduct = useRef(null);
   const viewDetailsRef = useRef(null);
   const discountedPrice = price - (price * discount) / 100;
+
+  const formatCurrencyVND = (value) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(value);
+  };
+
   const resetButtonPosition = () => {
     if (similarProduct.current) similarProduct.current.style.transform = 'translateX(100%)';
     if (viewDetailsRef.current) viewDetailsRef.current.style.transform = 'translateX(100%)';
@@ -57,51 +47,84 @@ const CardProduct = (props) => {
   }, [isHovered]);
 
   return (
-    <CardContainer
+    <div 
+      className="w-[220px] h-[400px] relative overflow-hidden border border-gray-300 flex flex-col transition-all hover:border-gray-600 hover:shadow-inner"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {
         setIsHovered(false);
         resetButtonPosition();
       }}
-    >{/* Lấy giá trị đầu tiên của mảng images để hiển thị */}
-      <Card cover={<Image alt={name} src={images[0]} />}>
-        {discount > 0 && <DiscountTag>{discount}%</DiscountTag>}
-        <Content>
-          <Name>
-            <Title style={{ color: isHovered ? '#f70000' : '#000' }}>
+    >
+      <div className="h-full flex flex-col">
+        <div className="relative">
+          <img 
+            src={images[0]} 
+            alt={name} 
+            className="w-full h-[170px] object-cover"
+          />
+          {discount > 0 && (
+            <span className="absolute top-2 left-2 bg-red-600 text-white px-3 py-1 rounded text-sm z-10">
+              {discount}%
+            </span>
+          )}
+        </div>
+
+        <div className="p-4 text-center flex-grow">
+          <div className="h-[45px] text-left overflow-hidden">
+            <div className={`text-base font-normal ${isHovered ? 'text-red-600' : 'text-black'}`}>
               {name}
-            </Title>
-          </Name>
-          <Description>{description}</Description>
-          <PriceaAndRate>
+            </div>
+          </div>
+
+          <p className="mt-5 h-[65px] overflow-hidden text-justify text-sm text-gray-600 bg-gradient-to-t from-transparent to-black bg-clip-text">
+            {description}
+          </p>
+
+          <div className="flex gap-5 items-start mt-4">
             <div>
-              <Price discount={discount}>{formatCurrencyVND(price)}</Price>
+              <p className={`text-sm text-gray-500 ${discount > 0 ? 'line-through' : ''} ${discount < 1 ? 'text-2xl' : 'text-sm'} mb-0`}>
+                {formatCurrencyVND(price)}
+              </p>
               {discount > 0 ? (
-                <DiscountedPrice>{formatCurrencyVND(discountedPrice)}</DiscountedPrice>
+                <p className={`text-red-600 ${discount < 1 ? 'text-lg' : 'text-base'}`}>
+                  {formatCurrencyVND(discountedPrice)}
+                </p>
               ) : (
-                <DiscountedPrice style={{ visibility: 'hidden' }} /> // Ẩn discountedPrice nếu discount = 0
+                <p className="invisible" />
               )}
             </div>
-            <Rating>
-              <Rate disabled defaultValue={rating} character={<StarOutlined />} />
-            </Rating>
-          </PriceaAndRate>
-        </Content>
-      </Card>
-      <HoverActions>
-        <ActionButton ref={similarProduct}
-            onClick={() => {
-            navigate(`/type/${type}`);
-          }}
-          >Sản phẩm tương tự</ActionButton>
-        <ActionButton ref={viewDetailsRef}
-          onClick={() => {
-            navigate(`/product-detail/${id}`);
-          }}>
+            
+            <div className="mt-2 -mr-5">
+              {[...Array(5)].map((_, index) => (
+                <span 
+                  key={index}
+                  className={`text-sm ${index < rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                >
+                  ★
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="absolute bottom-4 right-0 flex flex-col gap-2">
+        <button
+          ref={similarProduct}
+          onClick={() => navigate(`/type/${type}`)}
+          className="bg-red-600 text-white px-2 py-2 rounded text-xs font-semibold transform translate-x-full transition-all hover:bg-red-800 shadow-md hover:shadow-lg"
+        >
+          Sản phẩm tương tự
+        </button>
+        <button
+          ref={viewDetailsRef}
+          onClick={() => navigate(`/product-detail/${id}`)}
+          className="bg-red-600 text-white px-2 py-2 rounded text-xs font-semibold transform translate-x-full transition-all hover:bg-red-800 shadow-md hover:shadow-lg"
+        >
           Chi tiết sản phẩm
-        </ActionButton>
-      </HoverActions>
-    </CardContainer>
+        </button>
+      </div>
+    </div>
   );
 };
 

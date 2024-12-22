@@ -12,7 +12,6 @@ import PriceProductPage from "../pages/PriceProductPage/PriceProductPage";
 import BlogPage from "../pages/BlogPage/BlogPage";
 import PaymentPage from "../pages/PaymentPage/PaymentPage";
 import OrderDetailPage from "../pages/OrderDetailPage/OrderDetailPage";
-
 export const routes = [ 
     {
         path: "/",

@@ -1,0 +1,51 @@
+.message {
+  word-wrap: break-word;
+  white-space: pre-wrap; /* Tự động xuống dòng */
+}
+
+.user-message .user-text {
+  background-color: #d1e7ff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  max-width: 80%;
+}
+
+.bot-message .bot-text {
+  background-color: #e2f3db;
+  padding: 8px 12px;
+  border-radius: 8px;
+  max-width: 80%;
+}
+
+.input-textarea {
+  flex-grow: 1;
+  margin-right: 8px;
+}
+
+.send-button {
+  background-color: #007bff;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+}
+
+.send-button:hover {
+  background-color: #0056b3;
+}
+
+.chatbot-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #007bff;
+  color: white;
+  padding: 12px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.chatbot-button:hover {
+  background-color: #0056b3;
+}

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Pagination, Breadcrumb } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Pagination } from 'antd';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
 import * as ProductService from '../../Service/ProductService';
@@ -7,64 +7,58 @@ import TypeProduct from '../../components/TypeProduct/TypeProduct';
 import Slider from '../../components/Slider/Slider';
 import CardProduct from '../../components/CardProduct/CardProduct';
 import Navbar from '../../components/Navbar/Navbar';
-import { WrapperHome, CardContainer, PaginationContainer, NavbarContainer } from './style';
 import Pending from '../../components/Pending/Pending';
 import { useDebounce } from '../../hooks/useDebounce';
 import ProductFilter from '../../components/ProductFilter/ProductFilter';
-
+import { Menu, X } from 'lucide-react';
+import { styles } from './style';
 const Homepage = () => {
   const searchProduct = useSelector((state) => state?.product?.search);
   const searchDebounce = useDebounce(searchProduct, 1000);
-  
+  const [isNavOpen, setIsNavOpen] = useState(false);
   const [stateProducts, setStateProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortOrder, setSortOrder] = useState('asc');
+  const [sortByDate, setSortByDate] = useState(false);
 
   const itemsPerPage = 8;
 
-  // State lưu trữ sắp xếp
-  const [sortOrder, setSortOrder] = useState('asc'); // Sắp xếp theo giá
-  const [sortByDate, setSortByDate] = useState(false); // Sắp xếp theo ngày tạo (mới nhất)
-
-  // Hàm gọi API để lấy danh sách sản phẩm
   const fetchProductAll = async (search) => {
     try {
       const res = await ProductService.getAllProduct(search);
       return res?.data || [];
     } catch (error) {
       console.error('Error fetching products:', error);
-      return []; // Nếu có lỗi, trả về mảng trống
+      return [];
     }
   };
 
   const { data: products, isLoading } = useQuery({
     queryKey: ['products', searchDebounce, sortOrder, sortByDate],
     queryFn: () => fetchProductAll(searchDebounce),
-    enabled: true, // Đảm bảo rằng query chỉ chạy khi có sự thay đổi
+    enabled: true,
   });
+
+
 
   useEffect(() => {
     if (products?.length > 0) {
       let sortedProducts = [...products];
-      if (searchDebounce){
-        sortedProducts = products
-      }
-      // Sắp xếp theo ngày tạo nếu chọn "Mới nhất"
-      else if (sortByDate) {
+      if (searchDebounce) {
+        sortedProducts = products;
+      } else if (sortByDate) {
         sortedProducts = sortedProducts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       } else {
-        // Sắp xếp theo giá
         sortedProducts = sortedProducts.sort((a, b) => {
           const priceA = a.price || 0;
           const priceB = b.price || 0;
           return sortOrder === 'asc' ? priceA - priceB : priceB - priceA;
         });
       }
-
       setStateProducts(sortedProducts);
     }
   }, [products, sortOrder, sortByDate]);
 
-  // Tính toán start và end index cho phân trang
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentProducts = stateProducts.slice(startIndex, endIndex);
@@ -74,56 +68,107 @@ const Homepage = () => {
     window.scrollTo({ top: 430, behavior: 'smooth' });
   };
 
-  // Cập nhật lại thứ tự sắp xếp khi người dùng chọn
   const handleSortChange = (value) => {
-    setSortByDate(false); // Nếu người dùng chọn sắp xếp theo giá, tắt sắp xếp theo ngày
+    setSortByDate(false);
     setSortOrder(value);
-    setCurrentPage(1); // Đặt lại trang về 1 khi thay đổi sắp xếp
+    setCurrentPage(1);
   };
 
   const handleSortByDate = () => {
-    setSortByDate(true); // Sắp xếp theo ngày tạo
-    setCurrentPage(1); // Đặt lại trang về 1 khi thay đổi sắp xếp
+    setSortByDate(true);
+    setCurrentPage(1);
     window.scrollTo({ top: 430, behavior: 'smooth' });
   };
 
+  const toggleNav = () => {
+    setIsNavOpen((prev) => !prev);
+  };
+
   return (
-    <>
-      <TypeProduct />
+    <div className="min-h-screen bg-gray-100">
       <Slider />
-      <WrapperHome>
-        <NavbarContainer>
-          <Navbar />
-        </NavbarContainer>
-        <div style={{ flex: 1, padding: '20px' }}>
-          <Pending isPending={isLoading}>
-            <ProductFilter onSortChange={handleSortChange} onSortByDate={handleSortByDate} />
-            <CardContainer>
-              {currentProducts.length === 0 ? (
-                <p style={{ textAlign: 'center', color: '#999' }}>Không có sản phẩm nào để hiển thị.</p>
-              ) : (
-                currentProducts.map((product, index) => (
-                  <CardProduct
-                    key={product._id || index}
-                    id={product._id}
-                    {...product}
-                  />
-                ))
-              )}
-            </CardContainer>
-          </Pending>
+      
+      {/* Mobile Menu Button */}
+      <div className="md:hidden p-4 bg-white sticky top-0 z-50 shadow-sm">
+        <button 
+          onClick={toggleNav}
+          className="flex items-center space-x-2 text-gray-600"
+        >
+          <Menu size={24} />
+          <span>Menu</span>
+        </button>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex flex-col md:flex-row">
+        {/* Overlay for mobile nav */}
+        {isNavOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+            onClick={toggleNav}
+          />
+        )}
+
+        {/* Navbar */}
+        <div
+          className={`
+            klcUFl
+            fixed md:relative
+            top-0 left-0
+            h-full md:h-auto
+            w-64 md:w-[20%]
+            min-w-[200px]
+            bg-white
+            transform transition-transform duration-300 ease-in-out
+            ${isNavOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+            
+            overflow-y-auto
+          `}
+        >
+          <div className="md:hidden flex justify-end p-4">
+            <button onClick={toggleNav} className="text-gray-600">
+              <X size={24} />
+            </button>
+          </div>
+          <Navbar isNavOpen={isNavOpen} />
         </div>
-      </WrapperHome>
-      <PaginationContainer>
-        <Pagination
-          current={currentPage}
-          pageSize={itemsPerPage}
-          total={stateProducts.length} // Đảm bảo tính tổng từ stateProducts sau khi lọc
-          onChange={handlePageChange}
-        />
-      </PaginationContainer>
-      <br />
-    </>
+
+        {/* Main Content Area */}
+        <div className="flex-1">
+          <div className="p-5">
+            <Pending isPending={isLoading}>
+              <ProductFilter onSortChange={handleSortChange} onSortByDate={handleSortByDate} />
+              
+              {/* Product Grid */}
+              <div className="w-full mt-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {currentProducts.length === 0 ? (
+                  <p className="text-center text-gray-500 col-span-full">Không có sản phẩm nào để hiển thị.</p>
+                ) : (
+                  currentProducts.map((product) => (
+                    <div key={product._id} className="w-full">
+                      <CardProduct
+                        id={product._id}
+                        {...product}
+                      />
+                    </div>
+                  ))
+                )}
+              </div>
+            </Pending>
+          </div>
+
+          {/* Pagination */}
+          <div className="flex justify-center py-8">
+            <Pagination
+              current={currentPage}
+              pageSize={itemsPerPage}
+              total={stateProducts.length}
+              onChange={handlePageChange}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

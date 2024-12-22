@@ -57,7 +57,7 @@ const AdminOrder = () => {
 
   const handleDeleteOrder = (record) => {
     Modal.confirm({
-      title: `Xác nhận xóa đơn hàng: ${record.name}`,
+      title: `Xác nhận xóa đơn hàng: ${record.key}`,
       content: 'Bạn có chắc chắn muốn xóa đơn hàng này không?',
       onOk: async () => {
         try {
@@ -140,9 +140,9 @@ const AdminOrder = () => {
   };
 
   const columns = [
-    { title: 'Tên khách hàng', dataIndex: 'name', key: 'name' },
-    { title: 'Số điện thoại', dataIndex: 'phone', key: 'phone' },
-    { title: 'Địa chỉ', dataIndex: 'address', key: 'address' },
+    { title: 'ID', dataIndex: 'key', key: 'key' },
+    // { title: 'Số điện thoại', dataIndex: 'phone', key: 'phone' },
+    // { title: 'Địa chỉ', dataIndex: 'address', key: 'address' },
     {
       title: 'Thanh toán',
       key: 'paymentStatus',
@@ -199,12 +199,11 @@ const AdminOrder = () => {
             size="small"
             onClick={() => handleDeleteOrder(record)}
           >
-            Xóa
           </Button>
           {!record.isDelivered && !record.isSuccess && ( // Hiển thị nút nếu chưa giao hàng và chưa thành công
             <Button
               type="primary"
-              color="default"
+              style={{ background: '#E6F4FF',borderColor: '#5FC8FF', color: '#5FC8FF' }}
               variant="solid"
               size="small"
               onClick={() => handleAceptDelivery(record)}
@@ -217,9 +216,10 @@ const AdminOrder = () => {
             <Button
               type="primary"
               size="small"
+              style={{ background: '#FFFBE6', borderColor: '#FBB414', color: '#FBB414'}}
               onClick={() => handleAceptPaid(record)}
             >
-              Xác nhận đã thanh toán
+              Xác nhận thanh toán
             </Button>
           )}
 
@@ -228,6 +228,7 @@ const AdminOrder = () => {
               type="primary"
               size="small"
               onClick={() => handleAceptSuccess(record)}
+              style={{ background: '#F6FFED',borderColor: '#52C41A', color: '#52C41A' }}
             >
               Xác nhận thành công
             </Button>
@@ -258,7 +259,7 @@ const AdminOrder = () => {
         columns={columns}
         dataSource={orders}
         loading={isLoading}
-        pagination={{ pageSize: 5 }}
+        pagination={{ pageSize: 10}}
         rowKey="key"
       />
 

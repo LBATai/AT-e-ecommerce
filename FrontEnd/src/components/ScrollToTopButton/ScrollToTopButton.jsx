@@ -11,26 +11,11 @@ const ScrollToTopButton = () => {
 
   return (
     <button
+    style={{marginRight: '75px', marginBottom: '19px'}}
       onClick={scrollToTop}
-      style={{
-        position: 'fixed',
-        bottom: '20px',
-        right: '20px',
-        width: '50px',
-        height: '50px',
-        backgroundColor: '#1890ff', // Màu xanh chủ đạo của Ant Design
-        color: '#fff',
-        border: 'none',
-        borderRadius: '50%',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
-        cursor: 'pointer',
-        marginRight: '55px'
-      }}
+      className="fixed bottom-5 right-5 w-12 h-12 bg-blue-600 text-white rounded-full flex justify-center items-center shadow-lg hover:bg-blue-500 transition duration-200 ease-in-out cursor-pointer"
     >
-      <ArrowUpOutlined style={{ fontSize: '20px' }} />
+      <ArrowUpOutlined className="text-lg" />
     </button>
   );
 };

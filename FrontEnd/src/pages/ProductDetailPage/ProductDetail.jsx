@@ -1,5 +1,6 @@
-import { Share2, Minus, Plus, Star, StarHalf, MessageCircle } from 'lucide-react';
+import { Share2, Star, MessageCircle } from 'lucide-react';
 import {
+  ReviewAvatar,
   DiscountStyle,
   ProductContainer,
   Breadcrumb,
@@ -37,9 +38,9 @@ import { useNavigate, useParams } from 'react-router';
 import { formatCurrencyVND } from '../../utils';
 import { useDispatch, useSelector } from 'react-redux';
 import { addOrderProduct, updateStock } from '../../components/redux/Slide/orderSlide';
-import CommentSection from '../../components/CommentSection/CommentSection';
-import { message} from 'antd';
-
+import { message } from 'antd';
+import CommentForm from '../../components/CommnetForm/CommnetForm'
+import * as CommentService from '../../Service/CommentService';
 const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
@@ -47,7 +48,6 @@ const ProductDetail = () => {
   const handleDecrement = () => setQuantity(prev => prev > 1 ? prev - 1 : 1);
   const navigate = useNavigate();
   const { id } = useParams();
-  const comments = [];
   const [color, setColor] = useState('');
   const [mainImage, setMainImage] = useState(''); // Image chính sẽ hiển thị
   const [stateProductDetails, setStateProductDetails] = useState('');
@@ -55,13 +55,24 @@ const ProductDetail = () => {
   const dispatch = useDispatch();
   const stock = useSelector((state) => state.order.stock); // Lấy stock từ Redux store
   const [size, setSize] = useState(stateProductDetails?.options?.[0]?.sizes?.[0]?.size || ''); // Giá trị mặc định từ dữ liệu API
+  const [isReviewFormVisible, setIsReviewFormVisible] = useState(false);
+  const [productId, setProductId] = useState(id);
+  const [comments, setComments] = useState([]);
 
   useEffect(() => {
     if (id) {
       fetchGetDetailsProduct();
+      fetchCommentsByProduct();
     }
-  }, [id]);
-
+  }, [id, productId]);
+  const fetchCommentsByProduct = async () => {
+    try {
+      const response = await CommentService.getCommentsByProduct(productId);
+      setComments(response.data);
+    } catch (error) {
+      message.error('Lỗi khi lấy bình luận.');
+    }
+  }
   const fetchGetDetailsProduct = async () => {
     const res = await ProductService.getDetailsProduct(id);
     if (res?.data) {
@@ -103,6 +114,9 @@ const ProductDetail = () => {
     }
   }, [stateProductDetails]);
 
+  const handleWriteReview = () => {
+    setIsReviewFormVisible(true);
+  };
   const handleSizeChange = (selectedSize) => {
     setSize(selectedSize);
   };
@@ -164,11 +178,11 @@ const ProductDetail = () => {
 
   //button addOrder product
   const handleAddOrderProduct = () => {
-  // Kiểm tra xem người dùng đã chọn màu sắc và kích thước chưa
-  if (!color || !size) {
-    message.error('Vui lòng chọn màu sắc và kích thước.');
-    return;
-  }
+    // Kiểm tra xem người dùng đã chọn màu sắc và kích thước chưa
+    if (!color || !size) {
+      message.error('Vui lòng chọn màu sắc và kích thước.');
+      return;
+    }
     // Kiểm tra xem sản phẩm có kích thước không
     const hasSizes = stateProductDetails.options?.some((option) => option.sizes?.length > 0);
     // Lấy ảnh đầu tiên từ mảng images
@@ -382,7 +396,7 @@ const ProductDetail = () => {
             active={activeTab === 'reviews'}
             onClick={() => setActiveTab('reviews')}
           >
-            ĐÁNH GIÁ ({reviews.length})
+            ĐÁNH GIÁ ({comments.length})
           </TabButton>
         </div>
 
@@ -400,33 +414,45 @@ const ProductDetail = () => {
                   <Star key={i} className="fill" />
                 ))}
               </StarWrapper>
-              <div className="rating-count">{reviews.length} đánh giá</div>
+              <div className="rating-count">{comments.length} đánh giá</div>
             </div>
-            <ActionButton variant="secondary" className="review-button">
+            <ActionButton onClick={handleWriteReview} variant="secondary" className="review-button">
               <MessageCircle size={16} />
               Viết đánh giá
             </ActionButton>
           </RatingWrapper>
-
+          {isReviewFormVisible && (
+            <CommentForm
+              onClose={() => setIsReviewFormVisible(false)}
+              isOpen={isReviewFormVisible}
+              onCommentAdded={fetchCommentsByProduct}
+            />
+          )}
           <ReviewWrapper>
-            {reviews.map(review => (
-              <ReviewCard key={review.id}>
+            {comments.map((comment) => (
+              <ReviewCard key={comment._id}>
                 <ReviewHeader>
-                  <span className="username">{review.user}</span>
+                  {comment.avatarUser && (
+                    <ReviewAvatar>
+                      <img src={comment.avatarUser} alt={`${comment.nameUser}'s avatar`} />
+                    </ReviewAvatar>
+                  )}
+                  <span className="username">{comment.nameUser}</span>
                   <span className="separator">|</span>
                   <StarWrapper>
-                    {[...Array(review.rating)].map((_, i) => (
+                    {[...Array(comment.rating)].map((_, i) => (
                       <Star key={i} className="fill" />
                     ))}
                   </StarWrapper>
                 </ReviewHeader>
                 <ReviewDate>
-                  {new Date(review.date).toLocaleDateString('vi-VN')}
+                  {new Date(comment.created).toLocaleDateString('vi-VN')}
                 </ReviewDate>
-                <p>{review.comment}</p>
-                {review.images.length > 0 && (
+                <p>{comment.content}</p>
+                {/* Nếu có ảnh đính kèm, hiển thị chúng */}
+                {comment.images?.length > 0 && (
                   <ReviewImages>
-                    {review.images.map((img, i) => (
+                    {comment.images.map((img, i) => (
                       <ReviewImage key={i} src={img} alt={`Review ${i + 1}`} />
                     ))}
                   </ReviewImages>
@@ -434,6 +460,7 @@ const ProductDetail = () => {
               </ReviewCard>
             ))}
           </ReviewWrapper>
+
         </TabContent>
       </TabWrapper>
     </ProductContainer>
