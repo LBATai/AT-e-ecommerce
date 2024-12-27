@@ -6,7 +6,7 @@ const PageNotFound = () => {
       <div style={styles.content}>
         <h1 style={styles.title}>404</h1>
         <p style={styles.message}>Oops! Trang bạn tìm kiếm không tồn tại.</p>
-        <a href="/" style={styles.homeButton}>
+        <a href="/home" style={styles.homeButton}>
           Quay về trang chủ
         </a>
       </div>

@@ -1,24 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Input, Modal, Form, message, Upload, Space, Select } from 'antd';
-import { PlusOutlined, UploadOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, UploadOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import { useMutationHooks } from '../../hooks/useMutationHook';
 import { getBase64 } from '../../utils';
 import DrawerComponent from '../DrawerComponent/DrawerComponent';
 import { useSelector } from 'react-redux'
 import * as UserService from '../../Service/UserService';
+
 const AdminUser = () => {
   const user = useSelector((state) => state.user)
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [addForm] = Form.useForm(); // Form riêng cho thêm sản phẩm
-  const [updateForm] = Form.useForm(); // Form riêng cho cập nhật sản phẩm  
+  const [addForm] = Form.useForm();
+  const [updateForm] = Form.useForm();
   const [avatar, setAvatar] = useState('');
-  const [users, setUsers] = useState([]); // State lưu danh sách sản phẩm
-  const [isOpenDrawer, setIsOpenDrawer] = useState(false); // Lưu tổng số sản phẩm
-  const [rowSelected, setRowSelected] = useState('')
-  const [stateUserDetails, setStateUserDetails] = useState('')
+  const [users, setUsers] = useState([]);
+  const [isOpenDrawer, setIsOpenDrawer] = useState(false);
+  const [rowSelected, setRowSelected] = useState('');
+  const [stateUserDetails, setStateUserDetails] = useState('');
   const [selectedUserName, setSelectedUserName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+    const [searchText, setSearchText] = useState('');
 
   const onSelectChange = (newSelectedRowKeys) => {
     setSelectedRowKeys(newSelectedRowKeys);
@@ -27,6 +29,7 @@ const AdminUser = () => {
     selectedRowKeys,
     onChange: onSelectChange,
   };
+
   useEffect(() => {
     fetchAllUser();
   }, []);
@@ -36,15 +39,15 @@ const AdminUser = () => {
     try {
       const response = await UserService.getAllUser();
       if (response && response.status === "OK") {
-        setUsers(response.data); // Cập nhật sản phẩm
+        setUsers(response.data);
       } else {
         console.error("Dữ liệu không hợp lệ:", response);
       }
     } catch (error) {
       console.error("Lỗi khi lấy sản phẩm:", error);
-      message.error("Không thể lấy danh sách tài khoản");
+      message.error("Không thể lấy danh sách tài khoản", 3);
     } finally {
-      setIsLoading(false); // Kết thúc tải
+      setIsLoading(false);
     }
   };
 
@@ -59,7 +62,8 @@ const AdminUser = () => {
         age: res?.data?.age,
         address: res?.data?.address,
         password: res?.data?.password,
-        isAdmin: res?.data?.isAdmin
+        role: res?.data?.role,
+        avatar: res?.data?.avatar
       }),
         setAvatar(res?.data?.avatar);
     }
@@ -89,36 +93,33 @@ const AdminUser = () => {
     }
   }, [rowSelected]);
 
-
   useEffect(() => {
     if (mutation.isSuccess) {
       const response = mutation.data;
 
       if (response && response.message === 'User created successfully') {
-        message.success('Tài khoản được tạo thành công!');
-        setIsModalOpen(false); // Tắt modal
-        addForm.resetFields(); // Reset form
-        updateForm.resetFields(); // Reset form
+        message.success('Tài khoản được tạo thành công!', 3);
+        setIsModalOpen(false);
+        addForm.resetFields();
+        updateForm.resetFields();
         setAvatar('');
-        setUsers([...users, response.data]); // Cập nhật danh sách sản phẩm
+        setUsers([...users, response.data]);
       } else if (response && response.message === 'Email already exists') {
-        message.error('Email đã tồn tại!');
+        message.error('Email đã tồn tại!', 3);
       } else {
-        message.error('Vui lòng nhập đủ các thông tin của tài khoản!');
+        message.error('Vui lòng nhập đủ các thông tin của tài khoản!', 3);
       }
     }
 
     if (mutation.isError) {
-      message.error('Đã xảy ra lỗi, vui lòng thử lại!');
+      message.error('Đã xảy ra lỗi, vui lòng thử lại!', 3);
     }
   }, [mutation.isSuccess, mutation.isError, mutation.data]);
-
-
 
   const handleDetailUser = (record) => {
     setRowSelected(record._id);
     setSelectedUserName(record.name);
-    setIsOpenDrawer(true); // Mở drawer
+    setIsOpenDrawer(true);
   };
 
   const handleDeleteUser = (record) => {
@@ -132,21 +133,22 @@ const AdminUser = () => {
         try {
           const res = await UserService.deleteUser(record._id);
           if (res?.status === 'OK') {
-            message.success('Xóa tài khoản thành công!');
-            fetchAllUser(); // Làm mới danh sách tài khoản  sau khi xóa
+            message.success('Xóa tài khoản thành công!', 3);
+            fetchAllUser();
           } else {
-            message.error('Xóa tài khoản  thất bại!');
+            message.error('Xóa tài khoản thất bại!', 3);
           }
         } catch (error) {
           console.error('Lỗi khi xóa tài khoản :', error);
-          message.error('Đã xảy ra lỗi, vui lòng thử lại sau!');
+          message.error('Đã xảy ra lỗi, vui lòng thử lại sau!', 3);
         }
       },
     });
   };
+
   const handleDeleteSelectedUsers = () => {
     if (selectedRowKeys.length === 0) {
-      message.warning('Vui lòng chọn ít nhất một tài khoản để xóa.');
+      message.warning('Vui lòng chọn ít nhất một tài khoản để xóa.', 3);
       return;
     }
 
@@ -157,22 +159,32 @@ const AdminUser = () => {
       cancelText: 'Hủy',
       onOk: async () => {
         try {
-          // Thực hiện xóa các tài khoản đã chọn
           const res = await UserService.deleteMultipleUsers(selectedRowKeys);
           if (res?.status === 'OK') {
-            message.success('Xóa tài khoản thành công!');
-            fetchAllUser(); // Cập nhật lại danh sách sau khi xóa
-            setSelectedRowKeys([]); // Reset danh sách tài khoản đã chọn
+            message.success('Xóa tài khoản thành công!', 3);
+            fetchAllUser();
+            setSelectedRowKeys([]);
           } else {
-            message.error('Xóa tài khoản thất bại!');
+            message.error('Xóa tài khoản thất bại!', 3);
           }
         } catch (error) {
           console.error('Lỗi khi xóa tài khoản:', error);
-          message.error('Đã xảy ra lỗi khi xóa tài khoản!');
+          message.error('Đã xảy ra lỗi khi xóa tài khoản!', 3);
         }
       },
     });
   };
+
+    const handleSearch = (e) => {
+        setSearchText(e.target.value);
+    };
+
+    const filteredUsers = users.filter(user =>
+        user.name.toLowerCase().includes(searchText.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchText.toLowerCase()) ||
+        user.phone?.toLowerCase().includes(searchText.toLowerCase()) ||
+        user.address?.toLowerCase().includes(searchText.toLowerCase())
+    );
   const columns = [
     {
       title: 'Tên người dùng',
@@ -191,9 +203,16 @@ const AdminUser = () => {
     },
     {
       title: 'Vai trò',
-      dataIndex: 'isAdmin',
-      key: 'isAdmin',
-      render: (isAdmin) => (isAdmin ? 'Admin' : 'User'), // Hiển thị vai trò
+      dataIndex: 'role',
+      key: 'role',
+      render: (role) => {
+        if (role === "admin") {
+          return "Admin"
+        } else if (role === "sale") {
+          return "Sale"
+        }
+        return "User"
+      }
     },
     {
       title: 'Địa chỉ',
@@ -238,32 +257,30 @@ const AdminUser = () => {
     if (!file.url && !file.preview) {
       file.preview = await getBase64(file.originFileObj);
     }
-    setAvatar(file.preview); // Cập nhật hình ảnh
+    setAvatar(file.preview);
   };
 
   const onFinish = (values) => {
     const newUser = {
       ...values,
-      avatar, // Thêm hình ảnh đã chọn (nếu có)
+      avatar,
     };
-    mutation.mutate(newUser); // Gửi yêu cầu tạo sản phẩm
+    mutation.mutate(newUser);
   };
+
   const mutationUpdateUser = useMutationHooks(
     (data) => {
-      const { id, access_token, ...restData } = data;  // Tách access_token và giữ lại dữ liệu cần cập nhật
-      console.log('Dữ liệu trong mutationUpdateUser:', { id, access_token, restData });
-
-      const res = UserService.updateUser(id, access_token, restData); // Gọi hàm updateProduct với đúng tham số
+      const { id, access_token, ...restData } = data;
+      const res = UserService.updateUser(id, access_token, restData);
       return res;
     },
   );
+
   const onFinishUpdateUser = (values) => {
     const data = {
       ...values,
-      avatar, // Nếu có thêm image
+      avatar,
     };
-    console.log('data', data);
-    // Truyền id, access_token và dữ liệu cần cập nhật vào mutate
     mutationUpdateUser.mutate({ id: rowSelected, access_token: user?.access_token, ...data });
   };
 
@@ -272,29 +289,28 @@ const AdminUser = () => {
       const responseUpdate = mutationUpdateUser.data;
 
       if (responseUpdate && responseUpdate.message === 'Update user successfully') {
-        message.success('Tài khoản đã được cập nhật thành công!');
-        setIsOpenDrawer(false); // Tắt modal
+        message.success('Tài khoản đã được cập nhật thành công!', 3);
+        setIsOpenDrawer(false);
         setAvatar('');
-        // Cập nhật danh sách sản phẩm bằng cách thay thế sản phẩm cũ với sản phẩm mới
         setUsers(prevUsers =>
           prevUsers.map(user =>
             user._id === responseUpdate.data._id ? responseUpdate.data : user
           )
         );
       } else {
-        message.error('Có lỗi khi cập nhật sản phẩm!');
+        message.error('Có lỗi khi cập nhật sản phẩm!', 3);
       }
     }
 
     if (mutationUpdateUser.isError) {
-      message.error('Đã xảy ra lỗi, vui lòng thử lại!');
+      message.error('Đã xảy ra lỗi, vui lòng thử lại!', 3);
     }
   }, [mutationUpdateUser.isSuccess, mutationUpdateUser.isError, mutationUpdateUser.data]);
 
   return (
     <div style={{ padding: '20px', background: '#fff' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h2>Quản lý Tài Khoản:  {users.length}</h2>
+        <h2>Quản lý Tài Khoản: {users.length}</h2>
         <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
           Thêm Tài Khoản Mới
         </Button>
@@ -309,9 +325,13 @@ const AdminUser = () => {
           </Button>
         )}
       </div>
-
-      <Input.Search placeholder="Tìm tài khoản..." style={{ marginBottom: '20px' }} allowClear />
-
+     <Input.Search
+          placeholder="Tìm tài khoản..."
+          style={{ marginBottom: '20px' }}
+          value={searchText}
+          onChange={handleSearch}
+          prefix={<SearchOutlined />}
+        />
       <Table
         rowSelection={rowSelection}
         columns={columns}
@@ -319,12 +339,12 @@ const AdminUser = () => {
         loading={isLoading}
         pagination={{
           pageSize: 5,
-          style: { display: 'flex', justifyContent: 'center' }, // Căn giữa pagination
+          style: { display: 'flex', justifyContent: 'center' },
         }}
-        dataSource={users} // Truyền danh sách sản phẩm vào bảng
-        onRow={(record, rowIdex) => {
+        dataSource={filteredUsers}
+         onRow={(record) => {
           return {
-            onClick: event => {
+            onClick: () => {
               setRowSelected(record._id)
             }
           }
@@ -360,14 +380,15 @@ const AdminUser = () => {
           >
             <Input type="email" placeholder="Nhập email" />
           </Form.Item>
-          <Form.Item
-            name="isAdmin"
+           <Form.Item
+            name="role"
             label="Quyền"
             rules={[{ required: true, message: 'Vui lòng chọn quyền' }]}
           >
             <Select placeholder="Chọn quyền">
-              <Select.Option value={true}>Admin</Select.Option>
-              <Select.Option value={false}>User</Select.Option>
+              <Select.Option value="admin">Admin</Select.Option>
+              <Select.Option value="user">User</Select.Option>
+               <Select.Option value="sale">Sale</Select.Option>
             </Select>
           </Form.Item>
           <Form.Item
@@ -480,7 +501,7 @@ const AdminUser = () => {
               },
             ]}
           >
-            <Input placeholder="Nhập tên tài khoản" />
+            <Input disabled placeholder="Nhập tên tài khoản" />
           </Form.Item>
           <Form.Item
             name="email"
@@ -493,16 +514,17 @@ const AdminUser = () => {
               },
             ]}
           >
-            <Input type="email" placeholder="Nhập email" />
+            <Input disabled type="email" placeholder="Nhập email" />
           </Form.Item>
-          <Form.Item
-            name="isAdmin"
+           <Form.Item
+            name="role"
             label="Quyền"
             rules={[{ required: true, message: 'Vui lòng chọn quyền' }]}
           >
             <Select placeholder="Chọn quyền">
-              <Select.Option value={true}>Admin</Select.Option>
-              <Select.Option value={false}>User</Select.Option>
+              <Select.Option value="admin">Admin</Select.Option>
+              <Select.Option value="user">User</Select.Option>
+                <Select.Option value="sale">Sale</Select.Option>
             </Select>
           </Form.Item>
           <Form.Item
@@ -518,7 +540,7 @@ const AdminUser = () => {
               },
             ]}
           >
-            <Input type="tel" placeholder="Nhập số điện thoại" />
+            <Input disabled type="tel" placeholder="Nhập số điện thoại" />
           </Form.Item>
           <Form.Item
             name="address"
@@ -533,7 +555,7 @@ const AdminUser = () => {
               },
             ]}
           >
-            <Input placeholder="Nhập địa chỉ" />
+            <Input disabled placeholder="Nhập địa chỉ" />
           </Form.Item>
           <Form.Item
             name="age"
@@ -548,12 +570,9 @@ const AdminUser = () => {
               },
             ]}
           >
-            <Input placeholder="Nhập tuổi" />
+            <Input disabled placeholder="Nhập tuổi" />
           </Form.Item>
           <Form.Item label="Hình Ảnh" rules={[{ required: true, message: 'Vui lòng chọn hình ảnh đại diện' }]} style={{ display: 'flex', }}>
-            <Upload onChange={handleOnchangeAvatar} maxCount={1} beforeUpload={() => false}>
-              <Button icon={<UploadOutlined />}>Tải ảnh lên</Button>
-            </Upload>
             {avatar && (
               <img
                 src={avatar}

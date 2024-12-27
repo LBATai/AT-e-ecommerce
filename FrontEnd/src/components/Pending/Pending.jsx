@@ -1,17 +1,19 @@
 import React from 'react';
+import './Pending.css';
 
-const Pending = ({ isPending, children, delay = 10 }) => {
-  return (
-    <>
-      {isPending ? (
-        <div className="flex items-center justify-center h-fit">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+const Pending = ({ isPending, children }) => {
+  if (isPending) {
+    return (
+      <div className="pending-overlay">
+        <div className="pending-content flex items-center justify-center"> {/* Thêm class flex */}
+          <div className="loader-container">
+            <div className="loader"></div>
+          </div>
         </div>
-      ) : (
-        <>{children}</>
-      )}
-    </>
-  );
+      </div>
+    );
+  }
+  return children;
 };
 
 export default Pending;

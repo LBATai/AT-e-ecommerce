@@ -5,7 +5,8 @@ const userSchema = new mongoose.Schema(
         email: { type: String, required: true, unique: true },
         password: { type: String, required: true },
         phone: { type: String, required: true},
-        isAdmin : { type: Boolean, default: false},
+        // isAdmin : { type: Boolean, default: false},
+        role: { type: String, enum: ['admin', 'user', 'sale'], }, // Thay isAdmin bằng role
         avatar: { type: String, },
         address: { type: String, require: true},
         age: { type: String, require: true},

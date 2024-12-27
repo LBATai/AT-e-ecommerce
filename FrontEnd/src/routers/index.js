@@ -1,4 +1,5 @@
 import HomePage from "../pages/HomePage/HomePage";
+import ShopPage from "../pages/ShopPage/ShopPage";
 import CartPage from "../pages/CartPage/CartPage";
 import PageNotFound from "../pages/PageNotFound/PageNotFound";
 import ProductDetail from "../pages/ProductDetailPage/ProductDetail";
@@ -20,6 +21,10 @@ export const routes = [
     {
         path: "/home",
         component: HomePage 
+    },
+    {
+        path: "/shop",
+        component: ShopPage 
     },
     {
         path: "/cart",

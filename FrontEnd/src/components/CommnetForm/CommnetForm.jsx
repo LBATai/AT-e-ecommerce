@@ -3,6 +3,7 @@ import { UploadOutlined } from '@ant-design/icons';
 import React, { useState, useEffect } from 'react';
 import { useMutationHooks } from '../../hooks/useMutationHook';
 import * as CommentService from '../../Service/CommentService';
+import * as ProductService from '../../Service/ProductService';
 import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { formatDate } from '../../utils'
@@ -23,37 +24,44 @@ const CommentForm = ({ onSubmit, isOpen, onClose ,onCommentAdded}) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [productId, setProductId] = useState(id);
-  const [userAvatar, setUserAvatar] = useState('');
-  const [nameUser, setNameUser] = useState('');
+    const [userAvatar, setUserAvatar] = useState('');
+    const [nameUser, setNameUser] = useState('');
 
-  useEffect(() => {
-    setUserAvatar(user?.avatar);
-    setNameUser(user?.name);
-  }, [user?.avatar]);
+    useEffect(() => {
+        setUserAvatar(user?.avatar);
+        setNameUser(user?.name);
+    }, [user?.avatar]);
 
-  const handleCommentChange = (e) => {
-    setNewComment(e.target.value);
-  };
-
-  const handleRatingChange = (value) => {
-    setRating(value);
-  };
-
-  // create new comment
-  const commentData = {
-    content: newComment,
-    rating: rating,
-    productId: productId,
-    userId: user.id,
-    avatarUser: userAvatar,
-    nameUser: nameUser,
-  };
-  const mutationCreateComment = useMutationHooks(
-    async (commentData) => {
-      const response = await CommentService.createComment(commentData);
-      return response;
+    const handleCommentChange = (e) => {
+        setNewComment(e.target.value);
+    };
+    const handleRatingChange = (value) => {
+        setRating(value);
+    };
+    // create new comment
+    const commentData = {
+        content: newComment,
+        rating: rating,
+        productId: productId,
+        userId: user.id,
+        avatarUser: userAvatar,
+        nameUser: nameUser,
+    };
+    const mutationCreateComment = useMutationHooks(
+        async (commentData) => {
+            const response = await CommentService.createComment(commentData);
+            return response;
+        }
+    );
+    const fetchProductDetails = async () => {
+        try {
+           const res = await ProductService.getDetailsProduct(productId);
+           return res.data;
+        } catch (error) {
+            message.error('Lỗi khi tải chi tiết sản phẩm.');
+             return null;
+        }
     }
-  );
   const handleAddComment = async () => {
     if (!newComment) {
       message.warning('Vui lòng nhập bình luận');
@@ -63,41 +71,51 @@ const CommentForm = ({ onSubmit, isOpen, onClose ,onCommentAdded}) => {
       message.warning('Vui lòng chọn đánh giá');
       return;
     }
+      setIsSubmitting(true); // Bắt đầu quá trình gửi
     mutationCreateComment.mutate(commentData, {
-      onSuccess: () => {
-        // Reset comment và rating sau khi thêm bình luận thành công
-        setNewComment('');
-        setRating(0);
-        // Gọi lại danh sách bình luận
-        fetchCommentsByProduct();
-        message.success('Thêm bình luận thành công');
-        if (onCommentAdded) {
-          onCommentAdded();
-        }
-        onClose();
-      },
-      onError: () => {
-        message.error('Lỗi khi thêm bình luận');
-      }
-    });
-  };
+          onSuccess: async () => {
+            setNewComment('');
+            setRating(0);
+           
+              // call function to fetch new comment
+           await  fetchCommentsByProduct();
+              const res = await  fetchProductDetails();
+              if(res){
+                  const newRating = res.rating;
+                  const newCountRating = res.countRating
+                    if (onCommentAdded) {
+                        onCommentAdded(productId, newRating, newCountRating );
+                    }
+              }
+             message.success('Thêm bình luận thành công');
+              setIsSubmitting(false);  // Kết thúc quá trình gửi
+               onClose();
+          },
+            onError: () => {
+             message.error('Lỗi khi thêm bình luận');
+                setIsSubmitting(false); // Đảm bảo kết thúc quá trình gửi khi lỗi
+           }
+        });
+    };
 
-  // lấy danh sách comment
-  useEffect(() => {
-    if (id) {
-      fetchCommentsByProduct();
-    } else {
-      message.error('Product ID không hợp lệ');
+    // lấy danh sách comment
+    useEffect(() => {
+        if (id) {
+            fetchCommentsByProduct();
+        } else {
+            message.error('Product ID không hợp lệ');
+        }
+    }, [productId]);
+
+    const fetchCommentsByProduct = async () => {
+        try {
+            const response = await CommentService.getCommentsByProduct(productId);
+            setComments(response.data);
+        } catch (error) {
+            message.error('Lỗi khi lấy bình luận.');
+        }
     }
-  }, [productId]);
-  const fetchCommentsByProduct = async () => {
-    try {
-      const response = await CommentService.getCommentsByProduct(productId);
-      setComments(response.data);
-    } catch (error) {
-      message.error('Lỗi khi lấy bình luận.');
-    }
-  }
+
 
   const handleDeleteComment = async (commentId) => {
     // Xử lý xóa bình luận nếu cần

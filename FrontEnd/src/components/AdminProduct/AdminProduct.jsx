@@ -1,21 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Input, Modal, Form, message, Upload, Space, Select, Row, Col } from 'antd';
-import { PlusOutlined, UploadOutlined, EditOutlined, DeleteOutlined, } from '@ant-design/icons';
+import { Table, Button, Input, Modal, Form, message, Upload, Space, Select, Row, Col, Card } from 'antd';
+import { PlusOutlined, UploadOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import { useMutationHooks } from '../../hooks/useMutationHook';
 import * as ProductService from '../../Service/ProductService';
 import { getBase64 } from '../../utils';
 import DrawerComponent from '../DrawerComponent/DrawerComponent';
 import { useSelector } from 'react-redux'
 import { renderOptions, fetchAllTypeProduct, formatCurrencyVND } from '../../utils'
+
 const AdminProduct = () => {
   const user = useSelector((state) => state.user)
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [addForm] = Form.useForm(); // Form riêng cho thêm sản phẩm
-  const [updateForm] = Form.useForm(); // Form riêng cho cập nhật sản phẩm  
+  const [addForm] = Form.useForm();
+  const [updateForm] = Form.useForm();
   const [images, setImages] = useState([]);
-  const [products, setProducts] = useState([]); // State lưu danh sách sản phẩm
-  const [isOpenDrawer, setIsOpenDrawer] = useState(false); // Lưu tổng số sản phẩm
+  const [products, setProducts] = useState([]);
+  const [isOpenDrawer, setIsOpenDrawer] = useState(false);
   const [rowSelected, setRowSelected] = useState('')
   const [stateProductDetails, setStateProductDetails] = useState('')
   const [selectedProductName, setSelectedProductName] = useState('');
@@ -25,7 +26,7 @@ const AdminProduct = () => {
   const [types, setTypes] = useState([]);
   const [newType, setNewType] = useState('');
   const [isAddingType, setIsAddingType] = useState(false);
-  const [selectedType, setSelectedType] = useState(types[0]);// Trạng thái lưu loại sản phẩm đã chọn
+  const [selectedType, setSelectedType] = useState(types[0]);
 
   // Lấy danh sách loại sản phẩm từ API
   useEffect(() => {
@@ -58,16 +59,15 @@ const AdminProduct = () => {
     try {
       const response = await ProductService.getAllProduct();
       if (response && response.status === "OK") {
-        setProducts(response.data); // Cập nhật sản phẩm
-        // console.log('response.data', response.data)
+        setProducts(response.data);
       } else {
         console.error("Dữ liệu không hợp lệ:", response);
       }
     } catch (error) {
       console.error("Lỗi khi lấy sản phẩm:", error);
-      message.error("Không thể lấy danh sách sản phẩm");
+      message.error("Không thể lấy danh sách sản phẩm", 3);
     } finally {
-      setIsLoading(false); // Kết thúc tải
+      setIsLoading(false);
     }
   };
   useEffect(() => {
@@ -109,37 +109,32 @@ const AdminProduct = () => {
       const response = mutation.data;
 
       if (response && response.message === 'Product created successfully') {
-        message.success('Sản phẩm đã được thêm thành công!');
-        setIsModalOpen(false); // Tắt modal
-        addForm.resetFields(); // Reset form
-        updateForm.resetFields(); // Reset form
-        setImages(''); // Reset hình ảnh
-        setProducts([...products, response.data]); // Cập nhật danh sách sản phẩm
+        message.success('Sản phẩm đã được thêm thành công!', 3);
+        setIsModalOpen(false);
+        addForm.resetFields();
+        updateForm.resetFields();
+        setImages('');
+        setProducts([...products, response.data]);
       } else {
-        // Xử lý các lỗi không phải thành công
-        message.error(response.message || 'Vui lòng nhập đủ các thông tin của sản phẩm!');
+        message.error(response.message || 'Vui lòng nhập đủ các thông tin của sản phẩm!', 3);
       }
     }
 
     if (mutation.isError) {
-      // Kiểm tra nếu có lỗi trả về từ API
       if (mutation.error && mutation.error.response && mutation.error.response.data) {
         const errorMessage = mutation.error.response.data.message || 'Đã xảy ra lỗi, vui lòng thử lại!';
-        // Hiển thị thông báo lỗi tùy theo thông điệp của API
         if (errorMessage === 'The name of the product already exists') {
-          message.error('Tên sản phẩm đã tồn tại!');
+          message.error('Tên sản phẩm đã tồn tại!', 3);
         } else if (errorMessage === 'Images are required') {
-          message.error('Ảnh sản phẩm là bắt buộc!');
+          message.error('Ảnh sản phẩm là bắt buộc!', 3);
         } else {
-          message.error(errorMessage);
+          message.error(errorMessage, 3);
         }
       } else {
-        message.error('Đã xảy ra lỗi, vui lòng thử lại!');
+        message.error('Đã xảy ra lỗi, vui lòng thử lại!', 3);
       }
     }
   }, [mutation.isSuccess, mutation.isError, mutation.data, mutation.error]);
-
-
 
 
   useEffect(() => {
@@ -163,7 +158,7 @@ const AdminProduct = () => {
   const handleDetailProduct = (record) => {
     setRowSelected(record._id);
     setSelectedProductName(record.name);
-    setIsOpenDrawer(true); // Mở drawer
+    setIsOpenDrawer(true);
   };
   const handleDeleteProduct = (record) => {
     setSelectedProductName(record.name);
@@ -176,14 +171,14 @@ const AdminProduct = () => {
         try {
           const res = await ProductService.deleteProduct(record._id);
           if (res?.status === 'OK') {
-            message.success('Xóa sản phẩm thành công!');
-            fetchAllProducts(); // Làm mới danh sách sản phẩm sau khi xóa
+            message.success('Xóa sản phẩm thành công!', 3);
+            fetchAllProducts();
           } else {
-            message.error('Xóa sản phẩm thất bại!');
+            message.error('Xóa sản phẩm thất bại!', 3);
           }
         } catch (error) {
           console.error('Lỗi khi xóa sản phẩm:', error);
-          message.error('Đã xảy ra lỗi, vui lòng thử lại sau!');
+          message.error('Đã xảy ra lỗi, vui lòng thử lại sau!', 3);
         }
       },
     });
@@ -204,15 +199,14 @@ const AdminProduct = () => {
   const handleOnchangeImages = async ({ fileList }) => {
     const newImages = await Promise.all(fileList.map(async (file) => {
       if (!file.url && !file.preview) {
-        file.preview = await getBase64(file.originFileObj); // Chuyển file thành URL base64
+        file.preview = await getBase64(file.originFileObj);
       }
-      return file.preview; // Trả về URL của ảnh
+      return file.preview;
     }));
 
-    setImages(newImages); // Cập nhật mảng images với tất cả các hình ảnh
+    setImages(newImages);
   };
   const handleDeleteSelectedProducts = async () => {
-    // console.log('Selected Row Keys:', selectedRowKeys); 
     Modal.confirm({
       title: 'Xác nhận xóa',
       content: `Bạn có chắc chắn muốn xóa ${selectedRowKeys.length} sản phẩm đã chọn không?`,
@@ -220,105 +214,94 @@ const AdminProduct = () => {
       cancelText: 'Hủy',
       onOk: async () => {
         try {
-          const res = await ProductService.deleteMultipleProducts(selectedRowKeys); // Gọi API xóa nhiều sản phẩm
+          const res = await ProductService.deleteMultipleProducts(selectedRowKeys);
           if (res?.status === 'OK') {
-            message.success('Xóa sản phẩm thành công!');
-            fetchAllProducts(); // Làm mới danh sách sản phẩm
-            setSelectedRowKeys([]); // Reset danh sách sản phẩm được chọn
+            message.success('Xóa sản phẩm thành công!', 3);
+            fetchAllProducts();
+            setSelectedRowKeys([]);
           } else {
-            message.error('Xóa sản phẩm thất bại!');
+            message.error('Xóa sản phẩm thất bại!', 3);
           }
         } catch (error) {
           console.error('Lỗi khi xóa sản phẩm:', error);
-          message.error('Đã xảy ra lỗi, vui lòng thử lại sau!');
+          message.error('Đã xảy ra lỗi, vui lòng thử lại sau!', 3);
         }
       },
     });
   };
-  // Hàm handleSearch thực hiện tìm kiếm khi có từ khóa
-  const handleSearch = async () => {
-    try {
-      const response = await ProductService.getAllProduct(searchText); // Gửi từ khóa tìm kiếm
-      setProducts(response.data); // Cập nhật danh sách sản phẩm
-    } catch (error) {
-      console.error('Lỗi khi tìm kiếm sản phẩm:', error);
-    }
+
+  const handleSearch = (e) => {
+    setSearchText(e.target.value);
   };
+
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(searchText.toLowerCase()) ||
+    product.type.toLowerCase().includes(searchText.toLowerCase()) ||
+    product.description.toLowerCase().includes(searchText.toLowerCase())
+  );
 
   const onFinish = (values) => {
     if (values.options && Array.isArray(values.options)) {
-      // Kiểm tra nếu chưa thêm màu sắc nào
       if (!values.options || !Array.isArray(values.options) || values.options.length === 0) {
-        message.error("Vui lòng thêm ít nhất một màu sắc.");
+        message.error("Vui lòng thêm ít nhất một màu sắc.", 3);
         return;
       }
-      // Kiểm tra xem từng màu sắc có kích thước hay không
       const invalidColor = values.options.find(
         (option) => !option.sizes || option.sizes.length === 0
       );
 
       if (invalidColor) {
-        message.error("Vui lòng thêm ít nhất một kích thước cho mỗi màu sắc.");
+        message.error("Vui lòng thêm ít nhất một kích thước cho mỗi màu sắc.", 3);
         return;
       }
     }
     const newProduct = {
       ...values,
-      images, // Thêm hình ảnh đã chọn (nếu có)
+      images,
     };
-    mutation.mutate(newProduct); // Gửi yêu cầu tạo sản phẩm
+    mutation.mutate(newProduct);
   };
 
   const mutationUpdateProduct = useMutationHooks(
     (data) => {
-      const { id, access_token, ...restData } = data;  // Tách access_token và giữ lại dữ liệu cần cập nhật
-      const res = ProductService.updateProduct(id, access_token, restData); // Gọi hàm updateProduct với đúng tham số
+      const { id, access_token, ...restData } = data;
+      const res = ProductService.updateProduct(id, access_token, restData);
       return res;
     },
   );
 
   const onFinishUpdateProduct = (values) => {
-    // Tính toán lại tổng số lượng tồn kho từ options
     let totalStock = 0;
-
     if (values.options && Array.isArray(values.options)) {
-      // Kiểm tra nếu chưa thêm màu sắc nào
       if (!values.options || !Array.isArray(values.options) || values.options.length === 0) {
-        message.error("Vui lòng thêm ít nhất một màu sắc.");
+        message.error("Vui lòng thêm ít nhất một màu sắc.", 3);
         return;
       }
-      // Kiểm tra xem từng màu sắc có kích thước hay không
       const invalidColor = values.options.find(
         (option) => !option.sizes || option.sizes.length === 0
       );
 
       if (invalidColor) {
-        message.error("Vui lòng thêm ít nhất một kích thước cho mỗi màu sắc.");
+        message.error("Vui lòng thêm ít nhất một kích thước cho mỗi màu sắc.", 3);
         return;
       }
-
-      // Nếu tất cả đều hợp lệ, tính tổng số lượng tồn kho
       values.options.forEach((option) => {
         if (option.sizes && Array.isArray(option.sizes)) {
           option.sizes.forEach((size) => {
-            // Chuyển đổi countInStock về số trước khi cộng
-            totalStock += Number(size.countInStock) || 0; // Sử dụng Number() để ép kiểu, tránh lỗi nối chuỗi
+            totalStock += Number(size.countInStock) || 0;
           });
         }
       });
     } else {
-      message.error("Vui lòng thêm ít nhất một màu sắc và kích thước.");
+      message.error("Vui lòng thêm ít nhất một màu sắc và kích thước.", 3);
       return;
     }
-
-    // Chuẩn bị dữ liệu cập nhật
     const data = {
       ...values,
-      images, // Nếu có thêm images
-      countAllInStock: totalStock, // Đảm bảo API nhận đúng giá trị
+      images,
+      countAllInStock: totalStock,
     };
 
-    // Truyền id, access_token và dữ liệu cần cập nhật vào mutate
     mutationUpdateProduct.mutate({
       id: rowSelected,
       access_token: user?.access_token,
@@ -332,31 +315,30 @@ const AdminProduct = () => {
       const responseUpdate = mutationUpdateProduct.data;
 
       if (responseUpdate && responseUpdate.message === 'Update product successfully') {
-        message.success('Sản phẩm đã được cập nhật thành công!');
-        setIsOpenDrawer(false); // Tắt modal
+        message.success('Sản phẩm đã được cập nhật thành công!', 3);
+        setIsOpenDrawer(false);
         setImages('');
-        // Cập nhật danh sách sản phẩm bằng cách thay thế sản phẩm cũ với sản phẩm mới
         setProducts(prevProducts =>
           prevProducts.map(product =>
             product._id === responseUpdate.data._id ? responseUpdate.data : product
           )
         );
       } else {
-        message.error('Có lỗi khi cập nhật sản phẩm!');
+        message.error('Có lỗi khi cập nhật sản phẩm!', 3);
       }
     }
 
     if (mutationUpdateProduct.isError) {
-      message.error('Đã xảy ra lỗi, vui lòng thử lại!');
+      message.error('Đã xảy ra lỗi, vui lòng thử lại!', 3);
     }
   }, [mutationUpdateProduct.isSuccess, mutationUpdateProduct.isError, mutationUpdateProduct.data]);
 
   const handleDeleteImage = (index) => {
-    // Tạo một bản sao mới của mảng images và xóa ảnh tại vị trí index
     const newImages = [...images];
-    newImages.splice(index, 1); // Xóa ảnh tại index
-    setImages(newImages); // Cập nhật lại state
+    newImages.splice(index, 1);
+    setImages(newImages);
   };
+
 
   const columns = [
     {
@@ -369,7 +351,7 @@ const AdminProduct = () => {
       title: 'Giá',
       dataIndex: 'price',
       key: 'price',
-      render: (text) => formatCurrencyVND(text), // Hiển thị giá có thêm đơn vị VND
+      render: (text) => formatCurrencyVND(text),
       sorter: (a, b) => a.price - b.price
     },
     {
@@ -388,7 +370,7 @@ const AdminProduct = () => {
       title: 'Mô Tả',
       dataIndex: 'description',
       key: 'description',
-      render: (text) => (text.length > 20 ? `${text.substring(0, 20)}...` : text), // Rút ngắn mô tả nếu dài
+      render: (text) => (text.length > 20 ? `${text.substring(0, 20)}...` : text),
       sorter: (a, b) => a.description.localeCompare(b.description)
     },
     {
@@ -416,7 +398,7 @@ const AdminProduct = () => {
   return (
     <div style={{ padding: '20px', background: '#fff' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <h2>Quản lý Sản Phẩm:  {products.length}</h2>
+        <h2>Quản lý Sản Phẩm: {products.length}</h2>
         <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
           Thêm Sản Phẩm Mới
         </Button>
@@ -431,8 +413,13 @@ const AdminProduct = () => {
           </Button>
         )}
       </div>
-      <Input.Search placeholder="Tìm sản phẩm..." style={{ marginBottom: '20px' }} allowClear />
-
+      <Input.Search
+        placeholder="Tìm sản phẩm..."
+        style={{ marginBottom: '20px' }}
+        value={searchText}
+        onChange={handleSearch}
+        prefix={<SearchOutlined />}
+      />
       <Table
         rowSelection={rowSelection}
         columns={columns}
@@ -440,167 +427,175 @@ const AdminProduct = () => {
         loading={isLoading}
         pagination={{
           pageSize: 8,
-          style: { display: 'flex', justifyContent: 'center' }, // Căn giữa pagination
+          style: { display: 'flex', justifyContent: 'center' },
         }}
-        dataSource={products}
-        onRow={(record, rowIdex) => {
+        dataSource={filteredProducts}
+        onRow={(record) => {
           return {
-            onClick: event => {
+            onClick: () => {
               setRowSelected(record._id)
             }
           }
         }}
       />
-      <Modal title="Thêm Sản Phẩm Mới" open={isModalOpen} onCancel={handleCancel} footer={null} width={800} maskClosable={false}>
+      <Modal title="Thêm Sản Phẩm Mới" open={isModalOpen} onCancel={handleCancel} footer={null} width={1000} maskClosable={false}>
         <Form form={addForm} layout="vertical" onFinish={onFinish} initialValues={{ type: selectedType, }}>
-          <Form.Item name="name" label="Tên Sản Phẩm" rules={[{ required: true, message: 'Vui lòng nhập tên sản phẩm' }]}>
-            <Input placeholder="Nhập tên sản phẩm" />
-          </Form.Item>
-          <Form.Item
-            name="price"
-            label="Giá sản phẩm (VNĐ)"
-            rules={[
-              { required: true, message: "Vui lòng nhập giá sản phẩm" },
-              {
-                validator: (_, value) =>
-                  value && value < 1
-                    ? Promise.reject(new Error("Giá sản phẩm phải lớn hơn 0"))
-                    : Promise.resolve(),
-              },
-            ]}
-          >
-            <Input
-              type="number"
-              placeholder="Nhập giá sản phẩm"
-              onChange={(e) => {
-                const value = e.target.value; // Lấy giá trị từ input
-                addForm.setFieldsValue({ price: value }); // Cập nhật vào form
-              }}
-            />
-          </Form.Item>
-          <Form.Item
-            name="sex"
-            label="Sản phẩm dành cho giới tính"
-            rules={[{ required: true, message: 'Vui lòng chọn giới tính sản phẩm' }]}
-          >
-            <Select placeholder="Chọn giới tính sản phẩm">
-              <Select.Option value="male">Nam</Select.Option>
-              <Select.Option value="female">Nữ</Select.Option>
-              <Select.Option value="unisex">Unisex</Select.Option>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            name="type"
-            label="Loại sản phẩm"
-            rules={[{ required: true, message: "Vui lòng chọn loại sản phẩm" }]}
-          >
-            <Select
-              placeholder="Chọn loại sản phẩm"
-              allowClear
-              value={selectedType} // Sử dụng selectedType để quản lý giá trị đã chọn
-              onChange={(value) => {
-                if (value === 'add_type') {
-                  setIsAddingType(true); // Hiển thị ô nhập liệu khi chọn "Thêm type"
-                } else {
-                  setSelectedType(value); // Cập nhật giá trị đã chọn
-                  setIsAddingType(false); // Nếu chọn loại có sẵn, ẩn ô nhập liệu
-                }
-              }}
-              options={renderOptions(types)} // Sử dụng kết quả từ hàm renderOptions
-            />
-          </Form.Item>
+          <Row gutter={24}>
+            <Col span={12}>
+              <Form.Item name="name" label="Tên Sản Phẩm" rules={[{ required: true, message: 'Vui lòng nhập tên sản phẩm' }]}>
+                <Input placeholder="Nhập tên sản phẩm" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="price"
+                label="Giá sản phẩm (VNĐ)"
+                rules={[
+                  { required: true, message: "Vui lòng nhập giá sản phẩm" },
+                  {
+                    validator: (_, value) =>
+                      value && value < 1
+                        ? Promise.reject(new Error("Giá sản phẩm phải lớn hơn 0"))
+                        : Promise.resolve(),
+                  },
+                ]}
+              >
+                <Input
+                  type="number"
+                  placeholder="Nhập giá sản phẩm"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    addForm.setFieldsValue({ price: value });
+                  }}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={24}>
+            <Col span={12}>
+              <Form.Item
+                name="sex"
+                label="Sản phẩm dành cho giới tính"
+                rules={[{ required: true, message: 'Vui lòng chọn giới tính sản phẩm' }]}
+              >
+                <Select placeholder="Chọn giới tính sản phẩm">
+                  <Select.Option value="male">Nam</Select.Option>
+                  <Select.Option value="female">Nữ</Select.Option>
+                  <Select.Option value="unisex">Unisex</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="type"
+                label="Loại sản phẩm"
+                rules={[{ required: true, message: "Vui lòng chọn loại sản phẩm" }]}
+              >
+                <Select
+                  placeholder="Chọn loại sản phẩm"
+                  allowClear
+                  value={selectedType} // Sử dụng selectedType để quản lý giá trị đã chọn
+                  onChange={(value) => {
+                    if (value === 'add_type') {
+                      setIsAddingType(true); // Hiển thị ô nhập liệu khi chọn "Thêm type"
+                    } else {
+                      setSelectedType(value); // Cập nhật giá trị đã chọn
+                      setIsAddingType(false); // Nếu chọn loại có sẵn, ẩn ô nhập liệu
+                    }
+                  }}
+                  options={renderOptions(types)} // Sử dụng kết quả từ hàm renderOptions
+                />
+              </Form.Item>
+              {isAddingType && (
+                <Form.Item label="Nhập loại sản phẩm mới">
+                  <Input
+                    value={newType}
+                    onChange={(e) => setNewType(e.target.value)}
+                    placeholder="Nhập loại sản phẩm mới"
+                  />
+                  <Button type="primary" onClick={handleAddType} style={{ marginTop: 10 }}>
+                    Thêm loại
+                  </Button>
+                </Form.Item>
+              )}
+            </Col>
+          </Row>
+          <Row gutter={24}>
+            <Col span={24}>
+              <Form.Item name="description" label="Mô Tả" rules={[{ required: true, message: 'Vui lòng nhập mô tả sản phẩm' }]}>
+                <Input.TextArea placeholder="Nhập mô tả sản phẩm" autoSize={{ minRows: 3, maxRows: 15 }} />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={24}>
+            <Col span={12}>
+              <Form.Item name="discount" label="Phần trăm giảm giá"
+                rules={[
+                  { required: true, message: 'Vui lòng nhập phần trăm giảm giá trong khoảng 0 - 100' },
+                  {
+                    validator: (_, value) =>
+                      value && (value < 0 || value > 100)
+                        ? Promise.reject(new Error('Phần trăm giảm giá phải nằm trong khoảng 1 đến 100'))
+                        : Promise.resolve(),
+                  },
+                ]}>
+                <Input type="number" placeholder="Nhập phần trăm giảm giá" />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={24}>
+            <Col span={24}>
+              <Form.Item
+                label="Hình Ảnh"
+                rules={[{ required: true, message: 'Vui lòng chọn hình ảnh sản phẩm' }]}
+                style={{ display: 'flex' }}
+              >
+                <Upload
+                  onChange={handleOnchangeImages}
+                  multiple={true}
+                  maxCount={3}
+                  beforeUpload={() => false} // Prevent auto upload
+                >
+                  <Button icon={<UploadOutlined />}>Tải ảnh lên</Button>
+                </Upload>
 
-          {isAddingType && (
-            <Form.Item label="Nhập loại sản phẩm mới">
-              <Input
-                value={newType}
-                onChange={(e) => setNewType(e.target.value)}
-                placeholder="Nhập loại sản phẩm mới"
-              />
-              <Button type="primary" onClick={handleAddType} style={{ marginTop: 10 }}>
-                Thêm loại
-              </Button>
-            </Form.Item>
-          )}
-          <Form.Item name="description" label="Mô Tả" rules={[{ required: true, message: 'Vui lòng nhập mô tả sản phẩm' }]}>
-            <Input.TextArea placeholder="Nhập mô tả sản phẩm" autoSize={{ minRows: 3, maxRows: 15 }} />
-          </Form.Item>
-          {/* <Form.Item name="countInStock" label="Số Lượng sản phẩm"
-            rules={[
-              { required: true, message: 'Vui lòng nhập số lượng' },
-              {
-                validator: (_, value) =>
-                  value && (value < 1)
-                    ? Promise.reject(new Error('Số lượng sản phẩm phải lớn hơn 0'))
-                    : Promise.resolve(),
-              },
-            ]}>
-            <Input type="number" placeholder="Nhập số lượng sản phẩm" />
-          </Form.Item> */}
-          <Form.Item name="discount" label="Phần trăm giảm giá"
-            rules={[
-              { required: true, message: 'Vui lòng nhập phần trăm giảm giá trong khoảng 0 - 100' },
-              {
-                validator: (_, value) =>
-                  value && (value < 0 || value > 100)
-                    ? Promise.reject(new Error('Phần trăm giảm giá phải nằm trong khoảng 1 đến 100'))
-                    : Promise.resolve(),
-              },
-            ]}>
-            <Input type="number" placeholder="Nhập phần trăm giảm giá" />
-          </Form.Item>
-          {/* Hình ảnh của form thêm mới */}
-          <Form.Item
-            label="Hình Ảnh"
-            rules={[{ required: true, message: 'Vui lòng chọn hình ảnh sản phẩm' }]}
-            style={{ display: 'flex' }}
-          >
-            <Upload
-              onChange={handleOnchangeImages}
-              multiple={true}
-              maxCount={3}
-              beforeUpload={() => false} // Prevent auto upload
-            >
-              <Button icon={<UploadOutlined />}>Tải ảnh lên</Button>
-            </Upload>
-
-            {images && images.length > 0 && (
-              <div style={{ marginTop: '10px', display: 'flex', flexWrap: 'wrap' }}>
-                {images.map((image, index) => (
-                  <div key={index} style={{ position: 'relative', marginRight: '10px', marginBottom: '10px' }}>
-                    <img
-                      src={image}
-                      alt={`Product Image ${index + 1}`}
-                      style={{ width: '100px', height: '100px' }}
-                    />
-                    {/* Nút xóa */}
-                    <Button
-                      onClick={() => handleDeleteImage(index)}
-                      icon={<DeleteOutlined />}
-                      style={{
-                        position: 'absolute',
-                        top: '0',
-                        right: '0',
-                        backgroundColor: 'red',
-                        color: 'white',
-                        borderRadius: '50%',
-                      }}
-                      size="small"
-                    />
+                {images && images.length > 0 && (
+                  <div style={{ marginTop: '10px', display: 'flex', flexWrap: 'wrap' }}>
+                    {images.map((image, index) => (
+                      <div key={index} style={{ position: 'relative', marginRight: '10px', marginBottom: '10px' }}>
+                        <img
+                          src={image}
+                          alt={`Product Image ${index + 1}`}
+                          style={{ width: '100px', height: '100px' }}
+                        />
+                        {/* Nút xóa */}
+                        <Button
+                          onClick={() => handleDeleteImage(index)}
+                          icon={<DeleteOutlined />}
+                          style={{
+                            position: 'absolute',
+                            top: '0',
+                            right: '0',
+                            backgroundColor: 'red',
+                            color: 'white',
+                            borderRadius: '50%',
+                          }}
+                          size="small"
+                        />
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
-          </Form.Item>
-
+                )}
+              </Form.Item>
+            </Col>
+          </Row>
           {/* Phần thêm màu sắc và kích thước */}
           <Form.List name="options">
             {(fields, { add, remove }) => (
               <>
                 {fields.map(({ key, name, fieldKey, ...restField }) => (
-                  <div key={key} style={{ marginBottom: "20px", border: "1px solid #ddd", padding: "15px" }}>
-                    <Row gutter={16}>
-                      {/* Màu sắc */}
+                  <Card key={key} style={{ marginBottom: "20px", border: "1px solid #ddd", padding: "15px" }}>
+                    <Row gutter={16} align="middle">
                       <Col span={10}>
                         <Form.Item
                           {...restField}
@@ -612,8 +607,6 @@ const AdminProduct = () => {
                           <Input placeholder="Nhập màu sắc" />
                         </Form.Item>
                       </Col>
-
-                      {/* Xóa màu */}
                       <Col span={2}>
                         <Button
                           type="danger"
@@ -630,7 +623,7 @@ const AdminProduct = () => {
                       {(sizeFields, { add: addSize, remove: removeSize }) => (
                         <>
                           {sizeFields.map(({ key: sizeKey, name: sizeName, fieldKey: sizeFieldKey, ...sizeRestField }) => (
-                            <Row gutter={16} key={sizeKey}>
+                            <Row gutter={16} key={sizeKey} align="middle">
                               {/* Kích thước */}
                               <Col span={8}>
                                 <Form.Item
@@ -643,7 +636,6 @@ const AdminProduct = () => {
                                   <Input placeholder="Nhập kích thước (S, M, L...)" />
                                 </Form.Item>
                               </Col>
-
                               {/* Số lượng */}
                               <Col span={8}>
                                 <Form.Item
@@ -664,7 +656,6 @@ const AdminProduct = () => {
                                   <Input type="number" placeholder="Nhập số lượng" />
                                 </Form.Item>
                               </Col>
-
                               {/* Xóa kích thước */}
                               <Col span={4}>
                                 <Button
@@ -686,7 +677,7 @@ const AdminProduct = () => {
                         </>
                       )}
                     </Form.List>
-                  </div>
+                  </Card>
                 ))}
                 {/* Thêm màu mới */}
                 <Form.Item>
@@ -704,143 +695,151 @@ const AdminProduct = () => {
       </Modal>
       <DrawerComponent title={`Chỉnh sửa sản phẩm: ${selectedProductName}`} isOpen={isOpenDrawer} onClose={() => setIsOpenDrawer(false)} width="70%" maskClosable={false} >
         <Form form={updateForm} layout="vertical" onFinish={onFinishUpdateProduct}>
-          <Form.Item name="name" label="Tên Sản Phẩm" rules={[{ required: true, message: 'Vui lòng nhập tên sản phẩm' }]}>
-            <Input placeholder="Nhập tên sản phẩm" />
-          </Form.Item>
-          <Form.Item name="price" label="Giá sản phẩm (vnđ)"
-            rules={[
-              { required: true, message: 'Vui lòng nhập giá sản phẩm' },
-              {
-                validator: (_, value) =>
-                  value && (value < 1)
-                    ? Promise.reject(new Error('Giá sản phẩm phải lớn hơn 0'))
-                    : Promise.resolve(),
-              },
-            ]}>
-            <Input type="number" placeholder="Nhập giá sản phẩm" />
-          </Form.Item>
-          <Form.Item
-            name="sex"
-            label="Sản phẩm dành cho giới tính"
-            rules={[{ required: true, message: 'Vui lòng chọn giới tính sản phẩm' }]}
-          >
-            <Select placeholder="Chọn giới tính sản phẩm">
-              <Select.Option value="male">Nam</Select.Option>
-              <Select.Option value="female">Nữ</Select.Option>
-              <Select.Option value="unisex">Unisex</Select.Option>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            name="type"
-            label="Loại sản phẩm"
-            rules={[{ required: true, message: "Vui lòng chọn loại sản phẩm" }]}
-          >
-            <Select
-              placeholder="Chọn loại sản phẩm"
-              allowClear
-              value={selectedType} // Sử dụng selectedType để quản lý giá trị đã chọn
-              onChange={(value) => {
-                if (value === 'add_type') {
-                  setIsAddingType(true); // Hiển thị ô nhập liệu khi chọn "Thêm type"
-                } else {
-                  setSelectedType(value); // Cập nhật giá trị đã chọn
-                  setIsAddingType(false); // Nếu chọn loại có sẵn, ẩn ô nhập liệu
-                }
-              }}
-              options={renderOptions(types)} // Sử dụng kết quả từ hàm renderOptions
-            />
-          </Form.Item>
-
-          {isAddingType && (
-            <Form.Item label="Nhập loại sản phẩm mới">
-              <Input
-                value={newType}
-                onChange={(e) => setNewType(e.target.value)}
-                placeholder="Nhập loại sản phẩm mới"
-              />
-              <Button type="primary" onClick={handleAddType} style={{ marginTop: 10 }}>
-                Thêm loại
-              </Button>
-            </Form.Item>
-          )}
-          <Form.Item name="description" label="Mô Tả" rules={[{ required: true, message: 'Vui lòng nhập mô tả sản phẩm' }]}>
-            <Input.TextArea placeholder="Nhập mô tả sản phẩm" autoSize={{ minRows: 3, maxRows: 15 }} />
-          </Form.Item>
-          {/* <Form.Item name="countInStock" label="Số Lượng sản phẩm"
-            rules={[
-              { required: true, message: 'Vui lòng nhập số lượng' },
-              {
-                validator: (_, value) =>
-                  value && (value < 1)
-                    ? Promise.reject(new Error('Số lượng sản phẩm phải lớn hơn 0'))
-                    : Promise.resolve(),
-              },
-            ]}>
-            <Input type="number" placeholder="Nhập số lượng sản phẩm" />
-          </Form.Item> */}
-          <Form.Item name="discount" label="Phần trăm giảm giá"
-            rules={[
-              { required: true, message: 'Vui lòng nhập phần trăm giảm giá trong khoảng 0 - 100' },
-              {
-                validator: (_, value) =>
-                  value && (value < 0 || value > 100)
-                    ? Promise.reject(new Error('Phần trăm giảm giá phải nằm trong khoảng 1 đến 100'))
-                    : Promise.resolve(),
-              },
-            ]}>
-            <Input type="number" placeholder="Nhập phần trăm giảm giá " />
-          </Form.Item>
-          <Form.Item
-            label="Hình Ảnh"
-            rules={[{ required: true, message: 'Vui lòng chọn hình ảnh sản phẩm' }]}
-            style={{ display: 'flex' }}
-          >
-            <Upload
-              onChange={handleOnchangeImages}
-              multiple={true}
-              maxCount={3}
-              beforeUpload={() => false} // Prevent auto upload
-            >
-              <Button icon={<UploadOutlined />}>Tải ảnh lên</Button>
-            </Upload>
-
-            {images && images.length > 0 && (
-              <div style={{ marginTop: '10px', display: 'flex', flexWrap: 'wrap' }}>
-                {images.map((image, index) => (
-                  <div key={index} style={{ position: 'relative', marginRight: '10px', marginBottom: '10px' }}>
-                    <img
-                      src={image}
-                      alt={`Product Image ${index + 1}`}
-                      style={{ width: '100px', height: '100px' }}
-                    />
-                    {/* Nút xóa */}
-                    <Button
-                      onClick={() => handleDeleteImage(index)}
-                      icon={<DeleteOutlined />}
-                      style={{
-                        position: 'absolute',
-                        top: '0',
-                        right: '0',
-                        backgroundColor: 'red',
-                        color: 'white',
-                        borderRadius: '50%',
-                      }}
-                      size="small"
-                    />
+          <Row gutter={24}>
+            <Col span={12}>
+              <Form.Item name="name" label="Tên Sản Phẩm" rules={[{ required: true, message: 'Vui lòng nhập tên sản phẩm' }]}>
+                <Input placeholder="Nhập tên sản phẩm" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="price" label="Giá sản phẩm (vnđ)"
+                rules={[
+                  { required: true, message: 'Vui lòng nhập giá sản phẩm' },
+                  {
+                    validator: (_, value) =>
+                      value && (value < 1)
+                        ? Promise.reject(new Error('Giá sản phẩm phải lớn hơn 0'))
+                        : Promise.resolve(),
+                  },
+                ]}>
+                <Input type="number" placeholder="Nhập giá sản phẩm" />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={24}>
+            <Col span={12}>
+              <Form.Item
+                name="sex"
+                label="Sản phẩm dành cho giới tính"
+                rules={[{ required: true, message: 'Vui lòng chọn giới tính sản phẩm' }]}
+              >
+                <Select placeholder="Chọn giới tính sản phẩm">
+                  <Select.Option value="male">Nam</Select.Option>
+                  <Select.Option value="female">Nữ</Select.Option>
+                  <Select.Option value="unisex">Unisex</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="type"
+                label="Loại sản phẩm"
+                rules={[{ required: true, message: "Vui lòng chọn loại sản phẩm" }]}
+              >
+                <Select
+                  placeholder="Chọn loại sản phẩm"
+                  allowClear
+                  value={selectedType}
+                  onChange={(value) => {
+                    if (value === 'add_type') {
+                      setIsAddingType(true);
+                    } else {
+                      setSelectedType(value);
+                      setIsAddingType(false);
+                    }
+                  }}
+                  options={renderOptions(types)}
+                />
+              </Form.Item>
+              {isAddingType && (
+                <Form.Item label="Nhập loại sản phẩm mới">
+                  <Input
+                    value={newType}
+                    onChange={(e) => setNewType(e.target.value)}
+                    placeholder="Nhập loại sản phẩm mới"
+                  />
+                  <Button type="primary" onClick={handleAddType} style={{ marginTop: 10 }}>
+                    Thêm loại
+                  </Button>
+                </Form.Item>
+              )}
+            </Col>
+          </Row>
+          <Row gutter={24}>
+            <Col span={24}>
+              <Form.Item name="description" label="Mô Tả" rules={[{ required: true, message: 'Vui lòng nhập mô tả sản phẩm' }]}>
+                <Input.TextArea placeholder="Nhập mô tả sản phẩm" autoSize={{ minRows: 3, maxRows: 15 }} />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={24}>
+            <Col span={12}>
+              <Form.Item name="discount" label="Phần trăm giảm giá"
+                rules={[
+                  { required: true, message: 'Vui lòng nhập phần trăm giảm giá trong khoảng 0 - 100' },
+                  {
+                    validator: (_, value) =>
+                      value && (value < 0 || value > 100)
+                        ? Promise.reject(new Error('Phần trăm giảm giá phải nằm trong khoảng 1 đến 100'))
+                        : Promise.resolve(),
+                  },
+                ]}>
+                <Input type="number" placeholder="Nhập phần trăm giảm giá" />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={24}>
+            <Col span={24}>
+              <Form.Item
+                label="Hình Ảnh"
+                rules={[{ required: true, message: 'Vui lòng chọn hình ảnh sản phẩm' }]}
+                style={{ display: 'flex' }}
+              >
+                <Upload
+                  onChange={handleOnchangeImages}
+                  multiple={true}
+                  maxCount={3}
+                  beforeUpload={() => false}
+                >
+                  <Button icon={<UploadOutlined />}>Tải ảnh lên</Button>
+                </Upload>
+                {images && images.length > 0 && (
+                  <div style={{ marginTop: '10px', display: 'flex', flexWrap: 'wrap' }}>
+                    {images.map((image, index) => (
+                      <div key={index} style={{ position: 'relative', marginRight: '10px', marginBottom: '10px' }}>
+                        <img
+                          src={image}
+                          alt={`Product Image ${index + 1}`}
+                          style={{ width: '100px', height: '100px' }}
+                        />
+                        <Button
+                          onClick={() => handleDeleteImage(index)}
+                          icon={<DeleteOutlined />}
+                          style={{
+                            position: 'absolute',
+                            top: '0',
+                            right: '0',
+                            backgroundColor: 'red',
+                            color: 'white',
+                            borderRadius: '50%',
+                          }}
+                          size="small"
+                        />
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
-          </Form.Item>
+                )}
+              </Form.Item>
+            </Col>
+          </Row>
 
           {/* Phần thêm màu sắc và kích thước */}
           <Form.List name="options">
             {(fields, { add, remove }) => (
               <>
                 {fields.map(({ key, name, fieldKey, ...restField }) => (
-                  <div key={key} style={{ marginBottom: "20px", border: "1px solid #ddd", padding: "15px" }}>
-                    <Row gutter={16}>
-                      {/* Màu sắc */}
+                  <Card key={key} style={{ marginBottom: "20px", border: "1px solid #ddd", padding: "15px" }}>
+                    <Row gutter={16} align="middle">
                       <Col span={10}>
                         <Form.Item
                           {...restField}
@@ -852,8 +851,6 @@ const AdminProduct = () => {
                           <Input placeholder="Nhập màu sắc" />
                         </Form.Item>
                       </Col>
-
-                      {/* Xóa màu */}
                       <Col span={2}>
                         <Button
                           type="danger"
@@ -870,7 +867,7 @@ const AdminProduct = () => {
                       {(sizeFields, { add: addSize, remove: removeSize }) => (
                         <>
                           {sizeFields.map(({ key: sizeKey, name: sizeName, fieldKey: sizeFieldKey, ...sizeRestField }) => (
-                            <Row gutter={16} key={sizeKey}>
+                            <Row gutter={16} key={sizeKey} align="middle">
                               {/* Kích thước */}
                               <Col span={8}>
                                 <Form.Item
@@ -883,7 +880,6 @@ const AdminProduct = () => {
                                   <Input placeholder="Nhập kích thước (S, M, L...)" />
                                 </Form.Item>
                               </Col>
-
                               {/* Số lượng */}
                               <Col span={8}>
                                 <Form.Item
@@ -904,7 +900,6 @@ const AdminProduct = () => {
                                   <Input type="number" placeholder="Nhập số lượng" />
                                 </Form.Item>
                               </Col>
-
                               {/* Xóa kích thước */}
                               <Col span={4}>
                                 <Button
@@ -926,7 +921,7 @@ const AdminProduct = () => {
                         </>
                       )}
                     </Form.List>
-                  </div>
+                  </Card>
                 ))}
                 {/* Thêm màu mới */}
                 <Form.Item>

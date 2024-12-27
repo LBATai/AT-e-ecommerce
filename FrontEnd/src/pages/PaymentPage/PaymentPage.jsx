@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Button, Radio, Space, message } from "antd";
 import { useSelector, useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { formatCurrencyVND } from "../../utils";
 import { CreditCardOutlined, PayCircleOutlined } from "@ant-design/icons";
 import { FaPaypal } from "react-icons/fa";
-import { DeliveryStyle, PayStyle, PageWrapper, TitleStyle } from './style';
 import { useMutationHooks } from '../../hooks/useMutationHook';
 import * as OrderService from "../../Service/OrderService";
+import * as ProductService from '../../Service/ProductService'; // Import Product Service
 import Pending from '../../components/Pending/Pending';
 import { markProductsAsPaid, removePaidProducts } from '../../components/redux/Slide/orderSlide';
+import { Typography, Modal, message, Tag, Button } from 'antd';
 
 const PaymentPage = () => {
   const location = useLocation();
@@ -37,6 +37,7 @@ const PaymentPage = () => {
     }
   }, [user]);
 
+
   const getShippingPrice = (method) => {
     switch (method) {
       case "standard":
@@ -60,6 +61,11 @@ const PaymentPage = () => {
     const res = await OrderService.createOrder(userId, token, restData);
     return res;
   });
+  // Mutation to update product sold count
+  const mutationUpdateProduct = useMutationHooks(async ({ id, selled }) => {
+    const res = await ProductService.updateProduct(id, user?.access_token, { selled: selled })
+    return res;
+  });
 
   const handleCheckout = async () => {
     setIsPending(true);
@@ -79,11 +85,19 @@ const PaymentPage = () => {
       };
 
       await mutationAddOrder.mutateAsync(payload);
+      const updateProductPromises = selectedItems.map(async (item) => {
+        await mutationUpdateProduct.mutateAsync({
+          id: item.product,
+          selled: item.amount,
+        });
+      });
+      await Promise.all(updateProductPromises)
 
       const selectedItemIds = selectedItems.map(item => item.product);
       dispatch(markProductsAsPaid({ selectedItemIds }));
       dispatch(removePaidProducts({ selectedItemIds }));
 
+      message.success('Thanh toán thành công!')
       navigate('/profile', { state: { activeTab: '2' } });
     } catch (error) {
       if (error.response?.status === 400) {
@@ -97,85 +111,134 @@ const PaymentPage = () => {
   };
 
   return (
-    <PageWrapper>
-      <Pending isPending={isPending}>
-        <TitleStyle className="text-3xl font-semibold mb-6">Thanh toán</TitleStyle>
-        <Row gutter={[16, 16]} className="p-6 mt-24">
-          <Col xs={24} lg={11} className="ml-16">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <DeliveryStyle className="mb-4">
-                <div className="text-lg font-medium mb-2">Chọn phương thức giao hàng</div>
-                <Radio.Group
-                  value={deliveryMethod}
-                  onChange={(e) => setDeliveryMethod(e.target.value)}
-                  className="w-full"
-                >
-                  <Space direction="vertical" className="w-full">
-                    <Radio value="standard" className="w-full">
-                      Giao hàng tiêu chuẩn: 10.000 đ
-                    </Radio>
-                    <Radio value="express" className="w-full">
-                      Giao hàng nhanh: 20.000 đ
-                    </Radio>
-                  </Space>
-                </Radio.Group>
-              </DeliveryStyle>
-              <PayStyle>
-                <div className="text-lg font-medium mb-2">Chọn phương thức thanh toán</div>
-                <Radio.Group
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="w-full"
-                >
-                  <Space direction="vertical" className="w-full">
-                    <Radio value="Thẻ tín dụng" className="w-full">
-                      <CreditCardOutlined className="mr-2" /> Thẻ tín dụng
-                    </Radio>
-                    <Radio value="Thẻ ghi nợ" className="w-full">
-                      <PayCircleOutlined className="mr-2" /> Thẻ ghi nợ
-                    </Radio>
-                    <Radio value="paypal" className="w-full">
-                      <FaPaypal className="mr-2 text-[#003087]" /> PayPal
-                    </Radio>
-                    <Radio value="Thanh toán khi nhận hàng" className="w-full">
-                      Thanh toán khi nhận hàng
-                    </Radio>
-                  </Space>
-                </Radio.Group>
-              </PayStyle>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl w-full bg-white rounded-lg shadow-xl overflow-hidden">
+        <Pending isPending={isPending}>
+          <h1 className="text-3xl font-semibold text-gray-800 text-center py-8 border-b border-gray-200">
+            Thanh toán
+          </h1>
+          <div className="flex flex-col lg:flex-row p-6">
+            <div className="lg:w-1/2 lg:pr-8 space-y-6">
+              {/* Delivery Method Section */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h2 className="text-lg font-medium mb-2 text-gray-700">Chọn phương thức giao hàng</h2>
+                <div className="space-y-2">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="deliveryMethod"
+                      value="standard"
+                      checked={deliveryMethod === "standard"}
+                      onChange={(e) => setDeliveryMethod(e.target.value)}
+                      className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
+                    />
+                    <span className="text-gray-600">Giao hàng tiêu chuẩn: 10.000 đ</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="deliveryMethod"
+                      value="express"
+                      checked={deliveryMethod === "express"}
+                      onChange={(e) => setDeliveryMethod(e.target.value)}
+                      className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
+                    />
+                    <span className="text-gray-600">Giao hàng nhanh: 20.000 đ</span>
+                  </label>
+                </div>
+              </div>
+              {/* Payment Method Section */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h2 className="text-lg font-medium mb-2 text-gray-700">Chọn phương thức thanh toán</h2>
+                <div className="space-y-2">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="Thẻ tín dụng"
+                      checked={paymentMethod === "Thẻ tín dụng"}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
+                    />
+                    <span className="text-gray-600 flex items-center">
+                      <CreditCardOutlined className="mr-1" /> Thẻ tín dụng
+                    </span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="Thẻ ghi nợ"
+                      checked={paymentMethod === "Thẻ ghi nợ"}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
+                    />
+                    <span className="text-gray-600 flex items-center">
+                      <PayCircleOutlined className="mr-1" /> Thẻ ghi nợ
+                    </span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="paypal"
+                      checked={paymentMethod === "paypal"}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
+                    />
+                    <span className="text-gray-600 flex items-center">
+                      <FaPaypal className="mr-1 text-[#003087]" /> PayPal
+                    </span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="Thanh toán khi nhận hàng"
+                      checked={paymentMethod === "Thanh toán khi nhận hàng"}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
+                    />
+                    <span className="text-gray-600">Thanh toán khi nhận hàng</span>
+                  </label>
+                </div>
+              </div>
             </div>
-          </Col>
 
-          <Col xs={24} lg={8} className="bg-white p-6 shadow-md rounded-lg">
-            <div className="flex justify-between items-center py-2">
-              <span>Địa chỉ giao hàng: {checkoutInfo.address}</span>
+            {/* Order Summary */}
+            <div className="lg:w-1/2 lg:pl-8 space-y-6">
+              <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-700">Địa chỉ giao hàng:</span>
+                  <span className="font-medium">{checkoutInfo.address}</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-700">Tạm tính:</span>
+                  <span className="text-gray-700">{formatCurrencyVND(itemsPrice)}</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-700">Phí giao hàng:</span>
+                  <span className="text-gray-700">{formatCurrencyVND(currentShippingPrice)}</span>
+                </div>
+                <div className="mt-4 py-2 border-t border-gray-200 flex justify-between font-semibold text-lg">
+                  <span className="text-gray-800">Tổng cộng:</span>
+                  <span className="text-red-500">
+                    {totalAmount !== undefined ? formatCurrencyVND(itemsPrice + currentShippingPrice) : "Chưa có dữ liệu"}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCheckout}
+                  className="mt-6 w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
+                >
+                  Đặt hàng
+                </button>
+              </div>
             </div>
-            <div className="flex justify-between items-center py-2">
-              <span>Tạm tính: </span>
-              <span>{formatCurrencyVND(itemsPrice)}</span>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span>Phí giao hàng: </span>
-              <span>{formatCurrencyVND(currentShippingPrice)}</span>
-            </div>
-            <div className="mt-6 flex justify-between font-semibold text-lg">
-              <span>Tổng cộng: </span>
-              <span className="text-red-500">
-                {totalAmount !== undefined ? formatCurrencyVND(itemsPrice + currentShippingPrice) : "Chưa có dữ liệu"}
-              </span>
-            </div>
-            <Button
-              type="primary"
-              size="large"
-              className="mt-6 w-full"
-              onClick={handleCheckout}
-            >
-              Đặt hàng
-            </Button>
-          </Col>
-        </Row>
-      </Pending>
-    </PageWrapper>
+          </div>
+        </Pending>
+      </div>
+    </div>
   );
 };
 

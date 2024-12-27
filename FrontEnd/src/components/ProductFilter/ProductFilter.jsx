@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 import { searchProduct } from '../redux/Slide/productSlide.js';
 import { ChevronDown, Filter } from 'lucide-react';
 
-const ProductFilter = ({ onSortChange, onSortByDate, onSearch }) => {
+const ProductFilter = ({ onSortChange, onSortByDate, onSortBySelled, onSortByDiscount }) => {
   const [searchValue, setSearchValue] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dispatch = useDispatch();
@@ -21,6 +21,15 @@ const ProductFilter = ({ onSortChange, onSortByDate, onSearch }) => {
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
+
+  const handleSortBySelled = () => {
+    onSortBySelled();
+    setIsDropdownOpen(false);
+  }
+  const handleSortByDiscount = () => {
+    onSortByDiscount();
+    setIsDropdownOpen(false);
+  }
 
   return (
     <div className="w-full p-4 bg-white shadow-sm rounded-lg">
@@ -66,18 +75,24 @@ const ProductFilter = ({ onSortChange, onSortByDate, onSearch }) => {
 
                 {/* Filter Buttons */}
                 <div className="space-y-2">
-                  <button className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+                  <button
+                    onClick={handleSortBySelled}
+                    className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+                  >
                     <span role="img" aria-label="best-seller" className="text-lg">🏆</span>
                     <span>Bán chạy</span>
                   </button>
-                  <button 
+                  <button
                     onClick={onSortByDate}
                     className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
                   >
                     <span role="img" aria-label="newest" className="text-lg">🆕</span>
                     <span>Mới nhất</span>
                   </button>
-                  <button className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+                  <button
+                    onClick={handleSortByDiscount}
+                    className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+                  >
                     <span role="img" aria-label="discount" className="text-lg">🔥</span>
                     <span>Giảm giá</span>
                   </button>
@@ -107,18 +122,24 @@ const ProductFilter = ({ onSortChange, onSortByDate, onSearch }) => {
 
         {/* Filter Buttons */}
         <div className="flex gap-2">
-          <button className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2">
+          <button
+            onClick={handleSortBySelled}
+            className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"
+          >
             <span role="img" aria-label="best-seller" className="text-lg">🏆</span>
             <span>Bán chạy</span>
           </button>
-          <button 
+          <button
             onClick={onSortByDate}
             className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"
           >
             <span role="img" aria-label="newest" className="text-lg">🆕</span>
             <span>Mới nhất</span>
           </button>
-          <button className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2">
+          <button
+            onClick={handleSortByDiscount}
+            className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"
+          >
             <span role="img" aria-label="discount" className="text-lg">🔥</span>
             <span>Giảm giá</span>
           </button>

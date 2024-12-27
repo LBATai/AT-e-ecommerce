@@ -1,22 +1,21 @@
-const mongoose = require('mongoose');
-
+const mongoose = require("mongoose");
 const productSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, unique: true },
     images: { type: [String], required: true },
-    type: { type: String, required: true }, // Loại sản phẩm: máy tính, áo quần, v.v.
+    type: { type: String, required: true },
     price: { type: Number, required: true },
     countAllInStock: { type: Number },
-    rating: { type: Number, default: 5},
-    countRating: { type: Number, default: 0},
+    rating: { type: Number, default: 5 },
+    countRating: { type: Number, default: 0 },
     description: { type: String },
     discount: { type: Number },
     selled: { type: Number, default: 0 },
-    isLike: {type: Boolean, default: false},
-    sex: { 
-      type: String, 
-      enum: ['male', 'female', 'unisex'], 
-      required: true 
+    isLike: { type: Boolean, default: false },
+    sex: {
+      type: String,
+      enum: ["male", "female", "unisex"],
+      required: true,
     },
     options: [
       {
@@ -34,14 +33,12 @@ const productSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
 // Middleware to calculate countAllInStock before saving the product
-productSchema.pre('save', function(next) {
+productSchema.pre("save", function (next) {
   let totalStock = 0;
-
   // Tính tổng số lượng trong options
-  this.options.forEach(option => {
-    option.sizes.forEach(size => {
+  this.options.forEach((option) => {
+    option.sizes.forEach((size) => {
       totalStock += size.countInStock;
     });
   });
@@ -51,6 +48,5 @@ productSchema.pre('save', function(next) {
 
   next();
 });
-
-const Product = mongoose.model('Product', productSchema);
+const Product = mongoose.model("Product", productSchema);
 module.exports = Product;
