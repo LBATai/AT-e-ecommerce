@@ -60,7 +60,7 @@ const AdminVoucher = () => {
                 id: res?.data._id,
                 code: res?.data?.code,
                 discount: res?.data?.discount,
-                expiryDate: res?.data?.expiryDate,
+                 expiryDate: res?.data?.expiryDate,
                 status: res?.data?.status,
                 maxIssuance: res?.data?.maxIssuance,
                 maxUsage: res?.data?.maxUsage,
@@ -68,27 +68,41 @@ const AdminVoucher = () => {
         }
         return res
     }
+     useEffect(() => {
+         if (stateVoucherDetails) {
+             const formattedDetails = {
+                 ...stateVoucherDetails,
+                 expiryDate: stateVoucherDetails?.expiryDate
+                     ?  stateVoucherDetails.expiryDate
+                     : undefined,
+             };
+             addForm.setFieldsValue(formattedDetails)
+         }
+     }, [addForm, stateVoucherDetails]);
+     useEffect(() => {
+         if (stateVoucherDetails) {
+             const formattedDetails = {
+                 ...stateVoucherDetails,
+                 expiryDate: stateVoucherDetails?.expiryDate
+                     ?  stateVoucherDetails.expiryDate
+                     : undefined,
+             };
+             updateForm.setFieldsValue(formattedDetails);
+         }
+     }, [updateForm, stateVoucherDetails]);
+    useEffect(() => {
+        if (rowSelected) {
+            fetchGetDetailsVoucher()
+        }
+    }, [rowSelected]);
     const mutation = useMutationHooks(
         async (newVoucher) => {
             const response = await VoucherService.createVoucher(newVoucher);
             return response;
         },
     );
-    useEffect(() => {
-        if (stateVoucherDetails) {
-            addForm.setFieldsValue(stateVoucherDetails)
-        }
-    }, [addForm, stateVoucherDetails]);
-    useEffect(() => {
-        if (stateVoucherDetails) {
-            updateForm.setFieldsValue(stateVoucherDetails)
-        }
-    }, [updateForm, stateVoucherDetails]);
-    useEffect(() => {
-        if (rowSelected) {
-            fetchGetDetailsVoucher()
-        }
-    }, [rowSelected]);
+
+
 
     useEffect(() => {
         if (mutation.isSuccess) {
@@ -204,11 +218,10 @@ const AdminVoucher = () => {
         updateForm.resetFields();
         addForm.resetFields();
     };
-    const onFinish = (values) => {
+   const onFinish = (values) => {
         const newVoucher = {
             ...values,
-            expiryDate: values['expiryDate']?.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
-
+            expiryDate: values.expiryDate?.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
         };
         mutation.mutate(newVoucher); // Gửi yêu cầu tạo voucher
     };
@@ -224,9 +237,9 @@ const AdminVoucher = () => {
     const onFinishUpdateVoucher = (values) => {
         const data = {
             ...values,
-            expiryDate: values['expiryDate']?.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
+             expiryDate: values.expiryDate?.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
         };
-        console.log('data', data);
+         console.log('data', data);
         // Truyền id, access_token và dữ liệu cần cập nhật vào mutate
         mutationUpdateVoucher.mutate({ id: rowSelected, ...data });
     };
@@ -426,7 +439,7 @@ const AdminVoucher = () => {
                     >
                         <Input placeholder="Nhập mức giảm giá" />
                     </Form.Item>
-                    <Form.Item
+                   <Form.Item
                         name="expiryDate"
                         label="Ngày hết hạn"
                         rules={[

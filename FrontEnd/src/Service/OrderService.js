@@ -7,7 +7,7 @@ export const axiosJWT = axios.create({
 });
 
 export const createOrder  = async (id,access_token, data) => {
-  // console.log('data', data)
+  console.log('data', data)
     const res = await axiosJWT.post(`${import.meta.env.VITE_API_URL_BACKEND}/order/create-order/${id}`, data, {
         headers: {
             token: `Bearer ${access_token}`

@@ -6,7 +6,8 @@ import { CreditCardOutlined, PayCircleOutlined } from "@ant-design/icons";
 import { FaPaypal } from "react-icons/fa";
 import { useMutationHooks } from '../../hooks/useMutationHook';
 import * as OrderService from "../../Service/OrderService";
-import * as ProductService from '../../Service/ProductService'; // Import Product Service
+import * as ProductService from '../../Service/ProductService';
+import * as PaymentTypeService from '../../Service/PaymentTypeService'; // Import PaymentType service
 import Pending from '../../components/Pending/Pending';
 import { markProductsAsPaid, removePaidProducts } from '../../components/redux/Slide/orderSlide';
 import { Typography, Modal, message, Tag, Button } from 'antd';
@@ -15,12 +16,13 @@ const PaymentPage = () => {
   const location = useLocation();
   const order = useSelector((state) => state.order);
   const user = useSelector((state) => state.user);
-  const { totalAmount, itemsPrice, selectedItems } = location.state || {};
+  const { totalAmount, itemsPrice, selectedItems, userInfo } = location.state || {};
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isPending, setIsPending] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("cod");
+  const [paymentMethod, setPaymentMethod] = useState(null); // changed from string to null
   const [deliveryMethod, setDeliveryMethod] = useState("standard");
+  const [paymentTypes, setPaymentTypes] = useState([]);
   const [checkoutInfo, setCheckoutInfo] = useState({
     name: "",
     address: "",
@@ -28,14 +30,34 @@ const PaymentPage = () => {
   });
 
   useEffect(() => {
-    if (user) {
+    if (userInfo) {
       setCheckoutInfo({
-        name: user.name || "",
-        address: user.address || "",
-        phone: user.phone || "",
+        name: userInfo.name || "",
+        address: userInfo.address || "",
+        phone: userInfo.phone || "",
       });
     }
-  }, [user]);
+  }, [userInfo]);
+
+  // Fetch payment types from backend
+  useEffect(() => {
+    const fetchPaymentTypes = async () => {
+      try {
+        const response = await PaymentTypeService.getAllPaymentTypes();
+        if (response?.status === "OK" && Array.isArray(response?.data)) {
+          setPaymentTypes(response.data);
+          // Set the initial payment method to the first one, if available.
+          if (response.data.length > 0) {
+            setPaymentMethod(response.data[0].name);
+          }
+        }
+      } catch (error) {
+        message.error('Không thể lấy danh sách phương thức thanh toán!');
+      }
+    };
+
+    fetchPaymentTypes();
+  }, []);
 
 
   const getShippingPrice = (method) => {
@@ -61,14 +83,20 @@ const PaymentPage = () => {
     const res = await OrderService.createOrder(userId, token, restData);
     return res;
   });
-  // Mutation to update product sold count
+
   const mutationUpdateProduct = useMutationHooks(async ({ id, selled }) => {
     const res = await ProductService.updateProduct(id, user?.access_token, { selled: selled })
     return res;
   });
 
+
   const handleCheckout = async () => {
     setIsPending(true);
+    if (!paymentMethod) {
+      message.error('Vui lòng chọn phương thức thanh toán!');
+      setIsPending(false);
+      return;
+    }
     try {
       const payload = {
         token: user?.access_token,
@@ -151,56 +179,22 @@ const PaymentPage = () => {
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h2 className="text-lg font-medium mb-2 text-gray-700">Chọn phương thức thanh toán</h2>
                 <div className="space-y-2">
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="Thẻ tín dụng"
-                      checked={paymentMethod === "Thẻ tín dụng"}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
-                    />
-                    <span className="text-gray-600 flex items-center">
-                      <CreditCardOutlined className="mr-1" /> Thẻ tín dụng
-                    </span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="Thẻ ghi nợ"
-                      checked={paymentMethod === "Thẻ ghi nợ"}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
-                    />
-                    <span className="text-gray-600 flex items-center">
-                      <PayCircleOutlined className="mr-1" /> Thẻ ghi nợ
-                    </span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="paypal"
-                      checked={paymentMethod === "paypal"}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
-                    />
-                    <span className="text-gray-600 flex items-center">
-                      <FaPaypal className="mr-1 text-[#003087]" /> PayPal
-                    </span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="Thanh toán khi nhận hàng"
-                      checked={paymentMethod === "Thanh toán khi nhận hàng"}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
-                    />
-                    <span className="text-gray-600">Thanh toán khi nhận hàng</span>
-                  </label>
+                  {paymentTypes.map(paymentType => (
+                    <label key={paymentType._id} className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value={paymentType.name}
+                        checked={paymentMethod === paymentType.name}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
+                      />
+                      <span className="text-gray-600 flex items-center">
+                        {paymentType.icon && <img src={paymentType.icon} alt={paymentType.name} className="mr-1" style={{ width: "20px", height: "20px", marginRight: "5px" }} />}
+                        {paymentType.name}
+                      </span>
+                    </label>
+                  ))}
                 </div>
               </div>
             </div>

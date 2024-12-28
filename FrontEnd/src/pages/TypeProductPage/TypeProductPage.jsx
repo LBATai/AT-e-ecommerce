@@ -246,7 +246,7 @@ const TypeProductPage = () => {
           onClick={() => setGenderOpen(!isGenderOpen)}
           className="flex items-center justify-between w-full text-lg py-2"
         >
-          <span>Giới tính</span>
+          <span>Thời trang</span>
           <ChevronDown
             className={`transform transition-transform duration-300 ${isGenderOpen ? 'rotate-180' : ''
               }`}

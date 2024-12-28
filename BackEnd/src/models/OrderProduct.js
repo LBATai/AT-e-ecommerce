@@ -30,7 +30,7 @@ const orderSchema = new mongoose.Schema({
   isSuccess: { type: Boolean, default: false },
   deliveredAt: { type: Date },
   isDelivered: { type: Boolean, default: false },
-  isCancel: { type: Boolean, default: false },
+  isCancelled: { type: Boolean, default: false },
   itemsPrice: { type: Number, required: true },
   shippingPrice: { type: Number, required: true },
   user: {

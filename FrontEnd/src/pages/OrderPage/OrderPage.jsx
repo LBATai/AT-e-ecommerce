@@ -8,72 +8,74 @@ import Pending from '../../components/Pending/Pending';
 import { formatCurrencyVND } from '../../utils';
 
 const OrderPage = () => {
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const queryClient = useQueryClient();
-    const [filter, setFilter] = useState('all');
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [filter, setFilter] = useState('all');
 
-    const { Title, Text } = Typography;
-    const user = useSelector((state) => state.user);
-    const userId = user?.id;
+  const { Title, Text } = Typography;
+  const user = useSelector((state) => state.user);
+  const userId = user?.id;
 
-    const fetchOrderAll = async () => {
+  const fetchOrderAll = async () => {
+    try {
+      const res = await OrderService.getAllOrder(userId);
+      return res?.data || [];
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      return [];
+    }
+  };
+
+  const { data: orders, isLoading } = useQuery({
+    queryKey: ['orders'],
+    queryFn: fetchOrderAll,
+    enabled: !!userId,
+  });
+
+  const handleCancelOrder = (orderId) => {
+    Modal.confirm({
+      title: `Xác nhận hủy đơn hàng: ${orderId}`,
+      content: 'Bạn có chắc chắn muốn hủy đơn hàng này không?',
+      okText: 'Xác nhận',
+      cancelText: 'Hủy',
+      onOk: async () => {
         try {
-            const res = await OrderService.getAllOrder(userId);
-            return res?.data || [];
+          // Gọi API để cập nhật trạng thái isCancel thành true
+          const res = await OrderService.updateOrder(orderId, { isCancelled: true });
+          if (res?.status === 'OK') {
+            message.success('Hủy đơn hàng thành công!');
+            // Invalidate the 'orders' query to refresh the data
+            queryClient.invalidateQueries(['orders']);
+          } else {
+            message.error('Hủy đơn hàng thất bại!');
+          }
         } catch (error) {
-            console.error('Error fetching orders:', error);
-            return [];
+          console.error('Lỗi khi hủy đơn hàng:', error);
+          message.error('Đã xảy ra lỗi, vui lòng thử lại sau!');
         }
-    };
-
-    const { data: orders, isLoading } = useQuery({
-        queryKey: ['orders'],
-        queryFn: fetchOrderAll,
-        enabled: !!userId,
+      },
     });
+  };
 
-    const handleCancelOrder = (orderId) => {
-        Modal.confirm({
-            title: `Xác nhận hủy đơn hàng: ${orderId}`,
-            content: 'Bạn có chắc chắn muốn hủy đơn hàng này không?',
-            okText: 'Xóa',
-            cancelText: 'Hủy',
-            onOk: async () => {
-                try {
-                    const res = await OrderService.deleteOrder(orderId);
-                    if (res?.status === 'OK') {
-                        message.success('Hủy đơn hàng thành công!');
-                        queryClient.invalidateQueries(['orders']);
-                    } else {
-                        message.error('Hủy đơn hàng thất bại!');
-                    }
-                } catch (error) {
-                    console.error('Lỗi khi hủy đơn hàng:', error);
-                    message.error('Đã xảy ra lỗi, vui lòng thử lại sau!');
-                }
-            },
-        });
-    };
+  const handleViewDetails = (orderId) => {
+    navigate(`/order-detail?id=${orderId}`);
+  };
 
-    const handleViewDetails = (orderId) => {
-        navigate(`/order-detail?id=${orderId}`);
-    };
-
-    const filteredOrders = orders?.filter((order) => {
-        switch (filter) {
-            case 'waitingAccept':
-                 return order.isPaid === false && order.isSuccess === false && order.isDelivered === false;
-            case 'pending':
-                 return (order.isPaid === false || order.isPaid === true) && order.isSuccess === false && order.isDelivered === true;
-            case 'delivered':
-                return order.isPaid === true && order.isSuccess === true && order.isDelivered === true;
-             case 'cancelled':
-                return order.isCancelled;
-            default:
-                return true;
-        }
-    });
+  const filteredOrders = orders?.filter((order) => {
+    switch (filter) {
+      case 'waitingAccept':
+        return order.isPaid === false && order.isSuccess === false && order.isDelivered === false && !order.isCancelled;
+      case 'pending':
+        return (order.isPaid === false || order.isPaid === true) && order.isSuccess === false && order.isDelivered === true && !order.isCancelled;
+      case 'delivered':
+        return order.isPaid === true && order.isSuccess === true && order.isDelivered === true && !order.isCancelled;
+      case 'cancelled':
+        return order.isCancelled;
+      default:
+        return !order.isCancelled; // Hiển thị tất cả đơn hàng chưa bị hủy
+    }
+  });
   return (
     <Pending isPending={isLoading}>
       <div className="p-6">
@@ -85,7 +87,7 @@ const OrderPage = () => {
             >
               Tất cả
             </span>
-               <span
+            <span
               className={`cursor-pointer ${filter === 'waitingAccept' ? 'text-blue-500 border-b-2 border-blue-500' : 'text-gray-500'}`}
               onClick={() => setFilter('waitingAccept')}
             >
@@ -119,10 +121,10 @@ const OrderPage = () => {
           {filter === 'delivered' && 'Đơn hàng hoàn thành'}
           {filter === 'cancelled' && 'Đã hủy'}
         </Title>
-         {/* Kiểm tra nếu không có đơn hàng trong tab đang chọn */}
+        {/* Kiểm tra nếu không có đơn hàng trong tab đang chọn */}
         {!isLoading && Array.isArray(filteredOrders) && filteredOrders.length === 0 && (
           <Text className="text-gray-500">Hiện tại không có đơn hàng nào.</Text>
-         )}
+        )}
 
         {!isLoading && Array.isArray(filteredOrders) && filteredOrders.length > 0 && (
           <div className="space-y-4">
@@ -137,23 +139,29 @@ const OrderPage = () => {
                       {new Date(order.createdAt).toLocaleDateString()}
                     </Text>
                   </div>
-                   <Tag
-                        className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
-                            order.isDelivered
-                                ? order.isSuccess
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-yellow-100 text-yellow-800"
-                                : "bg-red-100 text-red-800"
+                  {/* Hiển thị tag 'Đã hủy' nếu đơn hàng bị hủy */}
+                  {order.isCancelled ? (
+                    <Tag className="inline-flex px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                      Đã hủy
+                    </Tag>
+                  ) : (
+                    <Tag
+                      className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${order.isDelivered
+                        ? order.isSuccess
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                        : "bg-red-100 text-red-800"
                         }`}
                     >
-                         {
-                                  order.isDelivered
-                                    ? order.isSuccess
-                                        ? "Đã giao hàng thành công"
-                                        :  "Đang giao hàng"
-                                    : 'Chưa giao hàng'
-                             }
+                      {
+                        order.isDelivered
+                          ? order.isSuccess
+                            ? "Đã giao hàng thành công"
+                            : "Đang giao hàng"
+                          : 'Chưa giao hàng'
+                      }
                     </Tag>
+                  )}
                 </div>
 
                 <div className="space-y-2 mb-4">
@@ -178,13 +186,14 @@ const OrderPage = () => {
                     </Text>
                   </div>
                   <div className="space-x-2">
-                     {filter !== 'pending' && !order.isDelivered && (
-                        <button
-                         className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                            onClick={() => handleCancelOrder(order._id)}
-                        >
-                          Hủy đơn hàng
-                        </button>
+                    {/* Chỉ hiển thị nút 'Hủy đơn hàng' nếu đơn hàng chưa bị hủy */}
+                    {!order.isCancelled && filter !== 'pending' && !order.isDelivered && (
+                      <button
+                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                        onClick={() => handleCancelOrder(order._id)}
+                      >
+                        Hủy đơn hàng
+                      </button>
                     )}
 
                     <button

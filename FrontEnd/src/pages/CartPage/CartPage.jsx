@@ -1,8 +1,14 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { increaseAmount, decreaseAmount, removeOrderProduct, removeOrderAllProduct, updateStock } from "../../components/redux/Slide/orderSlide";
+import {
+  increaseAmount,
+  decreaseAmount,
+  removeOrderProduct,
+  removeOrderAllProduct,
+} from "../../components/redux/Slide/orderSlide";
 import { formatCurrencyVND } from "../../utils";
+import { getAllOrderAddresses } from "../../Service/OrderAddressService";
 
 const CartPage = () => {
   const order = useSelector((state) => state.order);
@@ -18,15 +24,11 @@ const CartPage = () => {
   const [isEditAddressModalVisible, setIsEditAddressModalVisible] = useState(false);
   const [isBulkDeleteModalVisible, setIsBulkDeleteModalVisible] = useState(false);
   const [checkoutInfo, setCheckoutInfo] = useState({ name: "", address: "", phone: "" });
+  const [addresses, setAddresses] = useState([]);
+  const [defaultAddress, setDefaultAddress] = useState(null);
 
   useEffect(() => {
-    if (user) {
-      setCheckoutInfo({
-        name: user.name || "",
-        address: user.address || "",
-        phone: user.phone || "",
-      });
-    }
+    fetchAddresses();
   }, [user]);
 
   useEffect(() => {
@@ -46,17 +48,43 @@ const CartPage = () => {
     }
   }, [order]);
 
+  const fetchAddresses = async () => {
+    try {
+      if (!user.id) {
+        return;
+      }
+      const res = await getAllOrderAddresses(user.id, user.access_token);
+      if (res && res.data) {
+        setAddresses(res.data);
+        // Tìm địa chỉ mặc định
+        const defaultAddr = res.data.find((addr) => addr.isDefault);
+        setDefaultAddress(defaultAddr);
+
+        // Cập nhật checkoutInfo với địa chỉ mặc định hoặc giá trị mặc định
+        if (defaultAddr) {
+          setCheckoutInfo({
+            name: defaultAddr.name,
+            address: defaultAddr.address,
+            phone: defaultAddr.phone,
+          });
+        }
+      }
+    } catch (error) {
+      console.log('err', error);
+    }
+  };
+
   const total = useMemo(() => {
     return selectedItems.reduce((sum, itemId) => {
-      const item = updatedItems.find(i => i.id === itemId);
+      const item = updatedItems.find((i) => i.id === itemId);
       return sum + (item ? item.amount * item.price : 0);
     }, 0);
   }, [updatedItems, selectedItems]);
 
   const handleSelectItem = (itemId) => {
-    setSelectedItems(prev => 
-      prev.includes(itemId) 
-        ? prev.filter(id => id !== itemId)
+    setSelectedItems((prev) =>
+      prev.includes(itemId)
+        ? prev.filter((id) => id !== itemId)
         : [...prev, itemId]
     );
   };
@@ -65,7 +93,7 @@ const CartPage = () => {
     setSelectedItems(
       selectedItems.length === updatedItems.length
         ? []
-        : updatedItems.map(item => item.id)
+        : updatedItems.map((item) => item.id)
     );
   };
 
@@ -102,8 +130,18 @@ const CartPage = () => {
       setIsModalVisible(true);
     } else if (selectedItems.length === 0) {
       alert("Vui lòng chọn ít nhất một sản phẩm");
+    } else if (!defaultAddress) {
+      alert("Bạn cần tạo địa chỉ giao hàng trước khi thanh toán.");
+      setIsEditAddressModalVisible(true);
     } else {
       setIsCheckoutModalVisible(true);
+      setCheckoutInfo(prev => ({
+        ...prev,
+        name: defaultAddress.name,
+        address: defaultAddress.address,
+        phone: defaultAddress.phone
+      }))
+
     }
   };
 
@@ -111,7 +149,9 @@ const CartPage = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center p-8 bg-white rounded-lg shadow-lg">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">Giỏ hàng của bạn đang trống</h2>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+            Giỏ hàng của bạn đang trống
+          </h2>
           <button
             onClick={() => navigate("/")}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -213,7 +253,9 @@ const CartPage = () => {
         {/* Order Summary Section */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-xl shadow-lg p-6 sticky top-4">
-            <h2 className="text-xl font-semibold text-gray-800 mb-6">Tổng đơn hàng</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-6">
+              Tổng đơn hàng
+            </h2>
             <div className="space-y-4">
               <div className="flex justify-between text-gray-600">
                 <span>Số sản phẩm đã chọn</span>
@@ -230,7 +272,9 @@ const CartPage = () => {
               <div className="pt-4 border-t border-gray-200">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Tổng cộng</span>
-                  <span className="text-xl font-bold text-blue-600">{formatCurrencyVND(total)}</span>
+                  <span className="text-xl font-bold text-blue-600">
+                    {formatCurrencyVND(total)}
+                  </span>
                 </div>
               </div>
               <button
@@ -246,7 +290,9 @@ const CartPage = () => {
               <div className="flex justify-between items-center">
                 <div className="text-sm text-gray-600">
                   <p>Địa chỉ giao hàng:</p>
-                  <p className="font-medium">{checkoutInfo.address || "Chưa có địa chỉ"}</p>
+                  <p className="font-medium">
+                    {checkoutInfo.address || "Chưa có địa chỉ"}
+                  </p>
                 </div>
                 <button
                   onClick={() => setIsEditAddressModalVisible(true)}
@@ -292,7 +338,10 @@ const CartPage = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-sm mx-4">
             <h3 className="text-lg font-semibold mb-4">Xác nhận xóa hàng loạt</h3>
-            <p>Bạn có chắc muốn xóa {selectedItems.length} sản phẩm đã chọn khỏi giỏ hàng?</p>
+            <p>
+              Bạn có chắc muốn xóa {selectedItems.length} sản phẩm đã chọn khỏi
+              giỏ hàng?
+            </p>
             <div className="mt-6 flex justify-end gap-4">
               <button
                 onClick={() => setIsBulkDeleteModalVisible(false)}
@@ -324,9 +373,12 @@ const CartPage = () => {
                 <input
                   type="text"
                   value={checkoutInfo.name}
-                  onChange={(e) => setCheckoutInfo({ ...checkoutInfo, name: e.target.value })}
+                  onChange={(e) =>
+                    setCheckoutInfo({ ...checkoutInfo, name: e.target.value })
+                  }
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Nhập họ và tên"
+                  readOnly={true}
                 />
               </div>
               <div>
@@ -336,9 +388,12 @@ const CartPage = () => {
                 <input
                   type="text"
                   value={checkoutInfo.address}
-                  onChange={(e) => setCheckoutInfo({ ...checkoutInfo, address: e.target.value })}
+                  onChange={(e) =>
+                    setCheckoutInfo({ ...checkoutInfo, address: e.target.value })
+                  }
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Nhập địa chỉ"
+                  readOnly={true}
                 />
               </div>
               <div>
@@ -348,9 +403,12 @@ const CartPage = () => {
                 <input
                   type="tel"
                   value={checkoutInfo.phone}
-                  onChange={(e) => setCheckoutInfo({ ...checkoutInfo, phone: e.target.value })}
+                  onChange={(e) =>
+                    setCheckoutInfo({ ...checkoutInfo, phone: e.target.value })
+                  }
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Nhập số điện thoại"
+                  readOnly={true}
                 />
               </div>
               <div className="mt-4 bg-gray-50 p-4 rounded-lg">
@@ -360,7 +418,9 @@ const CartPage = () => {
                 </div>
                 <div className="flex justify-between mb-2">
                   <span className="text-gray-600">Tổng tiền:</span>
-                  <span className="font-medium text-blue-600">{formatCurrencyVND(total)}</span>
+                  <span className="font-medium text-blue-600">
+                    {formatCurrencyVND(total)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -374,7 +434,7 @@ const CartPage = () => {
               <button
                 onClick={() => {
                   setIsCheckoutModalVisible(false);
-                  const selectedProducts = updatedItems.filter(item => 
+                  const selectedProducts = updatedItems.filter((item) =>
                     selectedItems.includes(item.id)
                   );
                   navigate("/payment", {
@@ -382,7 +442,7 @@ const CartPage = () => {
                       totalAmount: total,
                       itemsPrice: total,
                       selectedItems: selectedProducts,
-                      userInfo: checkoutInfo
+                      userInfo: checkoutInfo,
                     },
                   });
                 }}
@@ -399,7 +459,9 @@ const CartPage = () => {
       {isEditAddressModalVisible && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4">Thay đổi địa chỉ giao hàng</h3>
+            <h3 className="text-lg font-semibold mb-4">
+              Thay đổi địa chỉ giao hàng
+            </h3>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Địa chỉ hiện tại
@@ -412,7 +474,8 @@ const CartPage = () => {
               />
             </div>
             <p className="text-sm text-gray-600 mb-4">
-              Để thay đổi địa chỉ giao hàng, bạn cần cập nhật trong phần thông tin cá nhân
+              Để thay đổi địa chỉ giao hàng, bạn cần cập nhật trong phần thông tin
+              cá nhân
             </p>
             <div className="flex justify-end gap-4">
               <button

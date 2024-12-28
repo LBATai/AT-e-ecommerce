@@ -18,6 +18,7 @@ import AdminUser from '../../components/AdminUser/AdminUser';
 import AdminOrder from '../../components/AdminOrder/AdminOrder';
 import AdminBanner from '../../components/AdminBanner/AdminBanner';
 import AdminVoucher from '../../components/AdminVoucher/AdminVoucher';
+import AdminPaymentType from '../../components/AdminPaymentType/AdminPaymentType';
 import { fetchAllUser, fetchAllProducts, fetchAllOrders } from '../../utils';
 
 const AdminPage = () => {
@@ -70,6 +71,8 @@ const AdminPage = () => {
         return <AdminBanner />;
       case 'vouchers':
         return <AdminVoucher />;
+      case 'paymentType':
+        return <AdminPaymentType />;
       default:
         return (
           <div>
@@ -120,6 +123,7 @@ const AdminPage = () => {
               { key: 'orders', label: 'Đơn hàng', icon: ShoppingOutlined },
               { key: 'vouchers', label: 'Voucher', icon: GiftOutlined },
               { key: 'delivery', label: 'Loại giao hàng', icon: CarOutlined },
+              { key: 'paymentType', label: 'Loại thanh toán', icon: CarOutlined },
               { key: 'banners', label: 'Banner', icon: PictureOutlined },
               { key: 'blog', label: 'Blog', icon: FileTextOutlined },
               { key: 'settings', label: 'Cài đặt', icon: SettingOutlined },
